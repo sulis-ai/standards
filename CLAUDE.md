@@ -18,6 +18,7 @@ add a row to the index table, and specify when it should be loaded.
 | Standard | File | Load When |
 |----------|------|-----------|
 | Engineering Principles | `standards/ENGINEERING_PRINCIPLES.md` | **Always** |
+| Security | `standards/SECURITY_STANDARD.md` | **Always** |
 
 Standards marked **Always** are loaded for every task regardless of scope.
 

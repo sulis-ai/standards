@@ -22,6 +22,7 @@ Claude Code picks up `CLAUDE.md` automatically. The standards are active immedia
 |------|------|
 | `CLAUDE.md` | Entry point. Non-negotiable rules, quality gates, severity conventions. Loaded automatically by Claude Code. |
 | `standards/ENGINEERING_PRINCIPLES.md` | Three active principles with detailed guidance, anti-patterns, and verification criteria. |
+| `standards/SECURITY_STANDARD.md` | Seven security principles (SEC-01 through SEC-07) covering input validation, secrets, authorization, injection prevention, error handling, dependencies, and logging. |
 | `roadmap/ROLLOUT_PLAN.md` | Nine further principles staged across three tiers, with promotion criteria. Guidance for growing beyond the starter set. |
 
 ## The three active principles
@@ -43,3 +44,9 @@ The rollout plan in `roadmap/ROLLOUT_PLAN.md` has nine more principles ready to 
 ## Philosophy
 
 Start small. These three principles address the most common problem with AI-assisted development: duplication and lack of refactoring. Add more when these are habitual. The rollout plan has the sequence.
+
+## License
+
+MIT License. See [LICENSE](LICENSE) for full text.
+
+This project is provided as-is with no warranty. Use it, fork it, adapt it — no restrictions on commercial or non-commercial use.
