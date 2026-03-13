@@ -34,7 +34,15 @@ are produced in Mermaid syntax for easy rendering in any Markdown viewer.
 
 ## Installation
 
-**Local (development):**
+### From marketplace (recommended)
+
+```
+/plugin marketplace add sulis-ai/standards
+/plugin install srd@sulis-ai-standards
+```
+
+### From local clone
+
 ```bash
 claude --plugin-dir ./srd
 ```
