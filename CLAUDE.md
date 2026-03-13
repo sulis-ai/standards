@@ -19,6 +19,10 @@ add a row to the index table, and specify when it should be loaded.
 |----------|------|-----------|
 | Engineering Principles | `standards/ENGINEERING_PRINCIPLES.md` | **Always** |
 | Security | `standards/SECURITY_STANDARD.md` | **Always** |
+| Cognitive Load | `standards/COGNITIVE_LOAD.md` | Agent facilitation tasks |
+| Coaching Without Conflict | `standards/COACHING_WITHOUT_CONFLICT.md` | Agent facilitation tasks |
+| Critical Thinking | `standards/CRITICAL_THINKING_STANDARD.md` | Agent facilitation tasks |
+| Content Quality | `standards/CONTENT_QUALITY.md` | Content generation tasks |
 
 Standards marked **Always** are loaded for every task regardless of scope.
 

@@ -1,0 +1,18 @@
+{
+  "name": "srd",
+  "description": "Requirements Analyst — facilitates building Software Requirements Documents backed by UML artifacts through guided conversation",
+  "version": "1.0.0",
+  "author": {
+    "name": "Iain"
+  },
+  "repository": "https://github.com/sulis-ai/standards",
+  "license": "MIT",
+  "keywords": [
+    "requirements",
+    "srd",
+    "uml",
+    "systems-analysis",
+    "product-management",
+    "specifications"
+  ]
+}
