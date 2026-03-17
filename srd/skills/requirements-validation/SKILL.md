@@ -1,9 +1,10 @@
 ---
 name: requirements-validation
 description: >
-  Run completeness verification on a specification folder. Three perspectives
-  (traceability, integration completeness, NFR coverage), up to 3 passes,
-  fix-as-you-go. Produces COMPLETENESS_REPORT.md with PASS or GAPS_FOUND verdict.
+  Run completeness verification on a specification folder. Four perspectives
+  (traceability, integration completeness, NFR coverage, tree completeness),
+  up to 3 passes, fix-as-you-go. Produces COMPLETENESS_REPORT.md with PASS or
+  GAPS_FOUND verdict.
 ---
 
 # Requirements Validation
@@ -13,7 +14,7 @@ When invoked, run the requirements completeness spiral on a specification folder
 If arguments are provided, treat them as the path to the specification folder.
 If no path is provided, use the most recently modified folder in `.specifications/`.
 
-Execute three verification perspectives, run up to 3 passes, fix small gaps inline,
+Execute four verification perspectives, run up to 3 passes, fix small gaps inline,
 surface larger gaps to the user. Produce `COMPLETENESS_REPORT.md` with a PASS or
 GAPS_FOUND verdict.
 
@@ -23,10 +24,11 @@ GAPS_FOUND verdict.
 
 The completeness assessment uses a spiral approach rather than a single-pass checklist.
 
-**Three perspectives** examine the specification from different angles:
+**Four perspectives** examine the specification from different angles:
 1. Requirement Traceability — Can every goal be traced through use cases to testable requirements?
 2. Integration Completeness — Is every external system specified well enough to build against?
 3. NFR Coverage — Are non-functional requirements measurable and comprehensive?
+4. Tree Completeness — Are all primitive tree nodes adequately specified and represented in artifacts?
 
 **Fix-as-you-go:** When the assessment finds a gap that can be fixed without user input
 (missing diagram for a well-described flow, adjective-only NFR that has enough context to
@@ -186,6 +188,60 @@ Retention policy, backup frequency, privacy requirements (GDPR, CCPA, HIPAA).
 
 ---
 
+## Perspective 4: Tree Completeness
+
+When a PRIMITIVE_TREE.jsonld exists in the specification folder, verify that the primitive
+tree and the SRD artifacts are mutually consistent.
+
+If no PRIMITIVE_TREE.jsonld exists, skip this perspective entirely.
+
+### Checks
+
+**Attack Pattern Coverage:**
+For each validated node, check that every attack pattern defined for its node type has
+been evaluated against the SRD content. An attack pattern is "addressed" when the SRD
+contains a specification element that answers the question the pattern poses.
+- Flag: `UNADDRESSED_ATTACK_PATTERN` — A validated node has attack patterns that were
+  never addressed during facilitation or in the SRD.
+- Fix strategy: If the SRD contains enough context to address the attack pattern, add
+  the specification element and record the fix. Otherwise, flag for user input.
+
+**Active Invalidation Signals:**
+For each node (any health status), check whether any invalidation signals defined for
+its node type are currently active — i.e., the condition described by the signal is true
+based on the SRD content.
+- Flag: `ACTIVE_INVALIDATION` — An invalidation signal condition is met. Include the
+  specific evidence that triggered it.
+- Fix strategy: If the invalidation can be resolved from conversation context (e.g., by
+  adding a missing error path), fix inline. Otherwise, flag for user input.
+
+**Artifact Representation:**
+For each validated node, check that it appears in at least one SRD artifact matching
+its `artifactAffinity`. A node with affinity `["use-case", "data-flow"]` must appear in
+either the use case diagrams or the data flow diagrams (or both).
+- Flag: `UNREPRESENTED_NODE` — A validated node has no representation in any artifact
+  matching its affinity.
+- Fix strategy: If the facilitation record contains enough information to add the node
+  to the appropriate artifact, do so and record the fix. Otherwise, flag for user input.
+
+**Risk-Accepted Documentation:**
+For each node with health_status "accepted-as-risk", verify that the risk justification
+is documented.
+- Flag: `RISK_ACCEPTED_NODE` — Informational flag. Lists the node and its risk
+  justification. Does not block PASS verdict.
+
+### Fix Strategy
+
+- `UNADDRESSED_ATTACK_PATTERN`: Small gaps (single missing detail that can be inferred
+  from context) fixed inline. Large gaps (require domain knowledge not in the
+  facilitation record) surfaced one at a time to the user.
+- `ACTIVE_INVALIDATION`: Always surface to the user — invalidation signals indicate
+  structural issues that require domain judgement.
+- `UNREPRESENTED_NODE`: Generate the missing artifact element if facilitation context
+  is sufficient. Otherwise, flag for user.
+
+---
+
 ## Content Quality Verification
 
 In addition to the three requirement perspectives, verify that all generated artifacts
@@ -233,6 +289,13 @@ VERDICT: PASS | GAPS_FOUND
 [UNMEASURABLE_NFR] Availability — "system should be highly available" (adjective, not threshold)
 [MISSING_NFR_CATEGORY] Data — no retention or backup requirements specified
 
+--- PERSPECTIVE 4: TREE COMPLETENESS ---
+[COMPLETE] node-user (domain-entity) — all attack patterns addressed, represented in use-cases.md
+[UNADDRESSED_ATTACK_PATTERN] node-place-order (action) — "What happens if this action fails mid-execution?" not addressed
+[ACTIVE_INVALIDATION] node-order-lifecycle (state-machine) — "cancelled" state has no outgoing transitions and is not marked terminal
+[UNREPRESENTED_NODE] node-auth-policy (policy) — validated but not represented in any artifact matching affinity [business-rule, nfr]
+[RISK_ACCEPTED_NODE] node-analytics (integration) — accepted-as-risk: "Analytics integration deferred to post-MVP"
+
 --- CONTENT QUALITY ---
 [COMPLETE] SRD.md — summary self-sufficient, rhythm varied, no AI-tell patterns
 [CQ_FLAG] HANDOVER.md — missing summary section (CQ-01)
@@ -271,3 +334,4 @@ Pass 2:
 |------|--------|--------|
 | 2026-03-13 | Initial version | Standards team |
 | 2026-03-13 | Renamed from requirements-completeness. Merged verify command. Added Content Quality verification. | Standards team |
+| 2026-03-17 | Added Perspective 4: Tree Completeness. Updated from three to four perspectives. | Standards team |

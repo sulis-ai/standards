@@ -449,6 +449,113 @@ flowchart LR
 
 ---
 
+## PRIMITIVE_TREE.jsonld Template
+
+```json
+{
+  "@context": {
+    "@vocab": "https://sulis.co/ontology/primitive-tree/",
+    "schema": "http://schema.org/",
+    "prim": "https://sulis.co/ontology/primitive-tree/",
+    "name": "schema:name",
+    "description": "schema:description"
+  },
+  "@id": "prim:tree-{project-name}",
+  "@type": "prim:PrimitiveTree",
+  "name": "{Project Name} — Primitive Tree",
+  "synthesised_at": "{ISO-8601 timestamp}",
+  "synthesis_path": "{brownfield | greenfield}",
+  "source_index": "{CODEBASE_INDEX.json | null}",
+  "@graph": [
+    {
+      "@id": "{node-id}",
+      "@type": "prim:{node-type}",
+      "name": "{Human-readable name}",
+      "definition": "{What this node represents in the target domain}",
+      "success_criterion": "{Measurable condition confirming correct specification}",
+      "health_status": "{untested | testing | validated | failed | accepted-as-risk}",
+      "phase": "{discover | define | connect | constrain | verify}",
+      "artifactAffinity": ["{use-case | process-flow | sequence-diagram | state-diagram | data-flow | business-rule | nfr}"],
+      "source": "{codebase | inferred | user}",
+      "parent": "{parent-node-id | null}",
+      "dependencies": [
+        {"target": "{target-node-id}", "type": "{depends-on | enables | conflicts-with}"}
+      ]
+    }
+  ]
+}
+```
+
+**Example nodes by type:**
+
+```json
+// domain-entity
+{"@id": "node-user", "@type": "prim:domain-entity", "name": "User", "definition": "A person who has registered an account", "success_criterion": "All user attributes and relationships specified", "health_status": "untested", "phase": "define", "artifactAffinity": ["use-case", "data-flow"], "source": "codebase", "parent": "root", "attributes": ["id", "email", "role"], "relationships": ["has-many Orders"]}
+
+// action
+{"@id": "node-place-order", "@type": "prim:action", "name": "Place Order", "definition": "User submits a new order for processing", "success_criterion": "Complete flow specified including validation, payment, and confirmation", "health_status": "untested", "phase": "define", "artifactAffinity": ["use-case", "process-flow"], "source": "inferred", "parent": "root", "actor": "Customer"}
+
+// integration
+{"@id": "node-stripe", "@type": "prim:integration", "name": "Stripe Payment Gateway", "definition": "External payment processing service", "success_criterion": "Protocol, auth, error handling, and data contract specified", "health_status": "untested", "phase": "connect", "artifactAffinity": ["sequence-diagram", "data-flow"], "source": "codebase", "parent": "root", "external_system": "Stripe", "direction": "outbound"}
+
+// data-store
+{"@id": "node-postgres", "@type": "prim:data-store", "name": "Primary Database", "definition": "PostgreSQL database storing all domain entities", "success_criterion": "Retention, backup, and access patterns specified", "health_status": "untested", "phase": "connect", "artifactAffinity": ["data-flow"], "source": "codebase", "parent": "root", "store_type": "relational", "entities": ["User", "Order"]}
+
+// state-machine
+{"@id": "node-order-lifecycle", "@type": "prim:state-machine", "name": "Order Lifecycle", "definition": "States an order passes through from creation to completion", "success_criterion": "All states, transitions, triggers, and guards specified", "health_status": "untested", "phase": "define", "artifactAffinity": ["state-diagram"], "source": "inferred", "parent": "root", "entity": "Order", "states": ["draft", "submitted", "processing", "completed", "cancelled"]}
+
+// policy
+{"@id": "node-auth-policy", "@type": "prim:policy", "name": "Authentication Policy", "definition": "All API endpoints require authenticated access", "success_criterion": "Auth method, token lifecycle, and violation handling specified", "health_status": "untested", "phase": "define", "artifactAffinity": ["business-rule", "nfr"], "source": "inferred", "parent": "root", "policy_type": "authorization"}
+
+// event
+{"@id": "node-order-placed", "@type": "prim:event", "name": "Order Placed Event", "definition": "Published when a new order is successfully submitted", "success_criterion": "Trigger, payload, consumers, and delivery guarantees specified", "health_status": "untested", "phase": "connect", "artifactAffinity": ["sequence-diagram", "data-flow"], "source": "inferred", "parent": "root", "trigger": "Order transitions to submitted state", "consumers": ["Inventory Service", "Notification Service"]}
+```
+
+---
+
+## HANDOVER.md Tree Section Template
+
+Include this section in HANDOVER.md when a PRIMITIVE_TREE.jsonld exists:
+
+### Structural Inventory (Primitive Tree)
+
+**File:** [PRIMITIVE_TREE.jsonld](PRIMITIVE_TREE.jsonld)
+
+The primitive tree provides a structural decomposition of the system's architectural
+building blocks — the components, integrations, policies, and data stores that make up
+the system. It complements the SRD's behavioural specification (use cases, flows, rules)
+with a structural inventory.
+
+#### New vs. Existing Components
+
+| Category | Count | Description |
+|----------|-------|-------------|
+| Existing (source: codebase) | {n} | Components identified from the existing codebase |
+| New — user specified (source: user) | {n} | Components specified during facilitation |
+| New — inferred (source: inferred) | {n} | Components inferred by the analyst, confirmed during facilitation |
+
+#### Implementation Sequencing
+
+The tree's `depends-on` edges indicate implementation ordering. Build upstream
+dependencies before downstream dependants:
+
+1. {First tier — nodes with no upstream dependencies}
+2. {Second tier — nodes that depend only on tier 1}
+3. {Third tier — nodes that depend on tier 1 or 2}
+...
+
+Nodes connected by `conflicts-with` edges represent architectural alternatives —
+resolve these decisions before implementing either option.
+
+#### Reading the Tree
+
+- **For human consumption:** Read the exec summary above for a plain-language overview.
+- **For programmatic use:** Parse PRIMITIVE_TREE.jsonld. Each node in `@graph` has typed
+  properties, health status, and dependency edges. Use `artifactAffinity` to locate the
+  relevant SRD artifacts for each component.
+
+---
+
 ## Glossary Template
 
 | Term | Definition | Context | First Appeared |

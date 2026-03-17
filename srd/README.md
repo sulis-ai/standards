@@ -14,6 +14,7 @@ a blank document, you have a conversation with an analyst agent that:
 - Asks targeted questions across six exploration domains
 - Tracks which areas have been covered and which need more detail
 - Maps your existing codebase to ground questions in what's already built
+- Synthesises a primitive tree — a structured decomposition of architectural building blocks that drives gap-targeted question selection
 - Produces a complete Software Requirements Document with diagrams
 - Verifies the specification is complete enough for a development team to implement
 
@@ -77,9 +78,15 @@ These skills can be used independently or are triggered by the agent during faci
 with technology stack, services, integrations, and data models. Triggered automatically
 by the agent at session start, or run independently to generate or refresh the index.
 
+**`/srd:tree-synthesis`** — Synthesise a primitive tree from a codebase index (brownfield)
+or user description (greenfield). Produces `PRIMITIVE_TREE.jsonld` — a structured
+decomposition of architectural building blocks with typed nodes, dependency edges, and
+health statuses. Triggered automatically by the agent during facilitation, or run
+independently.
+
 **`/srd:requirements-validation`** — Run completeness verification on a specification
-folder. Checks traceability, integration completeness, NFR coverage, and content quality.
-Produces `COMPLETENESS_REPORT.md` with a PASS or GAPS_FOUND verdict.
+folder. Checks traceability, integration completeness, NFR coverage, tree completeness,
+and content quality. Produces `COMPLETENESS_REPORT.md` with a PASS or GAPS_FOUND verdict.
 
 ---
 
@@ -93,6 +100,7 @@ containing:
   SRD.md                      # The Software Requirements Document
   EXPLORATION_JOURNAL.md      # Coverage tracking and session notes
   CODEBASE_INDEX.json         # Existing codebase map (if applicable)
+  PRIMITIVE_TREE.jsonld        # Structural decomposition (primitive tree)
   diagrams/
     use-cases.md              # Actor-capability diagrams
     process-flows.md          # Workflow diagrams in Mermaid

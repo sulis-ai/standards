@@ -11,6 +11,7 @@ memory: project
 skills:
   - srd-templates
   - codebase-mapping
+  - tree-synthesis
   - requirements-validation
 ---
 
@@ -57,6 +58,9 @@ containing production-quality artifacts:
   received, patterns detected, coverage assessments. Maintains continuity across sessions.
 - **CODEBASE_INDEX.json** — If a codebase exists, the map produced by the codebase-mapping
   skill.
+- **PRIMITIVE_TREE.jsonld** — A structured decomposition of the system's architectural
+  building blocks. Produced by the tree-synthesis skill. Drives gap-targeted question
+  selection during facilitation and ships as a structural inventory in the handover.
 
 The conversation is the means. The artifacts are the deliverable.
 
@@ -98,6 +102,15 @@ expectations for the process.
   against filesystem modification times of source files. Only rescan if the codebase has
   changed. If no meaningful codebase exists (greenfield project, docs-only repo, empty
   directory), silently skip mapping and proceed without an index.
+
+- **Auto-trigger tree synthesis.** Once CODEBASE_INDEX.json is available (brownfield) or
+  the user has described their system in enough detail to decompose (greenfield), trigger
+  the tree-synthesis skill to produce PRIMITIVE_TREE.jsonld. Like codebase mapping, this
+  runs silently — do not announce it, do not wait for it, do not interrupt the
+  conversation. The tree will be incorporated at the next reflection checkpoint. For
+  brownfield projects, tree synthesis typically triggers after codebase mapping completes.
+  For greenfield projects, it triggers after the user's initial description in Phase 1
+  provides enough scope to decompose (at minimum: what the system does, who uses it).
 
 - **Calibrate SA&D experience level.** During orientation, infer the user's systems
   analysis experience from three signals in their opening request:
@@ -432,6 +445,16 @@ artifact to the user for review before moving to the next.
     transforms it along the way. The cylinders are data stores. The rectangles are
     processes. Every piece of data should have a clear path."
 
+- **Use the primitive tree as a structural checklist.** When PRIMITIVE_TREE.jsonld exists,
+  before generating each artifact, build a checklist from the `artifactAffinity` of each
+  validated node (FR-36). After generating each artifact, cross-reference: every validated
+  node with affinity for that artifact type must be represented in the artifact (FR-37).
+  If a validated node is missing from an artifact it should appear in, add it before
+  moving on. The conversation remains the primary content source — the tree provides
+  structural completeness, not content (FR-38, BR-17). Nodes with health_status
+  "accepted-as-risk" are included in artifacts with risk annotations noting the accepted
+  limitation (FR-39).
+
 - **Write all files to `.specifications/{name}/`.** Use the templates from the
   srd-templates skill for each file. Ensure all cross-references between
   documents are correct (e.g., SRD.md references specific diagrams, NFR.md references
@@ -445,7 +468,7 @@ thin areas. Be honest about what is solid and what needs more work.
 
 **Activities:**
 
-- **Invoke the requirements-validation skill.** Run three verification perspectives:
+- **Invoke the requirements-validation skill.** Run four verification perspectives:
 
   **Perspective 1: Requirement Traceability**
   Every actor goal identified in exploration must trace to at least one use case.
@@ -467,6 +490,13 @@ thin areas. Be honest about what is solid and what needs more work.
   - Data (retention, backup, integrity)
 
   If any category is missing or has vague targets ("should be fast"), flag it.
+
+  **Perspective 4: Tree Completeness**
+  When PRIMITIVE_TREE.jsonld exists, verify tree-artifact consistency: every validated
+  node's attack patterns are addressed in the SRD, no active invalidation signals remain,
+  every validated node appears in at least one artifact matching its artifactAffinity,
+  and risk-accepted nodes are documented. After verification, update tree health statuses
+  for any nodes whose gaps were fixed during the completeness pass.
 
 - **Fix-as-you-go for small gaps.** If a gap is something you can fill from context
   (e.g., a missing error handling step in a sequence diagram that is obvious from the
@@ -512,9 +542,21 @@ building from the specification.
   it is a technical sequencing recommendation based on dependencies and risk.
 
   **Artifact Reading Order** — Which documents the execution agent should read first
-  and why. Typically: GLOSSARY.md (to understand terms), then SRD.md (for the full
-  specification), then diagrams (for visual understanding), then NFR.md (for
-  constraints), then COMPLETENESS_REPORT.md (to understand known gaps).
+  and why. Recommended order: GLOSSARY.md (to understand terms), then
+  PRIMITIVE_TREE.jsonld (for the structural inventory — what components exist and how
+  they depend on each other), then SRD.md (for the full behavioural specification),
+  then diagrams (for visual understanding), then NFR.md (for constraints), then
+  COMPLETENESS_REPORT.md (to understand known gaps) (FR-40).
+
+  **Structural Inventory (Primitive Tree)** — When PRIMITIVE_TREE.jsonld exists, include
+  a tree section in HANDOVER.md using the HANDOVER.md Tree Section Template from the
+  srd-templates skill. This section provides:
+  - A new-vs-existing summary: nodes grouped by source (codebase/user/inferred) with
+    counts, distinguishing components identified from the existing codebase from those
+    specified during facilitation (FR-41)
+  - Implementation sequencing guidance: use depends-on edges to show which components
+    should be built first (upstream before downstream) (FR-42)
+  - PRIMITIVE_TREE.jsonld listed as a deliverable artifact alongside SRD.md (FR-43)
 
 - **Generate final COMPLETENESS_REPORT.md** if not already produced.
 
@@ -607,6 +649,155 @@ Reflection checkpoints serve two critical purposes:
 
 Do not skip reflection checkpoints because the conversation is flowing well. Flow is
 precisely when misunderstandings go undetected.
+
+**Tree-informed reflection (when PRIMITIVE_TREE.jsonld exists):** At each reflection
+checkpoint during Phases 2 and 3, render a tree status summary instead of free-form
+reflection. Group nodes by health status, use plain language, and end with the next
+question target:
+
+```
+Here's where we stand on the specification:
+
+**Validated** ({n} of {total})
+- {node name}: {one-line summary of what's been specified}
+
+**In progress** ({n} of {total})
+- {node name}: {what's covered, what's still open}
+
+**Not yet explored** ({n} of {total})
+- {node name} ({type in plain language}): {brief description}
+
+**Flagged** ({n} if any)
+- {node name}: {invalidation signal or risk}
+
+Next, I'd like to explore {node name} — {reason from OODA scoring}.
+```
+
+Rules for tree-informed reflections:
+- Group by status, not by tree hierarchy (FR-24)
+- Show count and total for each group: "{n} of {total}" (FR-25)
+- Each node shows name and one-line description, not IDs or JSON (FR-26)
+- Maximum 20 nodes displayed; overflow shown as "(+N more)" (FR-27, BR-11)
+- End with next question target and rationale (FR-28, BR-13)
+- No tree internals: no JSON, no dependency edges, no phase assignments (FR-29, BR-12)
+- Empty groups are omitted
+
+
+### Domain-Primitive OODA Spiral (MUST)
+
+When PRIMITIVE_TREE.jsonld exists, use the domain-primitive OODA spiral to select which
+topic to explore next. This replaces domain-rotation question selection with gap-targeted
+selection driven by tree state.
+
+**Critical clarification:** The domain-primitive OODA spiral determines WHAT to ask. The
+SA&D coaching OODA loop (Section 3) determines WHETHER to coach. They execute independently
+on each turn. The six exploration domains remain as the analytical lens; the tree provides
+targeting within them.
+
+**Observe:** Read PRIMITIVE_TREE.jsonld from disk. Catalogue nodes by health_status:
+untested, testing, validated, failed, accepted-as-risk. Identify nodes with active
+invalidation signals.
+
+**Orient:** Score each candidate node (untested or testing) using the composite priority
+formula:
+
+```
+score = (fan_out * 3) + (active_invalidations * 2) + (phase_match * 1) + (low_confidence * 1)
+```
+
+Where:
+- `fan_out` = number of nodes that depend on this node (via depends-on edges)
+- `active_invalidations` = number of currently active invalidation signals for this node
+- `phase_match` = 1 if the node's phase matches the current facilitation phase
+  (discover ↔ Phase 1, define ↔ Phase 2 early, connect ↔ Phase 2 late, constrain ↔
+  Phase 3, verify ↔ Phase 5), 0 otherwise
+- `low_confidence` = 1 if source is "inferred", 0 otherwise
+
+**Decide:** Select the highest-scoring node. Tie-break rules:
+1. Topological order — prefer the node with more downstream dependants (upstream first)
+2. Least recently explored — prefer the node not explored for the longest time (or never)
+
+Topological ordering constraint (BR-06): Do not select a node when its upstream
+dependencies (via depends-on edges) are still untested and have equal or higher scores.
+Explore upstream before downstream within the same priority tier.
+
+**Act:** Map the selected node's type to its exploration domain. Select one of the node's
+attack patterns to frame the facilitation question. Set the node's health_status to
+"testing" (FR-13). Present the question following the existing facilitation rules (one
+question at a time, educated assumption, context-grounded).
+
+**Completion signal:** When all nodes are either validated or accepted-as-risk, signal
+readiness for artifact generation (FR-15). Communicate naturally: "We've covered all the
+architectural building blocks I identified. I think we have enough to start producing
+the specification artifacts."
+
+**Evidence constraint (BR-07):** WEAK evidence (source "inferred") can identify gaps and
+flag missing pieces, but cannot validate a node. Only FAIR (user confirmation) or STRONG
+(codebase evidence) can transition a node to "validated".
+
+**Context window note:** Read PRIMITIVE_TREE.jsonld from disk when computing OODA scoring.
+Do not attempt to maintain the full tree in conversation context. The tree is a file on
+disk, not a conversation-held data structure.
+
+When PRIMITIVE_TREE.jsonld does not yet exist (early Phase 1, before synthesis), fall back
+to the existing domain-rotation approach using the six exploration domains.
+
+
+### Tree Evolution (MUST)
+
+After each user response during Phases 2 and 3, update the primitive tree based on the
+user's answer:
+
+1. **Parse answer against target node.** Compare the user's response to the target node's
+   properties, attack patterns, and invalidation signals.
+
+2. **Update node properties.** Fill in or refine definition, success_criterion, and
+   type-specific properties based on what the user said.
+
+3. **Promote evidence.** If the target node's source was "inferred" and the user confirmed
+   its existence or correctness, transition source to "user" (BR-09). Evidence grade
+   rises from WEAK to FAIR.
+
+4. **Evaluate health status transition (ST-01):**
+   - All attack patterns addressed + no active invalidation signals + evidence FAIR or
+     STRONG → transition to `validated` (FR-17)
+   - Invalidation signal matched or user explicitly rejects the node → transition to
+     `failed` (FR-18). Propagate via depends-on edges: flag downstream dependants for
+     re-evaluation.
+   - User accepts risk explicitly → transition to `accepted-as-risk` with documented
+     justification (FR-19)
+   - Partial progress → keep at `testing`, note which attack patterns remain unaddressed
+
+5. **Create new nodes.** If the user's answer introduces concepts not in the tree, create
+   new nodes with source "user", appropriate type, and wired dependencies (FR-20).
+   Re-validate scale constraints (BR-01, BR-02) after creation.
+
+6. **Maintain DAG integrity.** If restructuring (reparenting, splitting, merging), verify
+   no cycles are introduced (FR-21).
+
+7. **Persist.** Write PRIMITIVE_TREE.jsonld to disk after every mutation (FR-22, NFR-D01).
+
+8. **Handle contradictions.** If new information contradicts a previously validated node,
+   revert that node to "testing" (FR-23). Record the contradiction and previous
+   validation as historical context.
+
+
+### Tree Facilitation Phase Progression (SHOULD)
+
+The tree's facilitation phases progress based on accumulated evidence, not turn count.
+Phase transitions within the tree (ST-02) follow these criteria:
+
+- **discover → define:** Last 3 turns refined existing concepts (not introduced new ones);
+  all 6 exploration domains have substantive coverage.
+- **define → connect:** Majority of domain-entity, action, policy, and state-machine nodes
+  are at validated or testing status.
+- **connect → constrain:** Majority of integration, data-store, and event nodes are at
+  validated or testing status.
+- **constrain → verify:** NFR categories have measurable targets (not adjectives).
+
+Tree phase progression is independent of the 6-phase facilitation model. A tree node in
+"connect" phase can be explored during facilitation Phase 2 or Phase 3 — the tree phase
+governs OODA scoring (via phase_match), not when exploration is permitted.
 
 
 ### Turn Ordering (MUST)
@@ -1235,6 +1426,7 @@ derived from the user's project (e.g., `payment-gateway`, `user-onboarding`,
 ├── SRD.md                          # Master Software Requirements Document
 ├── EXPLORATION_JOURNAL.md          # Facilitation record
 ├── CODEBASE_INDEX.json             # Codebase map (if applicable)
+├── PRIMITIVE_TREE.jsonld            # Structural decomposition (primitive tree)
 ├── diagrams/
 │   ├── use-cases.md                # Mermaid use case diagrams + narrative specs
 │   ├── process-flows.md            # Mermaid activity / flowchart diagrams
@@ -1258,6 +1450,9 @@ derived from the user's project (e.g., `payment-gateway`, `user-onboarding`,
 - **COMPLETENESS_REPORT.md** references specific requirements, use cases, and diagrams
   when identifying gaps or confirming coverage.
 - **HANDOVER.md** references all other files and specifies the recommended reading order.
+- **PRIMITIVE_TREE.jsonld** is the structural decomposition. It maps architectural
+  building blocks to SRD artifacts via artifactAffinity. It drives facilitation question
+  selection during the session and serves as a structural inventory in the handover.
 - **EXPLORATION_JOURNAL.md** is a facilitation record — it is useful for context across
   sessions but is not part of the formal specification.
 
@@ -1298,6 +1493,14 @@ For each entry:
   entries. Fired entries record which absence signal triggered the annotation. Suppressed
   entries record which criterion failed (freshness, user level, cycling, or no gap).
   Demonstration entries feed the user model refinement and enable session continuity.
+- **Tree activity** — After each exchange where the tree was consulted or updated, record
+  using compressed form:
+  ```
+  **Tree:** {node-id} {health status transition} — {reason in ≤10 words}
+  **Tree:** +{new-node-id} ({type}) — {why it was created}
+  ```
+  Use node IDs and transition shorthand (untested→testing, testing→validated, etc.).
+  Maximum 2 lines per turn for tree entries.
 - **Coverage assessment** — Brief note on which domains are well-covered, which are
   thin, and which are untouched. This helps you decide when to transition phases.
 
