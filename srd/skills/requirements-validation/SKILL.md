@@ -1,10 +1,10 @@
 ---
 name: requirements-validation
 description: >
-  Run completeness verification on a specification folder. Four perspectives
-  (traceability, integration completeness, NFR coverage, tree completeness),
-  up to 3 passes, fix-as-you-go. Produces COMPLETENESS_REPORT.md with PASS or
-  GAPS_FOUND verdict.
+  Run completeness verification on a specification folder. Five perspectives
+  (traceability, integration completeness, NFR coverage, tree completeness,
+  referential integrity), up to 3 passes, fix-as-you-go. Produces
+  COMPLETENESS_REPORT.md with PASS or GAPS_FOUND verdict.
 ---
 
 # Requirements Validation
@@ -14,7 +14,7 @@ When invoked, run the requirements completeness spiral on a specification folder
 If arguments are provided, treat them as the path to the specification folder.
 If no path is provided, use the most recently modified folder in `.specifications/`.
 
-Execute four verification perspectives, run up to 3 passes, fix small gaps inline,
+Execute five verification perspectives, run up to 3 passes, fix small gaps inline,
 surface larger gaps to the user. Produce `COMPLETENESS_REPORT.md` with a PASS or
 GAPS_FOUND verdict.
 
@@ -24,23 +24,25 @@ GAPS_FOUND verdict.
 
 The completeness assessment uses a spiral approach rather than a single-pass checklist.
 
-**Four perspectives** examine the specification from different angles:
+**Five perspectives** examine the specification from different angles:
 1. Requirement Traceability — Can every goal be traced through use cases to testable requirements?
 2. Integration Completeness — Is every external system specified well enough to build against?
 3. NFR Coverage — Are non-functional requirements measurable and comprehensive?
 4. Tree Completeness — Are all primitive tree nodes adequately specified and represented in artifacts?
+5. Referential Integrity — Does the content of generated artifacts accurately reflect the design decisions and assumptions from facilitation?
 
 **Fix-as-you-go:** When the assessment finds a gap that can be fixed without user input
 (missing diagram for a well-described flow, adjective-only NFR that has enough context to
 make measurable), the agent fixes it immediately and records the fix. Gaps that require
 user input are flagged for review.
 
-**Max 3 passes:** The spiral runs up to 3 times. Each pass re-examines all three perspectives.
+**Max 3 passes:** The spiral runs up to 3 times. Each pass re-examines all five perspectives.
 Fixes applied in pass N are verified in pass N+1.
 
 **Exit conditions:**
 - **PASS** — All traces complete, all integrations specified, all NFR categories covered
-  with measurable requirements. No flags remain.
+  with measurable requirements, all tree nodes represented with attack patterns addressed,
+  all artifacts semantically consistent with facilitation decisions. No flags remain.
 - **GAPS_FOUND** — After 3 passes, some gaps remain that require user input or decisions
   that cannot be made by the agent. All remaining gaps are documented with their flags.
 
@@ -129,6 +131,12 @@ protobuf, CSV, binary, or other.
 Whether the interaction is synchronous (request-response, caller waits) or asynchronous
 (fire-and-forget, callback, polling) must be stated.
 - Flag: `UNDERSPECIFIED_INTEGRATION` — Timing model not specified.
+
+**Rate limits specified?**
+Whether the external system imposes rate limits, and how the system handles them, must
+be stated: requests per second/minute, backpressure strategy (queue, shed, throttle),
+and monitoring/alerting for approaching limits.
+- Flag: `UNDERSPECIFIED_INTEGRATION` — Rate limits not addressed.
 
 ### Fix Strategy
 
@@ -242,18 +250,99 @@ is documented.
 
 ---
 
+## Perspective 5: Referential Integrity
+
+Verify that the content of generated artifacts is semantically consistent with what was
+decided during facilitation. Perspectives 1-4 check structural completeness (does every
+goal have a use case?). This perspective checks content accuracy (does the use case
+accurately describe what was decided?).
+
+The authoritative source of truth is the exploration journal — specifically its recorded
+answers, design decisions, assumption register, and context ledger entries. When an
+artifact contradicts the journal, the artifact is wrong.
+
+### Checks
+
+**Use Case Accuracy:**
+For each use case in the SRD and use-cases.md, verify:
+- The actor matches who actually performs the action per facilitation (not who was initially
+  assumed). If a design decision changed the actor (e.g., from user-initiated to
+  system-automated), the use case must reflect the final decision.
+- The trigger and preconditions are consistent with the agreed interaction model.
+- The basic flow matches the process agreed during facilitation, not an earlier version
+  that was subsequently revised.
+- Flag: `STALE_USE_CASE` — A use case reflects an earlier version of a design decision
+  that was revised during facilitation.
+- Fix strategy: Rewrite the use case to match the current design decision from the journal.
+  Record the specific journal entry that establishes the correct version.
+
+**Design Decision Propagation:**
+For each design decision recorded in the exploration journal, verify that it is reflected
+in every artifact it affects. A design decision that changes the system's interaction
+model, data flow, or architectural shape should be visible in use cases, diagrams, and
+requirements — not just the artifact where it was first discussed.
+- Flag: `UNPROPAGATED_DECISION` — A design decision is reflected in some artifacts but
+  not all artifacts it logically affects.
+- Fix strategy: Identify which artifacts are affected by the decision and update them.
+  Record each fix with the journal entry that establishes the decision.
+
+**Assumption Consistency:**
+For each active assumption in the assumption register, verify that no artifact contains
+content that contradicts it. For each invalidated assumption, verify that no artifact
+still depends on it.
+- Flag: `ASSUMPTION_CONTRADICTION` — An artifact contains content that contradicts an
+  active assumption, or still depends on an invalidated assumption.
+- Fix strategy: If the assumption is active, fix the artifact. If the assumption is
+  invalidated, update all dependent artifacts to reflect the current understanding.
+
+**Glossary Conformance:**
+For each term in GLOSSARY.md, verify that the term is used consistently across all
+artifacts. If a glossary term was redefined during facilitation (e.g., "workspace" changed
+from meaning a UI container to a self-contained domain unit), all artifacts must use the
+current definition.
+- Flag: `GLOSSARY_DRIFT` — An artifact uses a term in a way that contradicts or predates
+  the current glossary definition.
+- Fix strategy: Update the artifact to use the term consistently with the glossary.
+
+### Fix Strategy
+
+- `STALE_USE_CASE`: Always fix inline — the correct version exists in the journal.
+- `UNPROPAGATED_DECISION`: Fix inline where the decision's implications are clear. Flag
+  for user when the decision's impact on a specific artifact is ambiguous.
+- `ASSUMPTION_CONTRADICTION`: Fix inline for active assumptions. For invalidated
+  assumptions, surface to the user if the correct replacement is unclear.
+- `GLOSSARY_DRIFT`: Always fix inline — the glossary is the authoritative definition.
+
+---
+
 ## Content Quality Verification
 
-In addition to the three requirement perspectives, verify that all generated artifacts
+In addition to the five requirement perspectives, verify that all generated artifacts
 comply with the Content Quality Standard (CQ-01 through CQ-06):
 
 - **CQ-01:** Every artifact over 50 lines has a summary section
+  - Flag: `CQ_MISSING_SUMMARY` — Artifact exceeds 50 lines with no summary section.
 - **CQ-02:** Detail sections use stable identifiers for traceability
+  - Flag: `CQ_MISSING_IDENTIFIERS` — Detail section lacks stable identifiers.
 - **CQ-03:** Prose paragraphs vary sentence rhythm (no 3+ consecutive same-band sentences)
+  - Flag: `CQ_RHYTHM_VIOLATION` — Three or more consecutive same-band sentences.
+- **CQ-04:** Prose meets plain language baseline (Flesch-Kincaid Grade Level targets per
+  audience: ≤10 for user-facing, ≤14 for technical)
+  - Flag: `CQ_READABILITY` — Prose exceeds grade level target for its audience.
 - **CQ-05:** No AI-tell anti-patterns in prose (filler phrases, excessive hedging, empty emphasis)
+  - Flag: `CQ_AI_TELL` — AI-generated content markers detected.
+- **CQ-06:** Content quality verified before finalising (rhythm check, readability scoring,
+  anti-pattern scan applied to all prose sections)
+  - Flag: `CQ_UNVERIFIED` — Artifact finalised without content quality verification.
 
-Content quality failures are flags like any other gap — fix inline where possible, flag for
-review where not.
+### Fix Strategy
+
+- `CQ_MISSING_SUMMARY`: Generate summary from artifact content. Always fix inline.
+- `CQ_MISSING_IDENTIFIERS`: Add stable identifiers to detail sections. Always fix inline.
+- `CQ_RHYTHM_VIOLATION`: Rewrite affected paragraph to vary sentence length. Fix inline.
+- `CQ_READABILITY`: Simplify prose to meet grade level target. Fix inline.
+- `CQ_AI_TELL`: Rewrite affected sentences to remove filler/hedging. Fix inline.
+- `CQ_UNVERIFIED`: Run the verification checks. Always fix inline.
 
 ---
 
@@ -296,6 +385,13 @@ VERDICT: PASS | GAPS_FOUND
 [UNREPRESENTED_NODE] node-auth-policy (policy) — validated but not represented in any artifact matching affinity [business-rule, nfr]
 [RISK_ACCEPTED_NODE] node-analytics (integration) — accepted-as-risk: "Analytics integration deferred to post-MVP"
 
+--- PERSPECTIVE 5: REFERENTIAL INTEGRITY ---
+[COMPLETE] UC-01 — actor, trigger, flow consistent with journal design decisions
+[STALE_USE_CASE] UC-02 — actor is "User" but design decision DD-04 (turn 18) changed to system-automated provisioning
+[UNPROPAGATED_DECISION] DD-03 (authorization-driven workspace access) — reflected in UC-01 but not in sequence-diagram SD-02
+[ASSUMPTION_CONTRADICTION] A-02 (single-tenant) invalidated at turn 22, but NFR-12 still references single-tenant deployment model
+[GLOSSARY_DRIFT] "workspace" in process-flow PF-01 uses original definition, not current glossary definition (updated turn 15)
+
 --- CONTENT QUALITY ---
 [COMPLETE] SRD.md — summary self-sufficient, rhythm varied, no AI-tell patterns
 [CQ_FLAG] HANDOVER.md — missing summary section (CQ-01)
@@ -335,3 +431,5 @@ Pass 2:
 | 2026-03-13 | Initial version | Standards team |
 | 2026-03-13 | Renamed from requirements-completeness. Merged verify command. Added Content Quality verification. | Standards team |
 | 2026-03-17 | Added Perspective 4: Tree Completeness. Updated from three to four perspectives. | Standards team |
+| 2026-03-17 | Added Perspective 5: Referential Integrity. Cross-checks artifact content against exploration journal design decisions, assumptions, and glossary. Updated from four to five perspectives. | Standards team |
+| 2026-03-17 | Audit fixes: updated stale "three" to "five" in pass description; added tree completeness to PASS exit condition; added rate limits to integration checks; formalised content quality flags (CQ_MISSING_SUMMARY, CQ_MISSING_IDENTIFIERS, CQ_RHYTHM_VIOLATION, CQ_READABILITY, CQ_AI_TELL, CQ_UNVERIFIED) with fix strategies; added CQ-04 and CQ-06 checks. | Standards team |

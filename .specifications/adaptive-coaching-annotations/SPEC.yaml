@@ -1,0 +1,12 @@
+id: SPEC-002
+name: Adaptive Coaching Annotations
+type: feature
+status: implemented
+version: 1.0.0
+owner: iain
+created: 2026-03-13
+updated: 2026-03-13
+summary: >
+  OODA coaching loop, SA&D primitive framework (7 structural + 7 analytical),
+  mindset skills, user model with level transitions. Coaching annotations
+  address absence of analytical dimensions in user answers.

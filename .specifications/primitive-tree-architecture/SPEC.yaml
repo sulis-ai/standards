@@ -1,0 +1,12 @@
+id: SPEC-003
+name: Primitive Tree Architecture
+type: feature
+status: implemented
+version: 1.1.0
+owner: iain
+created: 2026-03-16
+updated: 2026-03-17
+summary: >
+  Tree synthesis from codebase index or user description. OODA spiral for
+  gap-targeted question selection. Tree evolution during facilitation.
+  Tree-informed reflections and tree completeness verification (Perspective 4).

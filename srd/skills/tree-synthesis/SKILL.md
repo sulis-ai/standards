@@ -538,3 +538,4 @@ re-running synthesis.
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-03-17 | Initial version — tree synthesis skill | Standards team |
+| 2026-03-17 | Clarified invocation: brownfield runs synchronously after codebase mapping; greenfield runs in-conversation when scope is sufficient (what + who + 2 of: integrations, entities, workflows, rules). | Standards team |

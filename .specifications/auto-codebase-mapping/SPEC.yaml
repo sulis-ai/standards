@@ -1,0 +1,12 @@
+id: SPEC-001
+name: Auto Codebase Mapping
+type: feature
+status: implemented
+version: 1.4.0
+owner: iain
+created: 2026-03-13
+updated: 2026-03-17
+summary: >
+  Brownfield detection, staleness checks, and synchronous codebase mapping
+  at session start. Produces CODEBASE_INDEX.json for grounding facilitation
+  questions in existing code.

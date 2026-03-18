@@ -20,13 +20,13 @@ requirements conversation.
 
 ## Execution Model
 
-The codebase mapper runs as a background task. It does not block the facilitation conversation.
+The codebase mapper runs synchronously at the start of the facilitation session.
 
-- Triggered automatically by the requirements-analyst agent at session start, or
-  manually via `/srd:codebase-mapping`
-- The facilitation conversation begins immediately while mapping runs in the background
-- Once mapping completes, the agent incorporates the index at the next reflection
-  checkpoint — it does not interrupt the conversation to announce results
+- Triggered by the requirements-analyst agent at session start (brownfield projects
+  only), or manually via `/srd:codebase-mapping`
+- The agent waits for mapping to complete before asking its first facilitation question,
+  because the index informs question selection and grounding
+- After mapping, the agent briefly acknowledges what it found before proceeding
 - If no meaningful codebase exists (greenfield project, docs-only repo, empty directory
   with just a README), the mapper exits immediately and silently. The agent proceeds
   without a codebase index and does not mention the absence.
@@ -299,3 +299,4 @@ response times are you expecting?"
 | 2026-03-13 | Initial version | Standards team |
 | 2026-03-13 | Renamed from codebase-mapper. Merged map-codebase command. | Standards team |
 | 2026-03-13 | Auto-trigger at session start, staleness check, greenfield detection, domain-focused overlay | Standards team |
+| 2026-03-17 | Changed execution model from background to synchronous. Agent now waits for mapping to complete before starting facilitation. Experimental async hook scripts added as optional alternative. | Standards team |

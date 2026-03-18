@@ -36,7 +36,7 @@ Claude Code picks up `CLAUDE.md` automatically. The standards are active immedia
 |------|------|
 | `srd/` | Requirements Analyst plugin for Claude Code. Facilitates building Software Requirements Documents through guided one-question-at-a-time conversation. Produces UML artifacts in Mermaid. |
 | `srd/agents/requirements-analyst.md` | Agent definition — six-phase facilitation model with teaching integration. |
-| `srd/skills/` | Standalone skills: `/srd:codebase-mapping`, `/srd:requirements-validation`. Plus `srd-templates` (agent-only, not user-invocable). |
+| `srd/skills/` | Standalone skills: `/srd:codebase-mapping`, `/srd:tree-synthesis`, `/srd:requirements-validation`, `/srd:spec-index`. Plus `srd-templates` (agent-only, not user-invocable). |
 
 See [`srd/README.md`](srd/README.md) for plugin documentation.
 
