@@ -27,7 +27,8 @@ Claude Code picks up `CLAUDE.md` automatically. The standards are active immedia
 | `standards/SECURITY_STANDARD.md` | Seven security principles (SEC-01 through SEC-07) covering input validation, secrets, authorization, injection prevention, error handling, dependencies, and logging. |
 | `standards/COGNITIVE_LOAD.md` | Six principles (CL-01 through CL-06) from Sweller's Cognitive Load Theory. Governs user-facing design — extraneous load elimination, intrinsic load management, choice reduction, consistency. |
 | `standards/COACHING_WITHOUT_CONFLICT.md` | Seven tenets for delivering feedback without triggering defensiveness. Structural over personal, diagnostic over prescriptive, hypotheses over conclusions. |
-| `standards/CRITICAL_THINKING_STANDARD.md` | Thirteen principles for evidence-based reasoning — MECE, falsifiability, confidence calibration, no hyperbole, pyramid principle, honest uncertainty, adversarial testing posture. |
+| `standards/CRITICAL_THINKING_STANDARD.md` | Thirteen principles for evidence-based reasoning organised by phase: input (framing, evidence gathering), processing (reasoning, analysis), output (communication). Nine anti-patterns. |
+| `templates/CRITICAL_THINKING_PROMPT.md` | Copy-paste prompt template for applying critical thinking to any task. Eight-section structure: task, context, reference, brief, rules, conversation, plan, alignment. |
 | `roadmap/ROLLOUT_PLAN.md` | Nine further principles staged across three tiers, with promotion criteria. Guidance for growing beyond the starter set. |
 
 ### SRD Plugin (Claude Code)
@@ -36,7 +37,7 @@ Claude Code picks up `CLAUDE.md` automatically. The standards are active immedia
 |------|------|
 | `srd/` | Requirements Analyst plugin for Claude Code. Facilitates building Software Requirements Documents through guided one-question-at-a-time conversation. Produces UML artifacts in Mermaid. |
 | `srd/agents/requirements-analyst.md` | Agent definition — six-phase facilitation model with teaching integration. |
-| `srd/skills/` | Standalone skills: `/srd:codebase-mapping`, `/srd:tree-synthesis`, `/srd:requirements-validation`, `/srd:spec-index`. Plus `srd-templates` (agent-only, not user-invocable). |
+| `srd/skills/` | Standalone skills: `/srd:codebase-mapping`, `/srd:tree-synthesis`, `/srd:requirements-validation`, `/srd:spec-index`, `/srd:critical-thinking`. Plus `srd-templates` (agent-only, not user-invocable). |
 
 See [`srd/README.md`](srd/README.md) for plugin documentation.
 

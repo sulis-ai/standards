@@ -1,13 +1,15 @@
 # Critical Thinking Standard
 
 <!-- summary -->
-Thirteen analytical principles (BI, SI, FR, CC, MECE, NH, PP, HU, EH, DF, PG, OI, AT)
-and nine anti-patterns (AP-01 through AP-09) that govern how research, analysis, and
-reasoning are conducted. Ensures rigour, intellectual honesty, and evidence-based
-conclusions across all analytical work.
+Thirteen analytical principles and nine anti-patterns that govern how research, analysis,
+and reasoning are conducted. Organised into three phases that map to how analysis is
+actually performed: **input** (framing the question, evaluating incoming evidence),
+**processing** (reasoning about the evidence), and **output** (structuring and expressing
+conclusions). Each principle states when it applies and what to do. Ensures rigour,
+intellectual honesty, and evidence-based conclusions across all analytical work.
 <!-- /summary -->
 
-> **Version:** 1.0.0
+> **Version:** 2.0.0
 > **Status:** Active
 
 ---
@@ -16,7 +18,9 @@ conclusions across all analytical work.
 
 These principles encode analytical methodology drawing on: structured analytic techniques
 (Heuer & Pherson, 2014), Bayesian reasoning, MECE problem decomposition (Minto, 1987),
-epistemic humility literature, and practitioner knowledge from research and strategy work.
+the Pyramid Principle (Minto, 1987), SCQA narrative framing, epistemic humility literature,
+Lean Startup assumption testing (Maurya, 2012; Ries, 2011), Continuous Discovery (Torres,
+2021), and practitioner knowledge from research, strategy, and validation work.
 
 ---
 
@@ -40,7 +44,24 @@ Content that fails the ProjectX test belongs in the project's architecture file,
 
 ---
 
-## Core Principles
+## Three-Phase Model
+
+Standards are organised by the phase of analytical work where they apply. This structure
+tells you **when** to apply each principle, not just **what** it says.
+
+| Phase | When It Applies | Principles |
+|-------|----------------|------------|
+| **Input** | Receiving a question, task, or body of evidence. Before analysis begins. | BI, OI, CI, SI, HE |
+| **Processing** | Reasoning about the evidence. During analysis. | FR, CC, MECE, PG, EH, AT |
+| **Output** | Structuring and expressing conclusions. When producing deliverables. | PP, PL |
+
+---
+
+## Input Phase — Framing and Evidence Gathering
+
+> **When:** You receive a question, task, or body of evidence.
+> **What to do:** Frame the question before researching. Start from external reality.
+> Gather evidence from both sides. Verify source independence. Rank evidence by type.
 
 <!-- detail -->
 
@@ -57,7 +78,40 @@ state the question clearly, you are not ready to begin analysis.
 | **Template** | "The question this analysis answers is: [question]. This question matters because: [context]. We will know the answer is adequate when: [success criteria]." |
 | **Verification** | The stated question exists. It is specific enough to be answerable. It includes success criteria. The analysis directly addresses the stated question. |
 | **Red Flags** | Analysis that "explores" a topic without a stated question. Conclusions that answer a different question than the one stated. Questions so broad they cannot be falsified ("What is the state of the market?"). |
-| **Anti-Pattern** | Starting with research, then retrospectively fitting a question to the findings. |
+
+---
+
+### OI: Outside-In Reasoning
+
+**Severity:** SHOULD
+
+Start from external reality — user needs, market conditions, observed behaviour — and
+reason inward to solutions. Do not start from internal structure and reason outward
+to justify existing approaches.
+
+| Attribute | Detail |
+|-----------|--------|
+| **Rule** | Analysis begins with external evidence (user behaviour, market data, observed outcomes) before consulting internal structure (existing systems, current categorisations, organisational boundaries). Internal structure informs feasibility, not desirability. |
+| **Template** | "External evidence shows: [observations]. Given this evidence, the ideal approach would be: [unconstrained solution]. Given internal constraints ([constraints]), the feasible approach is: [constrained solution]. Gap between ideal and feasible: [gap]." |
+| **Verification** | The analysis starts with external evidence. Internal structure is consulted for feasibility, not as the starting point. Conclusions are not merely rationalisations of the current approach. |
+| **Red Flags** | "We should do X because that's how our system is structured." Decomposing a problem along internal boundaries rather than along the user's actual experience. Skipping external evidence and starting from existing categorisations. |
+
+---
+
+### CI: Counter-Investigation
+
+**Severity:** MUST
+
+For every supporting search, conduct a counter-search. Evidence gathered in only one
+direction is advocacy, not analysis.
+
+| Attribute | Detail |
+|-----------|--------|
+| **Rule** | For every search that supports a hypothesis, conduct at least one search designed to find counter-evidence. Document counter-evidence explicitly, even if weak or absent. Search at least two different sources or communities for triangulation. |
+| **Template** | "Supporting search: [query]. Counter-search: [query]. Counter-evidence found: [findings or 'none found — methodology limitations noted']. Triangulation: [sources consulted]." |
+| **Example** | Research question: "Do developers struggle with deployment complexity?" Required searches: (1) "deployment complexity frustration developers" (supporting), (2) "deployment made easy" or "deployment solved" (counter), (3) "deployment best practices 2025" (neutral/current state). |
+| **Verification** | Counter-searches are documented for each supporting search. Counter-evidence is presented alongside supporting evidence. Methodology limitations are noted. |
+| **Red Flags** | All evidence points in one direction with no documented counter-search. Research stops as soon as confirming evidence is found. |
 
 ---
 
@@ -70,102 +124,14 @@ of its authority, is a data point — not a conclusion.
 
 | Attribute | Detail |
 |-----------|--------|
-| **Rule** | No factual claim rests on a single source. When only one source exists, the claim is explicitly marked as single-source and treated as provisional. Independent means the sources do not derive from each other. |
+| **Rule** | No factual claim rests on a single source. When only one source exists, the claim is explicitly marked as single-source and treated as provisional. Independent means the sources do not derive from each other — sources citing each other count as ONE source. |
 | **Template** | "This claim is supported by [N] independent sources: [list]. These sources are independent because [explanation]." Or: "This claim rests on a single source ([source]). It is treated as provisional." |
 | **Verification** | Each factual claim cites at least two independent sources. Single-source claims are explicitly flagged. Sources are actually independent (not one quoting the other). |
-| **Red Flags** | Multiple citations that all trace back to the same original source. Treating a source as authoritative without corroboration. Citing a secondary summary instead of the primary source. |
-| **Anti-Pattern** | Circular sourcing — A cites B, B cites A, presented as two independent sources. |
+| **Red Flags** | Multiple citations that all trace back to the same original source. Sources from a single community or vendor ecosystem presented as independent. Citing a secondary summary instead of the primary source. Complaints from a specific time period presented as current (may be resolved). |
 
 ---
 
-### FR: Falsifiability Requirement
-
-**Severity:** MUST
-
-Every claim must be stated in a form that can, in principle, be proven wrong. If a
-claim cannot be falsified, it is not an analytical conclusion — it is an opinion or
-a tautology.
-
-| Attribute | Detail |
-|-----------|--------|
-| **Rule** | Claims are stated in falsifiable form. For each claim, identify what evidence would disprove it. If no evidence could disprove it, restate the claim or acknowledge it as a value judgement. |
-| **Template** | "Claim: [statement]. This claim would be falsified by: [specific evidence that would disprove it]." |
-| **Verification** | Each analytical claim has an identified falsification condition. If the falsification condition is impossible to observe, the claim is restated or reclassified. |
-| **Red Flags** | Claims that are true by definition. Claims so vague that any outcome confirms them. Moving the goalposts when counter-evidence appears. |
-| **Anti-Pattern** | "This approach might work" — unfalsifiable because "might" covers all outcomes. Restate as: "This approach will achieve [specific outcome] within [timeframe]." |
-
----
-
-### CC: Confidence Calibration
-
-**Severity:** MUST
-
-Attach explicit confidence levels to claims. Distinguish between "we are confident
-because of strong evidence" and "we believe this but the evidence is thin."
-
-| Attribute | Detail |
-|-----------|--------|
-| **Rule** | Every non-trivial claim carries an explicit confidence indicator. Confidence is calibrated to evidence quality and quantity, not to the analyst's conviction. |
-| **Confidence Scale** | **High** — Multiple independent sources, directly observed data, or well-established research. **Medium** — Some supporting evidence but gaps exist, or evidence is indirect. **Low** — Single source, extrapolation from limited data, or analyst judgement with minimal supporting evidence. |
-| **Template** | "Claim: [statement]. Confidence: [High/Medium/Low]. Basis: [evidence summary]. Key uncertainty: [what could change this assessment]." |
-| **Verification** | Claims have explicit confidence levels. The stated confidence matches the underlying evidence (not inflated or deflated). Key uncertainties are identified. |
-| **Red Flags** | Presenting low-confidence claims with the same certainty as high-confidence claims. No confidence indicators anywhere in the analysis. Confidence levels that don't match the evidence cited. |
-| **Anti-Pattern** | Asserting "the market will grow 15%" without indicating whether this is a high-confidence forecast from multiple models or a low-confidence extrapolation from one data point. |
-
----
-
-### MECE: Mutually Exclusive, Collectively Exhaustive
-
-**Severity:** SHOULD
-
-When decomposing a problem, ensure categories are mutually exclusive (no item belongs
-in more than one category) and collectively exhaustive (all items are accounted for).
-
-| Attribute | Detail |
-|-----------|--------|
-| **Rule** | Problem decompositions, option analyses, and categorisation schemes are MECE. When perfect MECE is impractical, deviations are documented with the rationale. |
-| **Template** | "The options/categories are: [list]. These are mutually exclusive because: [explanation]. These are collectively exhaustive because: [explanation or acknowledgement of known gaps]." |
-| **Verification** | No item falls into multiple categories. All relevant items are accounted for. If gaps exist, they are documented. |
-| **Red Flags** | Overlapping categories that force items into multiple buckets. Missing categories that cause items to fall through. Catch-all "Other" categories that contain more items than named categories. |
-| **Anti-Pattern** | "We can build, buy, or partner" — presented as exhaustive when "do nothing" and "acquire" are also valid options that were not considered. |
-
----
-
-### NH: Null Hypothesis Awareness
-
-**Severity:** SHOULD
-
-Consider the null hypothesis — that nothing has changed, that there is no effect, or
-that the status quo is adequate — before concluding that action is needed.
-
-| Attribute | Detail |
-|-----------|--------|
-| **Rule** | Before recommending action, explicitly consider whether the evidence supports "no change needed" as a viable conclusion. The burden of proof is on the recommendation, not on the status quo. |
-| **Template** | "Null hypothesis: [status quo description]. Evidence against the null: [evidence]. Strength of evidence: [assessment]. Conclusion: [action needed / insufficient evidence to reject the null]." |
-| **Verification** | The null hypothesis is stated. Evidence against it is presented. The conclusion is proportional to the evidence strength. |
-| **Red Flags** | Skipping straight to recommendations without considering whether the problem actually exists. Treating the need for action as self-evident. Dismissing the status quo without evidence. |
-| **Anti-Pattern** | "We need to replatform because our architecture is outdated." — Outdated compared to what? By what measure? What is the cost of not replatforming? |
-
----
-
-### PP: Proportional Precision
-
-**Severity:** SHOULD
-
-Match the precision of your claims to the precision of your evidence. Do not present
-rough estimates as exact figures or general trends as specific predictions.
-
-| Attribute | Detail |
-|-----------|--------|
-| **Rule** | The precision of stated claims matches the precision of the underlying evidence. Ranges are preferred over point estimates when uncertainty is significant. Orders of magnitude are preferred over precise numbers when data is scarce. |
-| **Template** | "Based on [evidence], the value is approximately [range] (not [false-precision number])." |
-| **Verification** | Claims do not imply more precision than the evidence supports. Ranges are used when appropriate. Significant figures match data quality. |
-| **Red Flags** | "The market opportunity is $4,237,000" based on back-of-envelope estimation. "Exactly 73% of users prefer X" from a survey of 30 people. Presenting a forecast with two decimal places when the model has 20% error margins. |
-| **Anti-Pattern** | False precision — stating "deployment will take 14 days" when the honest answer is "2–4 weeks depending on factors we haven't fully scoped." |
-
----
-
-### HU: Hierarchy of Evidence
+### HE: Hierarchy of Evidence
 
 **Severity:** MUST
 
@@ -178,7 +144,90 @@ when presenting conclusions.
 | **Evidence Hierarchy (strongest to weakest)** | 1. Directly observed, measured data from the specific context. 2. Systematic reviews or meta-analyses of relevant research. 3. Controlled experiments or rigorous studies. 4. Observational data from analogous contexts. 5. Expert opinion with stated reasoning. 6. Anecdote, analogy, or common sense. |
 | **Verification** | The type of evidence is identified for each claim. When evidence conflicts, higher-ranked evidence takes precedence or the conflict is documented. Conclusions are not based solely on low-ranked evidence when higher-ranked evidence is available. |
 | **Red Flags** | Treating an anecdote as equivalent to measured data. Ignoring systematic evidence because it conflicts with expert opinion. Presenting expert opinion as empirical fact. |
-| **Anti-Pattern** | "Our CEO thinks the market is moving towards X" treated as equivalent to market research data showing the opposite. |
+
+<!-- /detail -->
+
+---
+
+## Processing Phase — Reasoning and Analysis
+
+> **When:** You have gathered evidence and are reasoning about it.
+> **What to do:** Ensure claims are falsifiable. Calibrate confidence to evidence.
+> Decompose problems cleanly. Ground analysis in irreducible units. Acknowledge what
+> you don't know. Argue against your own conclusions.
+
+<!-- detail -->
+
+### FR: Falsifiability Requirement
+
+**Severity:** MUST
+
+Every claim must be stated in a form that can, in principle, be proven wrong. If a
+claim cannot be falsified, it is not an analytical conclusion — it is an opinion or
+a tautology.
+
+| Attribute | Detail |
+|-----------|--------|
+| **Rule** | Claims are stated in falsifiable form. For each claim, identify what evidence would disprove it. If no evidence could disprove it, restate the claim or acknowledge it as a value judgement. For strategic bets, define explicit stop/pivot/re-evaluate criteria. |
+| **Template** | "Claim: [statement]. This claim would be falsified by: [specific evidence that would disprove it]." For strategic bets: "We will STOP if: [condition]. We will PIVOT if: [condition]. We will RE-EVALUATE if: [trigger]." |
+| **Pre-Mortem** | For significant decisions: "If this fails, the most likely reasons are: 1. [Reason]. 2. [Reason]. 3. [Reason]." |
+| **Verification** | Each analytical claim has an identified falsification condition. Strategic bets have explicit stop/pivot criteria. Pre-mortem is documented for significant decisions. |
+| **Red Flags** | Claims that are true by definition. Claims so vague that any outcome confirms them. Moving the goalposts when counter-evidence appears. "This approach might work" — unfalsifiable because "might" covers all outcomes. |
+
+---
+
+### CC: Confidence Calibration
+
+**Severity:** MUST
+
+Attach explicit confidence levels to claims. Match the precision of claims to the
+precision of evidence. Do not present rough estimates as exact figures or general
+trends as specific predictions.
+
+| Attribute | Detail |
+|-----------|--------|
+| **Rule** | Every non-trivial claim carries an explicit confidence indicator calibrated to evidence quality and quantity, not to the analyst's conviction. Ranges are preferred over point estimates when uncertainty is significant. |
+| **Confidence Scale** | **High** — Multiple independent sources, directly observed data, or well-established research. **Medium** — Some supporting evidence but gaps exist, or evidence is indirect. **Low** — Single source, extrapolation from limited data, or analyst judgement with minimal supporting evidence. |
+| **Confidence Decay** | Evidence older than 2 years: flag for re-validation. Technology-specific claims decay faster (6–12 months). Market and behaviour claims may persist longer (2–3 years). |
+| **Template** | "Claim: [statement]. Confidence: [High/Medium/Low]. Basis: [evidence summary]. Key uncertainty: [what could change this assessment]." |
+| **Verification** | Claims have explicit confidence levels. The stated confidence matches the underlying evidence. Key uncertainties are identified. Claim precision matches evidence precision — no false precision. |
+| **Red Flags** | Presenting low-confidence claims with the same certainty as high-confidence claims. "The market opportunity is $4,237,000" based on back-of-envelope estimation. Precise numbers without error margins. |
+
+---
+
+### MECE: Mutually Exclusive, Collectively Exhaustive
+
+**Severity:** SHOULD
+
+When decomposing a problem, ensure categories are mutually exclusive (no item belongs
+in more than one category) and collectively exhaustive (all items are accounted for).
+
+| Attribute | Detail |
+|-----------|--------|
+| **Rule** | Problem decompositions, option analyses, and categorisation schemes are MECE. When perfect MECE is impractical, deviations are documented with rationale. Apply the Leg Test: if removing a category doesn't weaken the conclusion, it's fluff. Apply the "So What?" test: every finding must affect the recommendation. |
+| **Template** | "The options/categories are: [list]. These are mutually exclusive because: [explanation]. These are collectively exhaustive because: [explanation or acknowledgement of known gaps]." |
+| **Verification** | No item falls into multiple categories. All relevant items are accounted for. Catch-all "Other" categories do not contain more items than named categories. Every finding passes the "So What?" test. |
+| **Red Flags** | Overlapping categories that force items into multiple buckets. Missing categories that cause items to fall through. Findings that don't affect the recommendation — fluff, remove them. "We can build, buy, or partner" presented as exhaustive when "do nothing" was not considered. |
+
+---
+
+### PG: Primitive Grounding
+
+**Severity:** SHOULD
+
+Every analysis must be grounded in irreducible, independently testable units at the
+stated level of analysis. Primitives are the atoms of analysis — MECE validates that
+categories don't overlap and cover the space; Primitive Grounding validates that those
+categories are real rather than arbitrary groupings.
+
+| Attribute | Detail |
+|-----------|--------|
+| **Rule** | Every analysis identifies its primitives at the stated level of analysis. A primitive is irreducible at that level: it cannot be decomposed further without changing the decision it informs. Each primitive must be independently changeable, independently validatable, and independently falsifiable. |
+| **Level-of-Analysis Anchor** | Every primitive decomposition declares its decision context. Primitives are relative to the decision being made, not absolute. The same element may be primitive at one level and composite at another. |
+| **Termination Condition** | Decomposition stops when further splitting would not change any decision at the stated level of analysis. Over-decomposition is as harmful as under-decomposition. |
+| **Template** | "Decision context: [what decision this informs]. Level: [e.g., strategy, architecture, implementation]. Primitives: [list with independence and irreducibility justification]." |
+| **Verification** | Primitives are declared with decision context. Each passes the independence test. Decomposition has stopped at the right level. Two "primitives" that must always change together are flagged as one primitive or a hidden dependency. |
+| **Red Flags** | Categories that pass MECE but could be reorganised arbitrarily. No declared level of analysis. Decomposition continuing past the point where it changes decisions. |
 
 ---
 
@@ -187,87 +236,80 @@ when presenting conclusions.
 **Severity:** MUST
 
 Acknowledge the limits of your knowledge explicitly. Distinguish between what you know,
-what you think, and what you are guessing.
+what you think, and what you are guessing. Treat "no evidence found" as a finding, not
+a gap to hide.
 
 | Attribute | Detail |
 |-----------|--------|
-| **Rule** | Every analysis explicitly identifies: what is known (supported by evidence), what is inferred (derived from evidence but not directly observed), and what is assumed (taken as given without direct evidence). Assumptions are documented and flagged for validation. |
-| **Template** | "Known: [evidence-based facts]. Inferred: [logical deductions from known facts]. Assumed: [statements taken as given — to be validated]." |
-| **Verification** | The analysis distinguishes between known facts, inferences, and assumptions. Assumptions are listed and flagged. The analyst does not present assumptions as facts. |
-| **Red Flags** | Presenting assumptions as established facts. No uncertainty language anywhere in the analysis. Claiming to "know" things that are actually inferences. |
-| **Anti-Pattern** | "Users want X" stated as fact when no user research has been conducted — this is an assumption, not a known fact. |
+| **Rule** | Every analysis explicitly identifies: what is **known** (supported by evidence), what is **inferred** (derived from evidence but not directly observed), and what is **assumed** (taken as given without direct evidence). Assumptions are documented and flagged for validation. What couldn't be determined is disclosed with the searches attempted. |
+| **On Weak Evidence** | Weak evidence should guide exploration, not warrant dismissal. Distinguish: "bad idea" (evidence actively contradicts), "unvalidated idea" (insufficient evidence to judge), "needs exploration" (promising but requires more research). When evidence is insufficient, identify the next research step rather than dismissing. |
+| **Template** | "Known: [evidence-based facts]. Inferred: [logical deductions from known facts]. Assumed: [statements taken as given — to be validated]. Could not determine: [questions and searches attempted]." |
+| **Verification** | The analysis distinguishes known facts, inferences, and assumptions. Assumptions are listed and flagged. Gaps are disclosed with methodology. Unvalidated ideas are given exploration paths, not dismissed. |
+| **Red Flags** | Presenting assumptions as established facts. No uncertainty language anywhere. "This won't work" without evidence. "Nobody wants this" without counter-search. Hiding what couldn't be determined. |
 
 ---
 
-### DF: Devil's Advocate Filter
+### AT: Adversarial Posture
 
 **Severity:** SHOULD
 
-Actively argue against your own conclusions before presenting them. If you cannot
-construct a strong counter-argument, your analysis may be incomplete.
+The default posture for validation is adversarial: seek to disprove before seeking to
+confirm. Actively argue against your own conclusions before presenting them.
 
 | Attribute | Detail |
 |-----------|--------|
-| **Rule** | Before finalising a conclusion, construct the strongest possible argument against it. Document this counter-argument and explain why the conclusion still holds (or revise the conclusion). |
+| **Rule** | Before finalising a conclusion, construct the strongest possible argument against it. Seek evidence that would disprove the hypothesis before seeking evidence that would confirm it. Test riskiest assumptions first — ordered by impact (what damage if wrong) then by evidence level (least evidence first). |
 | **Template** | "Conclusion: [statement]. Strongest counter-argument: [argument]. Why the conclusion holds despite this: [rebuttal]. Conditions under which the counter-argument would prevail: [conditions]." |
-| **Verification** | A counter-argument exists for each major conclusion. The counter-argument is genuinely strong (not a strawman). The rebuttal addresses the counter-argument directly. |
-| **Red Flags** | No counter-arguments considered. Counter-arguments that are weak strawmen. Rebuttals that dismiss rather than address the counter-argument. |
-| **Anti-Pattern** | "One might argue X, but that's obviously wrong because Y" — dismissing the counter-argument without engaging with it seriously. |
+| **Confirmation-Seeking Exception** | If validation starts from "how do we confirm this?", the choice must be stated explicitly with rationale for why adversarial posture was inappropriate. |
+| **Verification** | Counter-arguments exist for each major conclusion. Counter-arguments are genuinely strong (not strawmen). Rebuttals address counter-arguments directly. Riskiest assumptions are tested first. |
+| **Red Flags** | No counter-arguments considered. Counter-arguments that are weak strawmen. All tests designed to produce positive results. Riskiest assumptions tested last or not at all. Validation plan that starts with "How do we confirm...?" without justification. |
+
+<!-- /detail -->
 
 ---
 
-### PG: Precision of Language
+## Output Phase — Communication and Presentation
+
+> **When:** You are structuring and expressing your conclusions.
+> **What to do:** Lead with the conclusion, not the journey. Use precise language.
+> Back every quantitative term with a metric. Frame findings for the decision maker.
+
+<!-- detail -->
+
+### PP: Pyramid Principle
 
 **Severity:** SHOULD
 
-Use precise language. Avoid weasel words, hedge stacking, and vague quantifiers.
-When you mean "some", don't say "many." When you mean "we believe", don't say "it is
-known."
+Start with the conclusion. Build supporting evidence beneath it. Frame findings as
+a story for the decision maker, not a technical inventory.
 
 | Attribute | Detail |
 |-----------|--------|
-| **Rule** | Use specific language. Quantify where possible. Attribute claims to their source. Avoid passive constructions that hide agency. Avoid stacking hedges ("it might possibly perhaps be the case that..."). |
-| **Words to Avoid** | "Many" (how many?), "significant" (by what measure?), "it is known that" (known by whom?), "clearly" (if it were clear, you wouldn't need the word), "stakeholders" (which ones?), "best practice" (according to whom? based on what evidence?), "leverage" (use "use"), "synergy" (describe the specific interaction). |
-| **Template** | Replace "many users report issues" with "[N] users reported [specific issue] in [time period], based on [data source]." |
-| **Verification** | Vague quantifiers are replaced with specific numbers or ranges. Claims are attributed to specific sources. Passive voice is not used to hide agency. Hedge words are used singly, not stacked. |
-| **Red Flags** | Multiple hedge words in one sentence. Vague quantifiers without supporting data. Passive constructions that obscure who did what. "Best practice" cited without a source. |
-| **Anti-Pattern** | "It is widely believed that best practices suggest leveraging synergies to drive significant value." — This sentence says nothing. |
+| **Rule** | Lead with the recommendation or conclusion. Support with 2–4 "legs" (key reasons), each of which is necessary (passes the Leg Test). Details follow the structure, not precede it. For decision-oriented outputs, use SCQA framing: Situation (context), Complication (what changed or went wrong), Question (what needs deciding), Answer (what to do). |
+| **Why Pyramid Structure** | Traditional narrative (context → evidence → analysis → conclusion) buries the lead. Pyramid structure (conclusion → supporting legs → details) lets the reader know the answer immediately and drill into evidence as needed. |
+| **SCQA Template** | "**Situation:** [context]. **Complication:** [what problem or change emerged]. **Question:** [what needs deciding — may differ from original if complications warrant]. **Answer:** [what to do]." |
+| **Escalation** | If findings reveal issues bigger than the original question — methodology inconsistency, architectural conflict, missing foundational decision — flag this prominently. The Complication can change the Question. |
+| **Verification** | Output leads with conclusion. Supporting legs are necessary (pass Leg Test). Details follow structure. Decision-oriented outputs use SCQA. If complications changed the question, this is flagged. |
+| **Red Flags** | Starting with background/context instead of conclusion. Burying the recommendation at the end. Listing findings without synthesising into legs. Answering a narrow question when a bigger issue was discovered. |
 
 ---
 
-### OI: Outside-In Reasoning
+### PL: Precision of Language
 
 **Severity:** SHOULD
 
-Start from external reality (user needs, market conditions, observed behaviour) and
-reason inward to solutions. Do not start from internal structure and reason outward
-to justify existing approaches.
+Use precise language. Avoid weasel words, hedge stacking, unsupported superlatives,
+and vague quantifiers. When you mean "some", don't say "many." When you mean
+"we believe", don't say "it is known."
 
 | Attribute | Detail |
 |-----------|--------|
-| **Rule** | Analysis begins with external evidence (user behaviour, market data, observed outcomes) before consulting internal structure (existing systems, current categorisations, organisational boundaries). Internal structure informs feasibility, not desirability. |
-| **Template** | "External evidence shows: [observations]. Given this evidence, the ideal approach would be: [unconstrained solution]. Given internal constraints ([constraints]), the feasible approach is: [constrained solution]. Gap between ideal and feasible: [gap]." |
-| **Verification** | The analysis starts with external evidence. Internal structure is consulted for feasibility, not as the starting point. Conclusions are not merely rationalisations of the current approach. |
-| **Red Flags** | "We should do X because that's how our system is structured" — reasoning from internal structure outward. Skipping external evidence and starting from existing categorisations. Letting organisational boundaries define the analysis rather than the problem. |
-| **Anti-Pattern** | Decomposing a customer problem along internal team boundaries rather than along the customer's actual experience. Categorising user needs to match existing features rather than observed behaviour. |
-
----
-
-### AT: Assumption Tracking
-
-**Severity:** SHOULD
-
-Maintain an explicit list of assumptions underlying any analysis. Revisit and validate
-assumptions as work progresses. Expired or invalidated assumptions trigger re-evaluation
-of conclusions built on them.
-
-| Attribute | Detail |
-|-----------|--------|
-| **Rule** | Every analysis maintains a visible list of assumptions. Assumptions are validated or invalidated as new evidence emerges. When a foundational assumption is invalidated, all conclusions built on it are re-evaluated. |
-| **Template** | "Assumptions: 1. [Assumption] — Status: [Validated/Unvalidated/Invalidated] — Evidence: [basis]. 2. [Assumption] — Status: [status] — Evidence: [basis]." |
-| **Verification** | An assumption list exists. Each assumption has a status. Invalidated assumptions have triggered re-evaluation of dependent conclusions. |
-| **Red Flags** | No documented assumptions. Assumptions that have never been validated despite available evidence. Conclusions that depend on invalidated assumptions. |
-| **Anti-Pattern** | Building an entire strategy on the assumption that "users want feature X" without ever validating that assumption through research, then being surprised when the feature is not adopted. |
+| **Rule** | Use specific language. Quantify where possible. Attribute claims to their source. Avoid passive constructions that hide agency. Avoid stacking hedges. Every quantitative term requires a metric or explicit qualification. |
+| **Prohibited Terms** | "revolutionary", "disruptive", "unprecedented", "game-changing", "best-in-class", "cutting-edge", "world-class", "amazing", "incredible." Replace with specific comparisons or remove entirely. |
+| **Terms Requiring Metrics** | "significant" → define threshold ("significant (>40% improvement)"). "many" → quantify ("many (12 of 15 sources)"). "most" → percentage. "growing" → rate. "large" → size. "fast" → measurement. |
+| **Words to Avoid** | "it is known that" (known by whom?), "clearly" (if it were clear, you wouldn't need the word), "stakeholders" (which ones?), "best practice" (according to whom?), "leverage" (use "use"), "synergy" (describe the specific interaction). |
+| **Verification** | No prohibited terms remain. Quantitative terms have metrics. Claims are attributed to specific sources. Passive voice is not used to hide agency. Hedge words are used singly, not stacked. |
+| **Red Flags** | Multiple hedge words in one sentence. Vague quantifiers without supporting data. "It is widely believed that best practices suggest leveraging synergies to drive significant value" — this sentence says nothing. |
 
 <!-- /detail -->
 
@@ -275,122 +317,21 @@ of conclusions built on them.
 
 ## Anti-Patterns
 
+Nine common reasoning failures. Each is tagged with the principles that mitigate it.
+
 <!-- detail -->
 
-### AP-01: Confirmation Bias
-
-**Description:** Seeking, interpreting, and prioritising evidence that confirms
-pre-existing beliefs while ignoring or downplaying contradictory evidence.
-
-| Attribute | Detail |
-|-----------|--------|
-| **How It Manifests** | Cherry-picking data points that support the preferred conclusion. Dismissing contradictory evidence as "outliers" without investigation. Framing research questions to elicit confirming answers. Stopping research as soon as confirming evidence is found. |
-| **Detection** | All cited evidence points in the same direction with no acknowledged counter-evidence. Research methodology is designed to confirm rather than test. Contradictory data is absent or dismissed without explanation. |
-| **Mitigation** | Apply DF (Devil's Advocate Filter). Actively seek disconfirming evidence. Ask: "What evidence would change my mind?" before starting research. |
-
----
-
-### AP-02: Anchoring
-
-**Description:** Over-relying on the first piece of information encountered (the
-"anchor") and insufficiently adjusting from it as new evidence emerges.
-
-| Attribute | Detail |
-|-----------|--------|
-| **How It Manifests** | The first estimate becomes the baseline that all subsequent estimates orbit. Initial framing of a problem constrains all subsequent analysis. A competitor's approach becomes the template even when the context differs. |
-| **Detection** | Final conclusions are suspiciously close to initial estimates despite significant new evidence. Analysis framework matches the first source consulted. Alternative framings were not considered. |
-| **Mitigation** | Generate estimates independently before consulting existing benchmarks. Consider multiple framings before committing to one. Apply OI (Outside-In Reasoning) to avoid anchoring on internal structure. |
-
----
-
-### AP-03: Survivorship Bias
-
-**Description:** Drawing conclusions from visible successes while ignoring invisible
-failures. The data you see is a biased sample because failures are not represented.
-
-| Attribute | Detail |
-|-----------|--------|
-| **How It Manifests** | "Company X did Y and succeeded, so we should do Y" — without considering companies that did Y and failed. Analysing feature adoption by looking only at active users, not churned users. Studying successful projects to learn "what works" without studying failed projects. |
-| **Detection** | Analysis sample includes only successes. Failure cases are absent or unexamined. Conclusions generalise from winners without accounting for losers. |
-| **Mitigation** | Actively seek failure cases. Ask: "What would this data look like if we included failures?" Apply NH (Null Hypothesis Awareness) — maybe the factor you identified isn't actually causal. |
-
----
-
-### AP-04: Authority Bias
-
-**Description:** Accepting claims because of the source's authority rather than the
-quality of the evidence.
-
-| Attribute | Detail |
-|-----------|--------|
-| **How It Manifests** | "The CEO said X, so X is true." Citing a famous expert's opinion as if it were empirical evidence. Accepting a prestigious firm's report without scrutinising its methodology. Dismissing valid criticism because the critic lacks credentials. |
-| **Detection** | Claims are supported by appeals to authority rather than evidence. Source prestige substitutes for source evaluation. Counter-evidence from less prestigious sources is dismissed. |
-| **Mitigation** | Apply HU (Hierarchy of Evidence). Evaluate the evidence, not the source. Expert opinion is ranked below empirical data. Ask: "Would I accept this claim if it came from an unknown source?" |
-
----
-
-### AP-05: Sunk Cost Fallacy
-
-**Description:** Continuing an approach because of resources already invested rather
-than because the evidence supports continuing.
-
-| Attribute | Detail |
-|-----------|--------|
-| **How It Manifests** | "We've already spent 6 months on this, we can't stop now." Refusing to pivot because of emotional investment in the current approach. Evaluating options based on past costs rather than future value. |
-| **Detection** | Past investment is cited as a reason to continue. Future-value analysis is absent or subordinated to sunk-cost arguments. Emotional language about "wasted" effort if the approach changes. |
-| **Mitigation** | Evaluate all options based on future value only. Apply FR (Falsifiability Requirement) — define upfront what would cause you to abandon the approach. Apply NH — consider whether stopping is a valid option. |
-
----
-
-### AP-06: Narrative Fallacy
-
-**Description:** Constructing a compelling story that explains the evidence post-hoc,
-then treating the story as causal explanation rather than one of many possible
-interpretations.
-
-| Attribute | Detail |
-|-----------|--------|
-| **How It Manifests** | "We launched feature X, metrics improved, therefore feature X caused the improvement." Retrospective case studies that present a clean narrative of cause and effect. Pattern-matching from a small number of examples to a general rule. |
-| **Detection** | Causal claims without controlled comparison. Post-hoc narratives presented as causal analysis. Alternative explanations not considered. Clean, linear stories from messy, non-linear reality. |
-| **Mitigation** | Apply CC (Confidence Calibration) — mark post-hoc explanations as low confidence. Consider alternative causal explanations. Demand controlled comparison before accepting causal claims. |
-
----
-
-### AP-07: False Dichotomy
-
-**Description:** Presenting a situation as having only two options when more exist.
-
-| Attribute | Detail |
-|-----------|--------|
-| **How It Manifests** | "We either build this ourselves or we don't do it at all." "Either we launch now or we miss the window." "You're either with us or against us." |
-| **Detection** | Exactly two options are presented. No exploration of middle ground, hybrid approaches, or alternative framings. Pressure to choose between the stated options without questioning the frame. |
-| **Mitigation** | Apply MECE — enumerate all options, not just two. Ask: "What options are we not seeing?" Apply DF (Devil's Advocate Filter) to challenge the binary framing. |
-
----
-
-### AP-08: Scope Creep in Analysis
-
-**Description:** Analysis that expands beyond its stated question, consuming time and
-resources without improving the quality of the answer to the original question.
-
-| Attribute | Detail |
-|-----------|--------|
-| **How It Manifests** | Research that keeps finding "one more interesting angle." Analysis deliverables that grow far beyond the original brief. Tangential findings given equal weight to findings that answer the stated question. |
-| **Detection** | Analysis has expanded significantly beyond its original scope. Tangential findings are prominent. The original question is buried or forgotten. Delivery is delayed by scope expansion. |
-| **Mitigation** | Apply BI (Begin with Inquiry) — return to the stated question. Ask: "Does this finding help answer the stated question?" Park tangential findings for separate analysis. Set time boundaries on research phases. |
-
----
-
-### AP-09: Precision Bias
-
-**Description:** Confusing precision (number of decimal places) with accuracy
-(closeness to truth). Presenting precise numbers creates an illusion of certainty.
-
-| Attribute | Detail |
-|-----------|--------|
-| **How It Manifests** | "The ROI will be 14.3%." "We'll need exactly 47 days." "Market share will be 23.7%." All based on estimates with wide error margins. Spreadsheet models with many decimal places built on rough assumptions. |
-| **Detection** | High-precision numbers without error margins. Precision that exceeds the quality of input data. Decimal places on estimates built from rough assumptions. |
-| **Mitigation** | Apply PP (Proportional Precision). Use ranges, not point estimates, when uncertainty is significant. Show error margins. Match output precision to input precision. |
+| ID | Anti-Pattern | How It Manifests | Detection | Mitigation |
+|----|-------------|-----------------|-----------|------------|
+| AP-01 | **Confirmation Bias** | Cherry-picking data. Dismissing contradictory evidence as "outliers." Stopping research at first confirming result. | All evidence points one direction. No counter-evidence documented. | CI, AT — counter-search and adversarial posture. |
+| AP-02 | **Anchoring** | First estimate becomes the baseline. Initial framing constrains all analysis. A competitor's approach becomes the template. | Final conclusions suspiciously close to initial estimates. Alternative framings not considered. | OI — outside-in reasoning. Generate estimates independently before consulting benchmarks. |
+| AP-03 | **Survivorship Bias** | "X did Y and succeeded, so we should do Y" — ignoring failures. Analysing only active users, not churned. | Sample includes only successes. Failure cases absent. | Ask: "What would this data look like if we included failures?" |
+| AP-04 | **Authority Bias** | "The CEO said X, so X is true." Expert opinion treated as empirical evidence. Valid criticism dismissed for lack of credentials. | Appeals to authority instead of evidence. Source prestige substitutes for evaluation. | HE — hierarchy of evidence. Ask: "Would I accept this from an unknown source?" |
+| AP-05 | **Sunk Cost Fallacy** | "We've spent 6 months on this, we can't stop now." Evaluating options by past cost, not future value. | Past investment cited as reason to continue. No future-value analysis. | FR — define upfront what would cause abandonment. Evaluate on future value only. |
+| AP-06 | **Narrative Fallacy** | "We launched X, metrics improved, therefore X caused it." Post-hoc stories presented as causal analysis. | Causal claims without controlled comparison. Alternative explanations not considered. | CC — mark post-hoc explanations as low confidence. Demand controlled comparison. |
+| AP-07 | **False Dichotomy** | "Either we build it ourselves or we don't do it." Only two options presented. | Exactly two options. No middle ground explored. | MECE — enumerate all options. Ask: "What options are we not seeing?" |
+| AP-08 | **Scope Creep in Analysis** | "One more interesting angle." Deliverables grow beyond brief. Tangential findings given equal weight. | Analysis far beyond original scope. Original question buried. | BI — return to stated question. "Does this finding help answer the question?" |
+| AP-09 | **Precision Bias** | "ROI will be 14.3%" based on rough estimates. Precise numbers without error margins. | Precision exceeds input data quality. | CC — use ranges when uncertain. Match output precision to input precision. |
 
 <!-- /detail -->
 
@@ -398,78 +339,78 @@ resources without improving the quality of the answer to the original question.
 
 ## Quality Checklist
 
-Before delivering any analytical output, verify:
+Before delivering any analytical output, verify against each phase:
 
+### Input Phase
 - [ ] **BI:** The question being answered is explicitly stated with success criteria
+- [ ] **OI:** Analysis starts from external evidence, not internal structure
+- [ ] **CI:** Counter-searches conducted and documented for each supporting search
 - [ ] **SI:** No factual claim rests on a single source (or single-source claims are
   flagged as provisional)
+- [ ] **HE:** Evidence types are identified and ranked; higher-ranked evidence takes
+  precedence
+
+### Processing Phase
 - [ ] **FR:** All claims are stated in falsifiable form with identified falsification
   conditions
 - [ ] **CC:** All non-trivial claims carry explicit confidence levels calibrated to
-  evidence quality
+  evidence quality; claim precision matches evidence precision
 - [ ] **MECE:** Problem decompositions are mutually exclusive and collectively exhaustive
-  (or gaps are documented)
-- [ ] **NH:** The null hypothesis has been considered before recommending action
-- [ ] **PP:** Claim precision matches evidence precision (no false precision)
-- [ ] **HU:** Evidence types are identified and ranked; higher-ranked evidence takes
-  precedence
+  (or gaps are documented); every finding passes the "So What?" test
+- [ ] **PG:** Primitives are identified at the stated level of analysis with decision
+  context declared
 - [ ] **EH:** Known facts, inferences, and assumptions are distinguished; assumptions
-  are documented
-- [ ] **DF:** Counter-arguments have been constructed and addressed for major conclusions
-- [ ] **PG:** Language is precise; vague quantifiers, weasel words, and hedge stacking
-  are eliminated
-- [ ] **OI:** Analysis starts from external evidence, not internal structure
-- [ ] **AT:** Assumptions are tracked with status; invalidated assumptions have triggered
-  re-evaluation
-- [ ] **Anti-patterns:** Output has been checked against AP-01 through AP-09
+  are documented; gaps are disclosed
+- [ ] **AT:** Counter-arguments constructed and addressed for major conclusions;
+  riskiest assumptions tested first
+
+### Output Phase
+- [ ] **PP:** Output leads with conclusion, supported by necessary legs; SCQA framing
+  used for decision-oriented outputs
+- [ ] **PL:** No prohibited terms; quantitative terms have metrics; no hedge stacking
+
+### Anti-Patterns
+- [ ] Output has been checked against AP-01 through AP-09
 
 ---
 
 ## Application
 
-These principles apply across all analytical work. The following areas have particular
-relevance:
+These principles apply across all analytical work. The phase model helps prioritise:
 
 ### Research Tasks
 
 All thirteen principles apply. Research is the primary domain for this standard.
 Pay particular attention to:
-- **SI** (Source Independence) — corroborate findings across independent sources
-- **HU** (Hierarchy of Evidence) — rank evidence types explicitly
-- **EH** (Epistemic Humility) — distinguish known facts from inferences and assumptions
-- **AP-01** (Confirmation Bias) — actively seek disconfirming evidence
+- **Input:** CI (counter-searches), SI (source independence), HE (evidence ranking)
+- **Processing:** EH (distinguish facts from inferences), AT (adversarial posture)
+- **Anti-patterns:** AP-01 (confirmation bias), AP-03 (survivorship bias)
 
 ### Strategic Analysis
 
 Strategy work is especially vulnerable to narrative construction and false precision.
 Pay particular attention to:
-- **FR** (Falsifiability Requirement) — ensure strategic claims can be proven wrong
-- **CC** (Confidence Calibration) — mark confidence levels on all projections
-- **NH** (Null Hypothesis Awareness) — consider "do nothing" as a viable option
-- **AP-05** (Sunk Cost Fallacy) — evaluate based on future value, not past investment
-- **AP-06** (Narrative Fallacy) — distinguish correlation from causation
+- **Input:** OI (start from market reality, not internal structure)
+- **Processing:** FR (falsifiable strategic claims), CC (confidence on projections),
+  AT (seek to disprove)
+- **Anti-patterns:** AP-05 (sunk cost), AP-06 (narrative fallacy)
 
 ### Validation Work
 
 When validating designs, plans, or approaches against requirements or evidence.
 Pay particular attention to:
-- **BI** (Begin with Inquiry) — state what you are validating and the success criteria
-- **DF** (Devil's Advocate Filter) — actively argue against the thing being validated
-- **OI** (Outside-In Reasoning) — start from user evidence, not internal assumptions
-- **AT** (Assumption Tracking) — surface and validate assumptions in the plan
+- **Input:** BI (state what you are validating and success criteria)
+- **Processing:** AT (argue against the thing being validated), EH (surface assumptions)
+- **Anti-patterns:** AP-01 (confirmation bias), AP-02 (anchoring)
 
 ### Requirements Specification
 
 When defining requirements, user needs, or problem statements.
 Pay particular attention to:
-- **OI** (Outside-In Reasoning) — derive requirements from external evidence, not
-  internal structure
-- **MECE** — ensure requirement categories are mutually exclusive and collectively
-  exhaustive
-- **PP** (Proportional Precision) — match requirement precision to the confidence
-  level of the underlying evidence
-- **AP-03** (Survivorship Bias) — consider failed approaches and unserved users,
-  not just successful ones
+- **Input:** OI (derive from external evidence, not internal structure)
+- **Processing:** MECE (complete, non-overlapping requirements), CC (match precision
+  to confidence)
+- **Anti-patterns:** AP-03 (survivorship bias — consider unserved users)
 
 ---
 
@@ -477,4 +418,5 @@ Pay particular attention to:
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0.0 | 2026-03-13 | Adapted from analytical framework. 13 principles (BI, SI, FR, CC, MECE, NH, PP, HU, EH, DF, PG, OI, AT), 9 anti-patterns (AP-01 through AP-09). |
+| 1.0.0 | 2026-03-13 | Initial adaptation. 13 principles, 9 anti-patterns. |
+| 2.0.0 | 2026-03-19 | Major revision. Synthesised from two battle-tested source standards. Restructured around three-phase model (input/processing/output) for prompt-effective application. Added CI, HE, PG, PP, PL. Enriched FR (pre-mortem, stop/pivot), CC (confidence decay, proportional precision), EH (honest uncertainty, exploration guidance), AT (riskiest-first, confirmation exception). Consolidated anti-patterns into table format with principle cross-references. |
