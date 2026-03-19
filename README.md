@@ -1,68 +1,77 @@
-# Engineering Standards for AI-Assisted Development
+# Sulis AI Standards
 
-A starter set of engineering standards for teams using Claude Code or similar AI-assisted development tools. Three principles, four rules. Clone it, use it, extend it.
+A Claude Code plugin marketplace for requirements analysis and facilitation tools.
 
-## Who it's for
+## What's Here
 
-Any team that wants consistent engineering standards applied automatically when working with AI coding assistants. The standards address the most common failure mode: AI-generated code that duplicates existing patterns instead of reusing and refactoring.
+This repo is a [Claude Code custom marketplace](https://docs.anthropic.com/en/docs/claude-code). It contains:
 
-## Quick start
+- **SRD Plugin** — a requirements analyst that facilitates building Software Requirements Documents through guided one-question-at-a-time conversation. Produces UML artifacts (use cases, sequences, process flows, state diagrams, data flows) in Mermaid.
+- **Engineering reference standards** — principles for test-first development, reuse-first design, security, cognitive load, coaching, critical thinking, and content quality. Used as reference material by the SRD plugin.
+
+## Quick Start
+
+### Install from marketplace
 
 ```bash
-git clone <this-repo> standards
-cp standards/CLAUDE.md your-project/CLAUDE.md
-cp -r standards/standards/ your-project/standards/
+# Add the marketplace to your Claude Code settings
+# In settings.json:
+{
+  "extraKnownMarketplaces": ["sulis-ai/standards"]
+}
+
+# Then install the plugin
+/plugin install srd@sulis-ai-standards
 ```
 
-Claude Code picks up `CLAUDE.md` automatically. The standards are active immediately.
+### Install from local clone
 
-## What's included
+```bash
+git clone https://github.com/sulis-ai/standards.git
+claude --plugin-dir ./standards/plugins/srd
+```
 
-### Standards
+### Start a facilitation session
 
-| File | Role |
-|------|------|
-| `CLAUDE.md` | Entry point. Non-negotiable rules, quality gates, severity conventions. Loaded automatically by Claude Code. |
-| `standards/ENGINEERING_PRINCIPLES.md` | Three active principles with detailed guidance, anti-patterns, and verification criteria. |
-| `standards/SECURITY_STANDARD.md` | Seven security principles (SEC-01 through SEC-07) covering input validation, secrets, authorization, injection prevention, error handling, dependencies, and logging. |
-| `standards/COGNITIVE_LOAD.md` | Six principles (CL-01 through CL-06) from Sweller's Cognitive Load Theory. Governs user-facing design — extraneous load elimination, intrinsic load management, choice reduction, consistency. |
-| `standards/COACHING_WITHOUT_CONFLICT.md` | Seven tenets for delivering feedback without triggering defensiveness. Structural over personal, diagnostic over prescriptive, hypotheses over conclusions. |
-| `standards/CRITICAL_THINKING_STANDARD.md` | Thirteen principles for evidence-based reasoning organised by phase: input (framing, evidence gathering), processing (reasoning, analysis), output (communication). Nine anti-patterns. |
-| `templates/CRITICAL_THINKING_PROMPT.md` | Copy-paste prompt template for applying critical thinking to any task. Eight-section structure: task, context, reference, brief, rules, conversation, plan, alignment. |
-| `roadmap/ROLLOUT_PLAN.md` | Nine further principles staged across three tiers, with promotion criteria. Guidance for growing beyond the starter set. |
+```bash
+claude --agent srd:requirements-analyst --dangerously-skip-permissions
+```
 
-### SRD Plugin (Claude Code)
+## SRD Plugin
 
-| Path | Role |
-|------|------|
-| `srd/` | Requirements Analyst plugin for Claude Code. Facilitates building Software Requirements Documents through guided one-question-at-a-time conversation. Produces UML artifacts in Mermaid. |
-| `srd/agents/requirements-analyst.md` | Agent definition — six-phase facilitation model with teaching integration. |
-| `srd/skills/` | Standalone skills: `/srd:codebase-mapping`, `/srd:tree-synthesis`, `/srd:requirements-validation`, `/srd:spec-index`, `/srd:critical-thinking`. Plus `srd-templates` (agent-only, not user-invocable). |
+The SRD (Software Requirements Document) plugin sits upstream of spec-driven development tools like GitHub Spec Kit, BMAD, GSD, and OpenSpec. It facilitates the analysis that produces the specification — the part where you figure out what the system actually needs to do.
 
-See [`srd/README.md`](srd/README.md) for plugin documentation.
+### Available commands
 
-## The three active principles
+| Command | What It Does |
+|---------|-------------|
+| `claude --agent srd:requirements-analyst` | Start a facilitation session |
+| `/srd:codebase-mapping` | Map the current codebase to `CODEBASE_INDEX.json` |
+| `/srd:tree-synthesis` | Synthesise `PRIMITIVE_TREE.jsonld` from codebase or description |
+| `/srd:requirements-validation` | Run five-perspective completeness check |
+| `/srd:spec-index` | Regenerate `INDEX.md` from all `SPEC.yaml` files |
+| `/srd:critical-thinking` | Apply the critical thinking standard to the current task |
 
-- **EP-02: Quality is Paramount** — Test-first development. RED → GREEN → REFACTOR cycle. The refactor step is mandatory, not optional.
-- **EP-03: Reuse First** — Search before building. When two components implement the same pattern, extract the shared primitive now, not later.
-- **EP-07: SOLID and Clean Code** — Leave every file better than you found it. Mechanical changes are free; structural changes require a characterisation test first.
+See [`plugins/srd/README.md`](plugins/srd/README.md) for full documentation.
 
-## Extending
+## Repo Structure
 
-Add your own standards:
+```
+standards/
+├── marketplace.json           # Marketplace registry
+├── docs/                      # Marketplace-level documentation
+├── plugins/
+│   └── srd/                   # Requirements Analyst plugin
+│       ├── agents/            # Agent definitions
+│       ├── skills/            # Slash-command skills
+│       ├── references/        # Engineering & quality standards
+│       └── docs/              # Plugin development specs
+```
 
-1. Create a file in `standards/` (e.g. `standards/TESTING_STANDARD.md`)
-2. Add a row to the index table in `CLAUDE.md`
-3. Set "Load When" to **Always** or to a specific condition
+## Contributing
 
-The rollout plan in `roadmap/ROLLOUT_PLAN.md` has nine more principles ready to promote when your team is ready. Each tier builds on the previous one.
-
-## Philosophy
-
-Start small. These three principles address the most common problem with AI-assisted development: duplication and lack of refactoring. Add more when these are habitual. The rollout plan has the sequence.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add skills, add plugins, and the release process.
 
 ## License
 
 MIT License. See [LICENSE](LICENSE) for full text.
-
-This project is provided as-is with no warranty. Use it, fork it, adapt it — no restrictions on commercial or non-commercial use.

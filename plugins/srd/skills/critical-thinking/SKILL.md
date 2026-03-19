@@ -29,7 +29,7 @@ about the work before and during execution.
 
 ### Step 1: Load the Standard
 
-Read `standards/CRITICAL_THINKING_STANDARD.md` completely. This is your reasoning
+Read `references/critical-thinking-standard.md` completely. This is your reasoning
 framework for the duration of this task.
 
 ### Step 2: Frame the Task (Input Phase)

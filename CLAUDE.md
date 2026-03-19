@@ -1,30 +1,63 @@
-# CLAUDE.md
+# Sulis AI Standards
 
-> Authoritative standards index for all AI-assisted development.
-> Loaded automatically by Claude Code. Detail lives in the referenced standards files.
+This repo is **Sulis AI's Claude Code plugin marketplace**. It serves two purposes:
 
----
+1. **Custom marketplace** — point Claude Code at this repo via `extraKnownMarketplaces` to discover and install plugins.
+2. **Plugin source** — contains the `srd` plugin (and any future plugins) with skills, agents, hooks, and reference standards.
 
-## How This Works
+## Repo Structure
 
-Claude Code loads this file automatically at the start of every task. The standards index
-below points to detailed principles. To add your own standards: create a file in `standards/`,
-add a row to the index table, and specify when it should be loaded.
+```
+standards/
+├── CLAUDE.md                              # This file — project instructions
+├── CONTRIBUTING.md                        # Contribution & release guide
+├── README.md                              # Marketplace + SRD plugin overview
+├── LICENSE
+├── marketplace.json                       # Marketplace registry manifest
+├── docs/
+│   ├── skill-authoring-guide.md           # Best practices for writing skills
+│   └── rollout-plan.md                    # Staged principle introduction
+├── plugins/
+│   └── srd/
+│       ├── .claude-plugin/
+│       │   ├── plugin.json
+│       │   └── hooks/                     # Experimental background hooks
+│       ├── README.md                      # Plugin documentation
+│       ├── settings.json
+│       ├── agents/                        # Agent definitions
+│       ├── skills/                        # Slash-command skills
+│       ├── references/                    # Shared reference standards
+│       └── docs/
+│           └── specifications/            # Self-referential development specs
+```
 
----
+## Required Reading
 
-## Standards Index
+Before creating or modifying any skill, read `docs/skill-authoring-guide.md` and `CONTRIBUTING.md` in full.
 
-| Standard | File | Load When |
-|----------|------|-----------|
-| Engineering Principles | `standards/ENGINEERING_PRINCIPLES.md` | **Always** |
-| Security | `standards/SECURITY_STANDARD.md` | **Always** |
-| Cognitive Load | `standards/COGNITIVE_LOAD.md` | Agent facilitation tasks |
-| Coaching Without Conflict | `standards/COACHING_WITHOUT_CONFLICT.md` | Agent facilitation tasks |
-| Critical Thinking | `standards/CRITICAL_THINKING_STANDARD.md` | Agent facilitation tasks |
-| Content Quality | `standards/CONTENT_QUALITY.md` | Content generation tasks |
+## Adding a New Skill
 
-Standards marked **Always** are loaded for every task regardless of scope.
+1. Create a directory under `plugins/srd/skills/` named after the skill.
+2. Add a `SKILL.md` file inside that directory. This is the skill's prompt entrypoint.
+3. Include `references/`, `scripts/`, or `examples/` subdirectories as needed.
+4. Test locally by running the skill from a project that has the plugin installed.
+5. Open a PR and get it reviewed.
+
+## Testing Locally
+
+To test a plugin skill without publishing:
+
+1. In the project where you want to test, add this repo's path to your local Claude Code settings:
+   ```json
+   {
+     "extraKnownMarketplaces": ["/path/to/standards"]
+   }
+   ```
+2. Or run directly:
+   ```bash
+   claude --plugin-dir ./plugins/srd
+   ```
+3. Run the skill via its slash command (e.g. `/srd:critical-thinking`).
 
 ---
 
@@ -51,6 +84,9 @@ Four rules. If a plan would violate any of these, the plan is wrong.
 4. **Scope your improvements.** Boy Scout improvements apply to the file you are working
    in. If an improvement requires changes across multiple files, capture it and plan it
    as a separate piece of work — not an unbounded side-quest from your current PR. (EP-07)
+
+For full detail on these principles, see `plugins/srd/references/engineering-principles.md`
+and `plugins/srd/references/security-standard.md`.
 
 ### Quality Gates
 

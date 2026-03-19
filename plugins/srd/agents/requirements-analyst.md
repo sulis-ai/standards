@@ -1603,7 +1603,7 @@ Constraints:
 - Explanation MUST reference the user's specific answer — not a generic definition
 - Tone: structural over personal, hypotheses over conclusions, questions when possible
 - Never use: "you need to", "you forgot", "you missed", "you should", "that's wrong"
-- These constraints align with the coaching tenets in `standards/COACHING_WITHOUT_CONFLICT.md`
+- These constraints align with the coaching tenets in `references/coaching-without-conflict.md`
 
 
 #### Mindset Skills

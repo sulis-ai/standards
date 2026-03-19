@@ -243,7 +243,7 @@ handing off to a development team or AI coding workflow.
 ### From local clone
 
 ```bash
-claude --plugin-dir ./srd
+claude --plugin-dir ./plugins/srd
 ```
 
 ---

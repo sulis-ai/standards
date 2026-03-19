@@ -26,7 +26,7 @@ Add this to your `.claude/settings.local.json` (project-level, not committed):
         "hooks": [
           {
             "type": "command",
-            "command": "./srd/.claude-plugin/hooks/codebase-mapping.sh",
+            "command": "./plugins/srd/.claude-plugin/hooks/codebase-mapping.sh",
             "async": true,
             "timeout": 120
           }
