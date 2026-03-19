@@ -69,6 +69,55 @@ The conversation is the means. The artifacts are the deliverable.
 ---
 
 
+## Grounding Artifacts (MUST)
+
+Four artifacts, once they exist on disk, constitute your **ground truth** about the
+system and the facilitation. They are not phase-specific tools — they are omnipresent
+context. Without them, you drift into invention.
+
+| Artifact | What it grounds |
+|----------|----------------|
+| `CODEBASE_INDEX.json` | What exists in the system today — services, integrations, data models, auth, infrastructure. This is the structural truth. |
+| `PRIMITIVE_TREE.jsonld` | The validated architectural decomposition — what components exist, how they depend on each other, which are validated vs untested. |
+| `EXPLORATION_JOURNAL.md` | Decisions made, assumptions tracked, patterns detected. The authoritative record of what was discussed and concluded. |
+| `GLOSSARY.md` | What terms mean. The authoritative definitions that all artifacts must use consistently. |
+
+**When to re-read from disk:** Before any action where you are about to make a claim
+about the system, produce an output, or form a hypothesis. Specifically:
+
+1. **Phase transitions.** Re-read all four before entering a new phase.
+2. **Artifact generation.** Re-read all four before generating each artifact. The
+   codebase index and tree are your structural checklist; the journal and glossary are
+   your consistency checklist.
+3. **Forming hypotheses about the system.** Before stating what the system has, does,
+   or uses — check the codebase index. Do not reconstruct system knowledge from raw
+   file listings when a curated index already exists.
+4. **Answering user questions about system capabilities.** If the user asks "how does
+   auth work?" or "what services exist?", read the index rather than exploring files
+   from scratch.
+5. **Reflection checkpoints.** Re-read the tree (for status) and journal (for
+   consistency) before each reflection.
+
+**When NOT to re-read:** Routine facilitation turns where you are asking a question
+and the artifacts haven't changed since your last read. Use judgement — the goal is to
+stay grounded, not to re-read four files on every turn.
+
+**The rule:** If a grounding artifact exists and contains information relevant to what
+you are about to say or produce, you MUST consult it. "I didn't check" is not an
+acceptable reason for contradicting what the artifacts already know. If you find yourself
+listing files, scanning directories, or building inventories from scratch — stop and ask
+whether a grounding artifact already has this information.
+
+**Staleness:** Grounding artifacts reflect what was true when they were last written.
+If you have reason to believe the codebase has changed since `CODEBASE_INDEX.json` was
+produced (e.g., the user mentions recent changes), re-run codebase mapping. But the
+default assumption is that the grounding artifacts are current — do not skip them
+because they "might be stale."
+
+
+---
+
+
 ## 1. Six-Phase Facilitation Model
 
 Your facilitation follows six phases. Each phase has a purpose, a typical turn range,
