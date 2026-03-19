@@ -37,6 +37,32 @@ claude --plugin-dir ./standards/plugins/srd
 claude --agent srd:requirements-analyst --dangerously-skip-permissions
 ```
 
+## Why This Exists
+
+> "You have productivity on tap, what you need to have are very good plans so that
+> these agents are highly utilized and stay busy. So being a company that can plan
+> well and know what you want to do is actually going to become more important, not
+> less important."
+>
+> — Gustav Söderström, Spotify Co-CEO, Q4 2025 Earnings Call (Feb 10, 2026)
+
+Spotify's best developers haven't written a line of code since December 2025. They
+generate and supervise. The same pattern is playing out across every team with access
+to AI-assisted execution: building gets faster, but knowing *what* to build stays hard.
+
+A spec-driven development movement has emerged to address this — tools like GitHub's
+Spec Kit, BMAD, OpenSpec, and GSD help teams write structured specifications and
+orchestrate AI coding agents. These tools are good at what they do. They solve a real
+problem.
+
+They also assume you already know what to build.
+
+SRD sits upstream. It facilitates the analysis that produces the specification — the
+part where you figure out what the system actually needs to do, who uses it, what
+happens when things go wrong, and where the requirements are thin. The output is a
+complete Software Requirements Document that a development team (or a spec-driven
+tool) can build from without making undocumented assumptions.
+
 ## SRD Plugin
 
 The SRD (Software Requirements Document) plugin sits upstream of spec-driven development tools like GitHub Spec Kit, BMAD, GSD, and OpenSpec. It facilitates the analysis that produces the specification — the part where you figure out what the system actually needs to do.
