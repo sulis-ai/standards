@@ -4,12 +4,17 @@ A copy-paste prompt structure for applying critical thinking to any analytical t
 Uses the [Critical Thinking Standard](../standards/CRITICAL_THINKING_STANDARD.md) as the
 reasoning framework.
 
+**Fetch the standard directly:**
+- GitHub: https://github.com/sulis-ai/standards/blob/main/standards/CRITICAL_THINKING_STANDARD.md
+- Raw (for AI tools): https://raw.githubusercontent.com/sulis-ai/standards/main/standards/CRITICAL_THINKING_STANDARD.md
+
 ---
 
 ## How to Use
 
-Copy the template below. Fill in the bracketed sections. Attach your context files.
-The standard does the heavy lifting — your prompt just points the AI at it.
+Copy the template below. Fill in the bracketed sections. Either attach the standard
+as a file or point the AI at the raw URL to fetch it. The standard does the heavy
+lifting — your prompt just points the AI at it.
 
 ---
 
@@ -24,8 +29,9 @@ I want to [WHAT YOU WANT TO ACHIEVE] so that [WHAT SUCCESS LOOKS LIKE].
 
 First, read these files completely before responding:
 
-- `CRITICAL_THINKING_STANDARD.md` — 13 analytical principles organised by phase
+- Critical Thinking Standard — 13 analytical principles organised by phase
   (input/processing/output) and 9 anti-patterns. This governs how you reason.
+  Fetch from: https://raw.githubusercontent.com/sulis-ai/standards/main/standards/CRITICAL_THINKING_STANDARD.md
 - [YOUR DOMAIN FILE] — [what it contains and why it matters]
 - [YOUR DATA/EVIDENCE FILE] — [what it contains and why it matters]
 
