@@ -1,0 +1,10 @@
+{
+  "name": "sulis-ai-standards",
+  "description": "Sulis AI plugin marketplace — requirements analysis and facilitation tools",
+  "plugins": {
+    "srd": {
+      "path": "plugins/srd",
+      "version": "1.8.0"
+    }
+  }
+}
