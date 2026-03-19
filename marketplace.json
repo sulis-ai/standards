@@ -4,22 +4,14 @@
     "name": "Iain"
   },
   "metadata": {
-    "description": "Sulis AI plugin marketplace — requirements analysis and facilitation tools",
-    "version": "1.8.0"
+    "description": "Sulis AI plugin marketplace — requirements analysis and facilitation tools"
   },
   "plugins": [
     {
       "name": "srd",
       "source": "./plugins/srd",
-      "description": "Requirements Analyst — facilitates building Software Requirements Documents backed by UML artifacts through guided conversation",
       "version": "1.8.0",
-      "author": {
-        "name": "Iain"
-      },
-      "repository": "https://github.com/sulis-ai/standards",
-      "license": "MIT",
-      "keywords": ["requirements", "srd", "uml", "systems-analysis", "product-management", "specifications"],
-      "category": "requirements"
+      "description": "Requirements Analyst — facilitates building Software Requirements Documents backed by UML artifacts through guided conversation"
     }
   ]
 }
