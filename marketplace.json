@@ -14,26 +14,26 @@
       "description": "Requirements Analyst — facilitates building Software Requirements Documents backed by UML artifacts through guided conversation"
     },
     {
-      "name": "sulis-studio-strategy",
-      "source": "./plugins/sulis-studio-strategy",
+      "name": "sulis-strategy",
+      "source": "./plugins/sulis-strategy",
       "version": "1.0.0",
       "description": "Business strategy studio — vision, strategy, principles, commercial, GTM, roadmap, and domain-specific research"
     },
     {
-      "name": "sulis-studio-product-development",
-      "source": "./plugins/sulis-studio-product-development",
+      "name": "sulis-product-development",
+      "source": "./plugins/sulis-product-development",
       "version": "1.0.0",
       "description": "Product development studio — design, plan, implement, complete, feature lifecycle, validation, and autonomous sub-agents"
     },
     {
-      "name": "sulis-studio-builder",
-      "source": "./plugins/sulis-studio-builder",
+      "name": "sulis-builder",
+      "source": "./plugins/sulis-builder",
       "version": "1.0.0",
       "description": "Studio builder — create new domain expertise packages (7-file studio bundles) using the studio-creation sequence"
     },
     {
-      "name": "sulis-studio-design",
-      "source": "./plugins/sulis-studio-design",
+      "name": "sulis-design",
+      "source": "./plugins/sulis-design",
       "version": "1.0.0",
       "description": "Design studio — design language, tokens, visual identity, customer experience, and cross-outcome coherence verification"
     },

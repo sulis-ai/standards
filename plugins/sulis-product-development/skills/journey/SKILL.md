@@ -48,7 +48,7 @@ The exact artifact set is defined by the journey-definition outcome — read its
 
 - **Sequence:** fetch `delivery/product/SEQUENCES.md` via GitHub MCP (journey-lifecycle)
 - **Core outcome:** fetch `delivery/product/outcomes/journey-definition/OUTCOME.md` via GitHub MCP
-- **Command:** `/sulis-studio-product-development:journey`
+- **Command:** `/sulis-product-development:journey`
 
 ---
 

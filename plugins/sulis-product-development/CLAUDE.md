@@ -17,11 +17,11 @@ Where `{ref}` comes from `ofm-bindings.yaml` methodology.ref (default: `main`).
 ## Commands
 
 ```bash
-/sulis-studio-product-development:design "description"   # Working Backwards design
-/sulis-studio-product-development:plan {feature}         # Implementation plan
-/sulis-studio-product-development:implement {feature}    # Double-loop TDD
-/sulis-studio-product-development:complete {feature}     # Quality verification + release
-/sulis-studio-product-development:journey "goal"         # User journey definition
+/sulis-product-development:design "description"   # Working Backwards design
+/sulis-product-development:plan {feature}         # Implementation plan
+/sulis-product-development:implement {feature}    # Double-loop TDD
+/sulis-product-development:complete {feature}     # Quality verification + release
+/sulis-product-development:journey "goal"         # User journey definition
 ```
 
 ## Feature Lifecycle

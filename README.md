@@ -7,10 +7,10 @@ A Claude Code plugin marketplace for the Outcome-First Methodology, requirements
 | Plugin | Description |
 |--------|-------------|
 | **[srd](plugins/srd/)** | Requirements Analyst — facilitates building Software Requirements Documents through guided conversation |
-| **[sulis-studio-strategy](plugins/sulis-studio-strategy/)** | Business strategy studio — vision, strategy, principles, commercial, GTM, roadmap, and domain-specific research |
-| **[sulis-studio-product-development](plugins/sulis-studio-product-development/)** | Product development studio — design, plan, implement, complete, feature lifecycle, validation |
-| **[sulis-studio-design](plugins/sulis-studio-design/)** | Design studio — design language, tokens, visual identity, customer experience, coherence verification |
-| **[sulis-studio-builder](plugins/sulis-studio-builder/)** | Studio builder — create new domain expertise packages (7-file studio bundles) |
+| **[sulis-strategy](plugins/sulis-strategy/)** | Business strategy studio — vision, strategy, principles, commercial, GTM, roadmap, and domain-specific research |
+| **[sulis-product-development](plugins/sulis-product-development/)** | Product development studio — design, plan, implement, complete, feature lifecycle, validation |
+| **[sulis-design](plugins/sulis-design/)** | Design studio — design language, tokens, visual identity, customer experience, coherence verification |
+| **[sulis-builder](plugins/sulis-builder/)** | Studio builder — create new domain expertise packages (7-file studio bundles) |
 | **[sulis-platform-sdk](plugins/sulis-platform-sdk/)** | Platform SDK — build production-ready SaaS backends with auth, billing, multi-tenancy |
 
 ## Quick Start
@@ -23,10 +23,10 @@ A Claude Code plugin marketplace for the Outcome-First Methodology, requirements
 
 # Install whichever plugins you need
 /plugin install srd@sulis-ai-standards
-/plugin install sulis-studio-strategy@sulis-ai-standards
-/plugin install sulis-studio-product-development@sulis-ai-standards
-/plugin install sulis-studio-design@sulis-ai-standards
-/plugin install sulis-studio-builder@sulis-ai-standards
+/plugin install sulis-strategy@sulis-ai-standards
+/plugin install sulis-product-development@sulis-ai-standards
+/plugin install sulis-design@sulis-ai-standards
+/plugin install sulis-builder@sulis-ai-standards
 /plugin install sulis-platform-sdk@sulis-ai-standards
 ```
 
@@ -42,7 +42,7 @@ Or add to your settings.json:
 
 ```bash
 git clone https://github.com/sulis-ai/standards.git
-claude --plugin-dir ./standards/plugins/sulis-studio-strategy
+claude --plugin-dir ./standards/plugins/sulis-strategy
 ```
 
 ## Architecture
@@ -70,10 +70,10 @@ standards/
 ├── docs/                      # Marketplace-level documentation
 ├── plugins/
 │   ├── srd/                   # Requirements Analyst
-│   ├── sulis-studio-strategy/ # Business strategy studio
-│   ├── sulis-studio-design/    # Design studio
-│   ├── sulis-studio-product-development/ # Product delivery studio
-│   ├── sulis-studio-builder/  # Studio creation
+│   ├── sulis-strategy/ # Business strategy studio
+│   ├── sulis-design/    # Design studio
+│   ├── sulis-product-development/ # Product delivery studio
+│   ├── sulis-builder/  # Studio creation
 │   └── sulis-platform-sdk/    # Platform SDK
 ```
 

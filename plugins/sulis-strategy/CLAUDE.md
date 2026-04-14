@@ -17,18 +17,18 @@ Where `{ref}` comes from `ofm-bindings.yaml` methodology.ref (default: `main`).
 ## Commands
 
 ```bash
-/sulis-studio-strategy:vision              # Create or view product vision
-/sulis-studio-strategy:strategy            # Define strategic bets
-/sulis-studio-strategy:principles          # Define decision principles
-/sulis-studio-strategy:anti-goals          # Define what you won't do
-/sulis-studio-strategy:bmc                 # Business Model Canvas
-/sulis-studio-strategy:commercial          # Pricing and packaging
-/sulis-studio-strategy:gtm                 # Go-to-market planning
-/sulis-studio-strategy:roadmap             # View and manage roadmap
-/sulis-studio-strategy:competitive-research # Competitive landscape analysis
-/sulis-studio-strategy:company-research    # Company deep-dive
-/sulis-studio-strategy:brand-research      # Brand and domain research
-/sulis-studio-strategy:win-loss-analysis   # Win/loss pattern analysis
+/sulis-strategy:vision              # Create or view product vision
+/sulis-strategy:strategy            # Define strategic bets
+/sulis-strategy:principles          # Define decision principles
+/sulis-strategy:anti-goals          # Define what you won't do
+/sulis-strategy:bmc                 # Business Model Canvas
+/sulis-strategy:commercial          # Pricing and packaging
+/sulis-strategy:gtm                 # Go-to-market planning
+/sulis-strategy:roadmap             # View and manage roadmap
+/sulis-strategy:competitive-research # Competitive landscape analysis
+/sulis-strategy:company-research    # Company deep-dive
+/sulis-strategy:brand-research      # Brand and domain research
+/sulis-strategy:win-loss-analysis   # Win/loss pattern analysis
 ```
 
 ## Strategic Artifact Lifecycle

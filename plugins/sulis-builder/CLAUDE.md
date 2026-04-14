@@ -5,7 +5,7 @@ Self-service studio creation. Create new domain expertise packages using the stu
 ## Commands
 
 ```bash
-/sulis-studio-builder:studio-definition "name"   # Create a new studio (7-file bundle)
+/sulis-builder:studio-definition "name"   # Create a new studio (7-file bundle)
 ```
 
 ## How It Works

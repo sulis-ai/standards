@@ -17,10 +17,10 @@ Where `{ref}` comes from `ofm-bindings.yaml` methodology.ref (default: `main`).
 ## Commands
 
 ```bash
-/sulis-studio-design:design-foundation     # Design language, tokens, and HIG
-/sulis-studio-design:visual-identity       # Logo, colour, typography, iconography
-/sulis-studio-design:customer-experience   # Target experience frameworks
-/sulis-studio-design:design-coherence      # Cross-artifact consistency verification
+/sulis-design:design-foundation     # Design language, tokens, and HIG
+/sulis-design:visual-identity       # Logo, colour, typography, iconography
+/sulis-design:customer-experience   # Target experience frameworks
+/sulis-design:design-coherence      # Cross-artifact consistency verification
 ```
 
 ## Design Artifact Lifecycle
