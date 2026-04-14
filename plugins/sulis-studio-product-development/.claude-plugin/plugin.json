@@ -1,0 +1,19 @@
+{
+  "name": "sulis-studio-product-development",
+  "version": "1.0.0",
+  "description": "Product development studio for the Outcome-First Methodology. Provides design, plan, implement, and complete skills for the full product delivery lifecycle.",
+  "author": {
+    "name": "LLMA AI",
+    "email": "team@sulis.dev"
+  },
+  "repository": "https://github.com/sulis-ai/standards",
+  "keywords": [
+    "methodology",
+    "product-development",
+    "working-backwards",
+    "tdd",
+    "design",
+    "implementation",
+    "studio"
+  ]
+}

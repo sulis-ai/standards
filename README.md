@@ -1,97 +1,77 @@
 # Sulis AI Standards
 
-A Claude Code plugin marketplace for requirements analysis and facilitation tools.
+A Claude Code plugin marketplace for the Outcome-First Methodology, requirements analysis, and facilitation tools.
 
-## What's Here
+## Plugins
 
-This repo is a [Claude Code custom marketplace](https://docs.anthropic.com/en/docs/claude-code). It contains:
-
-- **SRD Plugin** — a requirements analyst that facilitates building Software Requirements Documents through guided one-question-at-a-time conversation. Produces UML artifacts (use cases, sequences, process flows, state diagrams, data flows) in Mermaid.
-- **Engineering reference standards** — principles for test-first development, reuse-first design, security, cognitive load, coaching, critical thinking, and content quality. Used as reference material by the SRD plugin.
+| Plugin | Description |
+|--------|-------------|
+| **[srd](plugins/srd/)** | Requirements Analyst — facilitates building Software Requirements Documents through guided conversation |
+| **[sulis-studio-strategy](plugins/sulis-studio-strategy/)** | Business strategy studio — vision, strategy, principles, commercial, GTM, roadmap, and domain-specific research |
+| **[sulis-studio-product-development](plugins/sulis-studio-product-development/)** | Product development studio — design, plan, implement, complete, feature lifecycle, validation |
+| **[sulis-studio-builder](plugins/sulis-studio-builder/)** | Studio builder — create new domain expertise packages (7-file studio bundles) |
+| **[sulis-platform-sdk](plugins/sulis-platform-sdk/)** | Platform SDK — build production-ready SaaS backends with auth, billing, multi-tenancy |
 
 ## Quick Start
 
 ### Install from marketplace
 
 ```bash
-# Add the marketplace to your Claude Code settings
-# In settings.json:
+# Add the marketplace (one-time)
+/plugin marketplace add sulis-ai/standards
+
+# Install whichever plugins you need
+/plugin install srd@sulis-ai-standards
+/plugin install sulis-studio-strategy@sulis-ai-standards
+/plugin install sulis-studio-product-development@sulis-ai-standards
+/plugin install sulis-studio-builder@sulis-ai-standards
+/plugin install sulis-platform-sdk@sulis-ai-standards
+```
+
+Or add to your settings.json:
+
+```json
 {
   "extraKnownMarketplaces": ["sulis-ai/standards"]
 }
-
-# Then install the plugin
-/plugin install srd@sulis-ai-standards
 ```
 
 ### Install from local clone
 
 ```bash
 git clone https://github.com/sulis-ai/standards.git
-claude --plugin-dir ./standards/plugins/srd
+claude --plugin-dir ./standards/plugins/sulis-studio-strategy
 ```
 
-### Start a facilitation session
+## Architecture
 
-```bash
-claude --agent srd:requirements-analyst --dangerously-skip-permissions
+The studio plugins are thin skill/agent wrappers. Methodology content (outcomes, studios, sequences, standards) lives in the platform repo and is fetched at runtime via GitHub MCP:
+
+```
+sulis-ai/standards          <- plugins (this repo, small, fast clone)
+sulis-ai/platform           <- methodology content (fetched on demand)
 ```
 
-## Why This Exists
+Users pin a methodology version in their project's `ofm-bindings.yaml`:
 
-> "You have productivity on tap, what you need to have are very good plans so that
-> these agents are highly utilized and stay busy. So being a company that can plan
-> well and know what you want to do is actually going to become more important, not
-> less important."
->
-> — Gustav Söderström, Spotify Co-CEO, Q4 2025 Earnings Call (Feb 10, 2026)
-
-Spotify's best developers haven't written a line of code since December 2025. They
-generate and supervise. The same pattern is playing out across every team with access
-to AI-assisted execution: building gets faster, but knowing *what* to build stays hard.
-
-A spec-driven development movement has emerged to address this — tools like GitHub's
-Spec Kit, BMAD, OpenSpec, and GSD help teams write structured specifications and
-orchestrate AI coding agents. These tools are good at what they do. They solve a real
-problem.
-
-They also assume you already know what to build.
-
-SRD sits upstream. It facilitates the analysis that produces the specification — the
-part where you figure out what the system actually needs to do, who uses it, what
-happens when things go wrong, and where the requirements are thin. The output is a
-complete Software Requirements Document that a development team (or a spec-driven
-tool) can build from without making undocumented assumptions.
-
-## SRD Plugin
-
-The SRD (Software Requirements Document) plugin sits upstream of spec-driven development tools like GitHub Spec Kit, BMAD, GSD, and OpenSpec. It facilitates the analysis that produces the specification — the part where you figure out what the system actually needs to do.
-
-### Available commands
-
-| Command | What It Does |
-|---------|-------------|
-| `claude --agent srd:requirements-analyst` | Start a facilitation session |
-| `/srd:codebase-mapping` | Map the current codebase to `CODEBASE_INDEX.json` |
-| `/srd:tree-synthesis` | Synthesise `PRIMITIVE_TREE.jsonld` from codebase or description |
-| `/srd:requirements-validation` | Run five-perspective completeness check |
-| `/srd:spec-index` | Regenerate `INDEX.md` from all `SPEC.yaml` files |
-| `/srd:critical-thinking` | Apply the critical thinking standard to the current task |
-
-See [`plugins/srd/README.md`](plugins/srd/README.md) for full documentation.
+```yaml
+methodology:
+  repo: sulis-ai/platform
+  ref: v1.0.0
+```
 
 ## Repo Structure
 
 ```
 standards/
-├── marketplace.json           # Marketplace registry
+├── marketplace.json           # Plugin registry
 ├── docs/                      # Marketplace-level documentation
 ├── plugins/
-│   └── srd/                   # Requirements Analyst plugin
-│       ├── agents/            # Agent definitions
-│       ├── skills/            # Slash-command skills
-│       ├── references/        # Engineering & quality standards
-│       └── docs/              # Plugin development specs
+│   ├── srd/                   # Requirements Analyst
+│   ├── sulis-studio-strategy/ # Business strategy studio
+│   ├── sulis-studio-product-development/ # Product delivery studio
+│   ├── sulis-studio-builder/  # Studio creation
+│   └── sulis-platform-sdk/    # Platform SDK
 ```
 
 ## Contributing

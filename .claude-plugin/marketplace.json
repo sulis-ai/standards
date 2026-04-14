@@ -4,7 +4,7 @@
     "name": "Iain"
   },
   "metadata": {
-    "description": "Sulis AI plugin marketplace — requirements analysis and facilitation tools"
+    "description": "Sulis AI plugin marketplace — methodology studios, requirements analysis, and facilitation tools"
   },
   "plugins": [
     {
@@ -12,6 +12,30 @@
       "source": "./plugins/srd",
       "version": "1.8.0",
       "description": "Requirements Analyst — facilitates building Software Requirements Documents backed by UML artifacts through guided conversation"
+    },
+    {
+      "name": "sulis-studio-strategy",
+      "source": "./plugins/sulis-studio-strategy",
+      "version": "1.0.0",
+      "description": "Business strategy studio — vision, strategy, principles, commercial, GTM, roadmap, and domain-specific research"
+    },
+    {
+      "name": "sulis-studio-product-development",
+      "source": "./plugins/sulis-studio-product-development",
+      "version": "1.0.0",
+      "description": "Product development studio — design, plan, implement, complete, feature lifecycle, validation, and autonomous sub-agents"
+    },
+    {
+      "name": "sulis-studio-builder",
+      "source": "./plugins/sulis-studio-builder",
+      "version": "1.0.0",
+      "description": "Studio builder — create new domain expertise packages (7-file studio bundles) using the studio-creation sequence"
+    },
+    {
+      "name": "sulis-platform-sdk",
+      "source": "./plugins/sulis-platform-sdk",
+      "version": "0.1.0",
+      "description": "Platform SDK — build production-ready SaaS backends with built-in auth, billing, multi-tenancy, and observability"
     }
   ]
 }
