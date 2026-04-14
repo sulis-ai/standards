@@ -32,6 +32,12 @@
       "description": "Studio builder — create new domain expertise packages (7-file studio bundles) using the studio-creation sequence"
     },
     {
+      "name": "sulis-studio-design",
+      "source": "./plugins/sulis-studio-design",
+      "version": "1.0.0",
+      "description": "Design studio — design language, tokens, visual identity, customer experience, and cross-outcome coherence verification"
+    },
+    {
       "name": "sulis-platform-sdk",
       "source": "./plugins/sulis-platform-sdk",
       "version": "0.1.0",

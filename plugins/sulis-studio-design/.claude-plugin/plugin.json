@@ -1,0 +1,21 @@
+{
+  "name": "sulis-studio-design",
+  "version": "1.0.0",
+  "description": "Design studio for the Outcome-First Methodology. Provides design foundation, visual identity, customer experience, and design coherence skills for translating brand into design system.",
+  "author": {
+    "name": "LLMA AI",
+    "email": "team@sulis.dev"
+  },
+  "repository": "https://github.com/sulis-ai/standards",
+  "keywords": [
+    "methodology",
+    "design",
+    "design-system",
+    "visual-identity",
+    "customer-experience",
+    "design-tokens",
+    "accessibility",
+    "hig",
+    "studio"
+  ]
+}

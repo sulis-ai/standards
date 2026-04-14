@@ -9,6 +9,7 @@ A Claude Code plugin marketplace for the Outcome-First Methodology, requirements
 | **[srd](plugins/srd/)** | Requirements Analyst — facilitates building Software Requirements Documents through guided conversation |
 | **[sulis-studio-strategy](plugins/sulis-studio-strategy/)** | Business strategy studio — vision, strategy, principles, commercial, GTM, roadmap, and domain-specific research |
 | **[sulis-studio-product-development](plugins/sulis-studio-product-development/)** | Product development studio — design, plan, implement, complete, feature lifecycle, validation |
+| **[sulis-studio-design](plugins/sulis-studio-design/)** | Design studio — design language, tokens, visual identity, customer experience, coherence verification |
 | **[sulis-studio-builder](plugins/sulis-studio-builder/)** | Studio builder — create new domain expertise packages (7-file studio bundles) |
 | **[sulis-platform-sdk](plugins/sulis-platform-sdk/)** | Platform SDK — build production-ready SaaS backends with auth, billing, multi-tenancy |
 
@@ -24,6 +25,7 @@ A Claude Code plugin marketplace for the Outcome-First Methodology, requirements
 /plugin install srd@sulis-ai-standards
 /plugin install sulis-studio-strategy@sulis-ai-standards
 /plugin install sulis-studio-product-development@sulis-ai-standards
+/plugin install sulis-studio-design@sulis-ai-standards
 /plugin install sulis-studio-builder@sulis-ai-standards
 /plugin install sulis-platform-sdk@sulis-ai-standards
 ```
@@ -69,6 +71,7 @@ standards/
 ├── plugins/
 │   ├── srd/                   # Requirements Analyst
 │   ├── sulis-studio-strategy/ # Business strategy studio
+│   ├── sulis-studio-design/    # Design studio
 │   ├── sulis-studio-product-development/ # Product delivery studio
 │   ├── sulis-studio-builder/  # Studio creation
 │   └── sulis-platform-sdk/    # Platform SDK
