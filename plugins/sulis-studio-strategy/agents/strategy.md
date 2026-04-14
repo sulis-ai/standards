@@ -6,6 +6,7 @@ description: |
 model: sonnet
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, mcp__github__get_file_contents
 skills:
+  - identity
   - vision
   - strategy
   - principles
