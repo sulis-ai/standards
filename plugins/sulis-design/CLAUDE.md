@@ -7,9 +7,9 @@ This studio translates strategic direction into visual identity, design language
 On session start or when design work begins, fetch studio context from the methodology repo using GitHub MCP:
 
 ```
-mcp__github__get_file_contents(owner="sulis-ai", repo="platform", path="methodology/studios/design/FUNCTION.md", ref={ref})
-mcp__github__get_file_contents(owner="sulis-ai", repo="platform", path="methodology/studios/design/STANDARDS.md", ref={ref})
-mcp__github__get_file_contents(owner="sulis-ai", repo="platform", path="methodology/studios/design/VOCABULARY.md", ref={ref})
+mcp__github__get_file_contents(owner="sulis-ai", repo="platform", path="methodology/studios/design-lifecycle/FUNCTION.md", ref={ref})
+mcp__github__get_file_contents(owner="sulis-ai", repo="platform", path="methodology/studios/design-lifecycle/STANDARDS.md", ref={ref})
+mcp__github__get_file_contents(owner="sulis-ai", repo="platform", path="methodology/studios/design-lifecycle/VOCABULARY.md", ref={ref})
 ```
 
 Where `{ref}` comes from `ofm-bindings.yaml` methodology.ref (default: `main`).
@@ -17,18 +17,24 @@ Where `{ref}` comes from `ofm-bindings.yaml` methodology.ref (default: `main`).
 ## Commands
 
 ```bash
-/sulis-design:design-foundation     # Design language, tokens, and HIG
-/sulis-design:visual-identity       # Logo, colour, typography, iconography
-/sulis-design:customer-experience   # Target experience frameworks
-/sulis-design:design-coherence      # Cross-artifact consistency verification
+/sulis-design:identity-articulation  # Golden Circle identity crystallisation
+/sulis-design:design-foundation      # Design language, tokens, and HIG
+/sulis-design:visual-identity        # Logo, colour, typography, iconography
+/sulis-design:customer-experience    # Target experience frameworks
+/sulis-design:design-coherence       # Cross-artifact consistency verification
+/sulis-design:implementation-system  # Bridge DESIGN_TOKENS.json → developer/agent primitives
+/sulis-design:design-compliance      # Drift detection against design primitives
 ```
 
 ## Design Artifact Lifecycle
 
-Design artifacts are specification-as-deliverable documents stored at canonical locations under `product/design/` and `product/offerings/`.
+Design artifacts are specification-as-deliverable documents stored at canonical locations under `product/design/`, `product/organization/`, and `product/offerings/`.
 
 | Artifact | Location | Outcome |
 |----------|----------|---------|
+| IDENTITY.md | `product/organization/` | identity-articulation |
+| BRAND.md | `product/organization/` | identity-articulation |
+| TONE_OF_VOICE.md | `product/organization/` | identity-articulation |
 | DESIGN_LANGUAGE.md | `product/design/` | design-foundation |
 | DESIGN_TOKENS.json | `product/design/` | design-foundation |
 | HIG.md | `product/design/` | design-foundation |
@@ -37,16 +43,26 @@ Design artifacts are specification-as-deliverable documents stored at canonical 
 | VISUAL_IDENTITY_PACKAGE.md | `product/design/` | visual-identity |
 | CUSTOMER_EXPERIENCE.md | `product/offerings/primary/` | customer-experience-design |
 | COHERENCE_REPORT.md | `product/design/` | design-coherence |
+| TOKEN_MAP.json | `product/design/implementation/` | implementation-system |
+| VALUE_CANON.json | `product/design/implementation/` | implementation-system |
+| VIOLATION_REPORT.md | `product/design/` | design-compliance |
 
 ## Internal Dependency Ordering
 
 ```
+identity-articulation -> design-foundation
 design-foundation -> visual-identity
 design-foundation -> customer-experience-design
 visual-identity + customer-experience-design -> design-coherence
+design-coherence -> implementation-system
+implementation-system -> design-compliance
 ```
 
-design-foundation MUST complete first. visual-identity and customer-experience-design may execute in parallel. design-coherence runs after both.
+identity-articulation MUST complete first (skip only when IDENTITY.md / BRAND.md / TONE_OF_VOICE.md already exist with production-approved provenance). design-foundation is the second gate. visual-identity and customer-experience-design may execute in parallel. design-coherence runs after both. implementation-system runs after coherence when DESIGN_TOKENS.json is ready for product-development consumption.
+
+## Evolving Existing Artifacts
+
+When updating artifacts that already exist, use the `design-evolve` sequence rather than re-running design-lifecycle from the start. design-evolve enters via change-diagnosis, re-executes only affected outcomes, and cascades changes to downstream consumers (implementation-system, design-compliance) via change-propagation.
 
 ## Standards
 
