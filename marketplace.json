@@ -1,5 +1,5 @@
 {
-  "name": "sulis-ai-standards",
+  "name": "sulis-ai-agents",
   "owner": {
     "name": "Iain"
   },
@@ -10,7 +10,7 @@
     {
       "name": "srd",
       "source": "./plugins/srd",
-      "version": "1.8.0",
+      "version": "1.9.0",
       "description": "Requirements Analyst — facilitates building Software Requirements Documents backed by UML artifacts through guided conversation"
     },
     {

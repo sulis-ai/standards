@@ -38,8 +38,8 @@ tool) can build from without making undocumented assumptions.
 
 ```bash
 # Install the plugin
-/plugin marketplace add sulis-ai/standards
-/plugin install srd@sulis-ai-standards
+/plugin marketplace add sulis-ai/agents
+/plugin install srd@sulis-ai-agents
 
 # Start a facilitation session
 claude --agent srd:requirements-analyst --dangerously-skip-permissions
@@ -236,8 +236,8 @@ handing off to a development team or AI coding workflow.
 ### From marketplace
 
 ```
-/plugin marketplace add sulis-ai/standards
-/plugin install srd@sulis-ai-standards
+/plugin marketplace add sulis-ai/agents
+/plugin install srd@sulis-ai-agents
 ```
 
 ### From local clone

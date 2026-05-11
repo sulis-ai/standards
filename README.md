@@ -19,29 +19,29 @@ A Claude Code plugin marketplace for the Outcome-First Methodology, requirements
 
 ```bash
 # Add the marketplace (one-time)
-/plugin marketplace add sulis-ai/standards
+/plugin marketplace add sulis-ai/agents
 
 # Install whichever plugins you need
-/plugin install srd@sulis-ai-standards
-/plugin install sulis-strategy@sulis-ai-standards
-/plugin install sulis-product-development@sulis-ai-standards
-/plugin install sulis-design@sulis-ai-standards
-/plugin install sulis-builder@sulis-ai-standards
-/plugin install sulis-platform-sdk@sulis-ai-standards
+/plugin install srd@sulis-ai-agents
+/plugin install sulis-strategy@sulis-ai-agents
+/plugin install sulis-product-development@sulis-ai-agents
+/plugin install sulis-design@sulis-ai-agents
+/plugin install sulis-builder@sulis-ai-agents
+/plugin install sulis-platform-sdk@sulis-ai-agents
 ```
 
 Or add to your settings.json:
 
 ```json
 {
-  "extraKnownMarketplaces": ["sulis-ai/standards"]
+  "extraKnownMarketplaces": ["sulis-ai/agents"]
 }
 ```
 
 ### Install from local clone
 
 ```bash
-git clone https://github.com/sulis-ai/standards.git
+git clone https://github.com/sulis-ai/agents.git
 claude --plugin-dir ./standards/plugins/sulis-strategy
 ```
 
@@ -50,7 +50,7 @@ claude --plugin-dir ./standards/plugins/sulis-strategy
 The studio plugins are thin skill/agent wrappers. Methodology content (outcomes, studios, sequences, standards) lives in the platform repo and is fetched at runtime via GitHub MCP:
 
 ```
-sulis-ai/standards          <- plugins (this repo, small, fast clone)
+sulis-ai/agents          <- plugins (this repo, small, fast clone)
 sulis-ai/platform           <- methodology content (fetched on demand)
 ```
 
