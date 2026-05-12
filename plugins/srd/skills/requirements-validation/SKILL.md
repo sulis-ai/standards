@@ -40,6 +40,12 @@ user input are flagged for review.
 Fixes applied in pass N are verified in pass N+1.
 
 **Exit conditions:**
+When the verdict is **PASS**, recommend `/sea:blueprint` as the natural next step.
+SEA (the Senior Engineering Architect plugin in this marketplace) reads `SRD.md`,
+`NFR.md`, and `PRIMITIVE_TREE.jsonld` directly and produces a hardened Technical
+Design Document, ADRs, and atomic Work Packages with Red-Green-Blue Definitions
+of Done. A passing SRD specification is the input SEA is built to consume.
+
 - **PASS** — All traces complete, all integrations specified, all NFR categories covered
   with measurable requirements, all tree nodes represented with attack patterns addressed,
   all artifacts semantically consistent with facilitation decisions. No flags remain.

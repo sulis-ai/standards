@@ -1,0 +1,177 @@
+---
+name: harden
+description: >
+  Use after /sea:codebase-audit has produced Hardening Deltas the user has
+  accepted. Implements the ADDED/MODIFIED/REMOVED changes specified in each
+  delta — wraps unbounded calls in resilience policies, injects timeouts and
+  circuit breakers, replaces hardcoded secrets with vault lookups, adds
+  OpenTelemetry instrumentation, and writes the failing characterisation
+  test alongside the fix. Marks each delta as `implemented` when its failing
+  test turns green.
+---
+
+# Harden — Implement Accepted Hardening Deltas
+
+When invoked, walk the queue of accepted Hardening Deltas and implement
+each one. Each delta becomes a focused commit (or PR) following the
+Red-Green-Blue cycle.
+
+If arguments are provided, treat them as either:
+- A specific delta ID (`/sea:harden HD-003`) — implement only that delta.
+- A project name — implement all accepted deltas in dependency order.
+
+If no arguments and one project exists under `.architecture/`, use it.
+Otherwise list available projects and ask.
+
+---
+
+## What You Read
+
+| Source | Why |
+|---|---|
+| `.architecture/{project}/hardening-deltas/HD-*.md` | The deltas themselves — ADDED/MODIFIED/REMOVED instructions |
+| `.architecture/{project}/hardening-deltas/INDEX.md` | The acceptance order and dependency graph |
+| The codebase | The current state of the files the delta touches |
+
+You only implement deltas with `status: accepted`. Deltas at `proposed`,
+`rejected`, or `implemented` are skipped.
+
+---
+
+## Workflow Per Delta
+
+For each accepted delta, follow the **Red-Green-Blue** cycle from
+`references/red-green-blue.md`:
+
+### 1. Red — Write the failing characterisation test
+
+- Locate the test file named in the delta's `Verification` section.
+- Write the failing test.
+- Run the test suite — confirm the new test fails for the reason the delta describes.
+- Commit: `test({HD-NNN}): characterise {gap} — RED`.
+
+### 2. Green — Apply ADDED/MODIFIED/REMOVED
+
+- Apply the file changes the delta specifies.
+- Make the failing test pass.
+- Run the broader test suite — confirm nothing else broke (this matters
+  especially for MODIFIED changes; if it does break, that is a gap in the
+  pre-existing test coverage — flag it and add the missing test before
+  proceeding).
+- Confirm code is "boring" per `references/boring-code.md`. No singletons,
+  no hidden state, no metaprogramming, no `any` casts.
+- Commit: `feat({HD-NNN}): {title} — GREEN`.
+
+### 3. Blue — Refactor within scope
+
+- Look for duplication introduced or revealed by the change (EP-03).
+- Extract shared resilience primitives if 2+ instances now exist (e.g. two
+  external calls now both use a timeout — extract a shared policy).
+- Refactor stays in the file scope of the delta. Cross-file refactors that
+  emerge become **new deltas** (file a follow-up delta, do not pursue
+  mid-stream).
+- Run the test suite — confirm Blue introduces no behaviour changes.
+- Commit: `refactor({HD-NNN}): {what} — BLUE`.
+
+### 4. Update the delta
+
+- Update the delta's frontmatter `status: implemented`.
+- Add an `implemented` block at the bottom recording the commit SHAs and date.
+
+---
+
+## What You Always Inject (Concrete Patterns)
+
+For specific gap types, you use established libraries and patterns. Default
+choices below — override based on the project's existing stack.
+
+### Resilience (timeouts, retries, circuit breakers)
+
+| Stack | Default library |
+|---|---|
+| Node/TypeScript | `cockatiel` or `opossum` |
+| .NET | `Polly` |
+| Java/Kotlin | `resilience4j` |
+| Python | `tenacity` (retry) + `pybreaker` (CB) |
+| Go | `failsafe-go` or hand-rolled with `context.WithTimeout` |
+
+If the project already uses a different library, prefer that — consistency
+matters more than the SEA default.
+
+### Secrets
+
+| Stack | Default backend |
+|---|---|
+| Anywhere on AWS | AWS Secrets Manager via SDK |
+| Anywhere on GCP | GCP Secret Manager via SDK |
+| Anywhere on K8s | External Secrets Operator + cloud backend |
+| Local dev | 1Password CLI or Doppler (NOT `.env`) |
+
+### Observability
+
+- **Traces:** OpenTelemetry SDK + OTLP exporter. Always.
+- **Logs:** Structured JSON, `trace_id` correlated. Pino (Node), structlog (Python), Logback JSON (JVM).
+- **Metrics:** OpenTelemetry metrics API, exported via OTLP.
+- **Dashboards:** Grafana (or equivalent), pre-defined panels per service.
+
+### Encryption / mTLS
+
+- Service mesh if one exists (Istio, Linkerd, Consul Connect). Reuse it.
+- If no service mesh: client cert + server cert per service, rotated via
+  cert-manager.
+
+---
+
+## Workflow When Implementing Many Deltas
+
+1. Read `INDEX.md` for the dependency order.
+2. For each delta in order (skip if `dependsOn` not yet `implemented`):
+   - Run the Red-Green-Blue cycle above.
+   - Commit per stage (3 commits per delta).
+   - Update the delta's status.
+3. After all deltas in this run are implemented, update `INDEX.md` with the
+   new statuses.
+4. Report: deltas implemented, deltas skipped (and why), tests added,
+   coverage delta if measurable.
+
+---
+
+## When You Must Stop
+
+- The delta's failing test cannot be constructed deterministically (e.g. it
+  requires a chaos primitive the codebase doesn't have yet). Resolution: file
+  a precursor delta that adds the chaos primitive, then return to this delta.
+- The delta's MODIFIED change breaks a pre-existing test that has no obvious
+  fix without changing the delta's contract. Resolution: stop, surface to
+  the user, do not paper over by deleting the broken test.
+- The delta touches code outside the audited scope. Resolution: stop,
+  surface to the user, propose a new delta or scope expansion.
+- Boring-code violations cannot be avoided in Green (e.g. the framework
+  requires a decorator). Resolution: document the framework boundary in the
+  delta's Rationale and proceed.
+
+---
+
+## Adapting Depth
+
+- **Quick** ("just close the criticals") — implement only `severity: critical` deltas, skip the rest. Useful before a deploy that needs to ship now.
+- **Full** (default) — implement all accepted deltas in dependency order.
+- **Dry-run** ("show me what would change") — produce the diff per delta as a markdown report; do not apply changes. Useful for review.
+
+---
+
+## Gotchas
+
+- **Never skip Red.** A delta implemented without the failing test first cannot prove the gap existed. The test is the evidence.
+- **Never skip Blue.** EP-02 in CLAUDE.md is a non-negotiable. The REFACTOR step is mandatory.
+- **Don't expand scope mid-delta.** If you discover a related gap, that is a new delta. Pursuing it derails the dependency graph.
+- **Don't suppress pre-existing test failures.** If your delta's MODIFIED change breaks an unrelated test, that is a signal — either your change is wrong or the codebase has hidden coupling. Investigate; do not delete.
+- **Don't rotate secrets in this skill.** Rotating live production secrets is operational, not code-level. The delta replaces the hardcoded literal with a vault lookup; the rotation is a separate runbook.
+
+---
+
+## See Also
+
+- `references/hardening-deltas.md` — the HD format (plugin root)
+- `references/red-green-blue.md` — the cycle (plugin root)
+- `references/boring-code.md` — the Green standard (plugin root)

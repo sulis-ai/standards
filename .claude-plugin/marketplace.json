@@ -10,8 +10,8 @@
     {
       "name": "srd",
       "source": "./plugins/srd",
-      "version": "1.8.0",
-      "description": "Requirements Analyst — facilitates building Software Requirements Documents backed by UML artifacts through guided conversation"
+      "version": "1.10.0",
+      "description": "Requirements Analyst — facilitates building Software Requirements Documents backed by UML artifacts through guided conversation. Recommends /sea:blueprint as the natural downstream architecture step."
     },
     {
       "name": "sulis-strategy",
@@ -42,6 +42,12 @@
       "source": "./plugins/sulis-platform-sdk",
       "version": "0.1.0",
       "description": "Platform SDK — build production-ready SaaS backends with built-in auth, billing, multi-tenancy, and observability"
+    },
+    {
+      "name": "sea",
+      "source": "./plugins/sea",
+      "version": "0.1.0",
+      "description": "Senior Engineering Architect — designs hardened architectures, audits brownfield code for primitive gaps, and decomposes designs into atomic Work Packages with Red-Green-Blue verification"
     }
   ]
 }

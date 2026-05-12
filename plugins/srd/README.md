@@ -94,6 +94,42 @@ The spec-driven development space has matured quickly. Each tool below solves a
 specific part of the specification-to-implementation pipeline. They have different
 strengths because they address different moments in the workflow.
 
+### The technical counterpart: SEA
+
+The most direct downstream handoff is to **[SEA](../sea/)** — the Senior
+Engineering Architect plugin in this marketplace. Where SRD handles
+*What* and *Why*, SEA handles *How* and *Hardening*.
+
+| | SRD | SEA |
+|---|---|---|
+| **Role** | Requirements Analyst | Senior Engineering Architect |
+| **Question** | What does the system need to do, and why? | How should it be built, and how is it hardened? |
+| **Inputs** | User conversation, optional codebase | SRD's `SRD.md` + `NFR.md` + `PRIMITIVE_TREE.jsonld` |
+| **Outputs** | `.specifications/{project}/` (SRD, diagrams, NFRs, glossary) | `.architecture/{project}/` (TDD, ADRs, Work Packages, Hardening Deltas) |
+| **Next step after** | Run `/sea:blueprint` to begin technical design | Hand Work Packages to an execution agent |
+
+A typical end-to-end flow:
+
+```
+srd:requirements-analyst   →   sea:engineering-architect   →   execution agent
+(What & Why)                   (How & Hardening)               (Implementation)
+   SRD.md                        TDD.md                          Code + tests
+   NFR.md                        ADR-*.md                        Green CI
+   PRIMITIVE_TREE.jsonld         WP-*.md (Red-Green-Blue)        Merged PRs
+```
+
+Install both side-by-side:
+
+```bash
+/plugin install srd@sulis-ai-agents
+/plugin install sea@sulis-ai-agents
+```
+
+When SRD finishes facilitation with a PASS verdict, it recommends
+`/sea:blueprint` as the natural next step. SEA in turn refuses to invent
+requirements — if no `.specifications/{project}/` exists, it refers the
+user back to `srd:requirements-analyst`. The two are designed to fit.
+
 ### Specification frameworks for coding agents
 
 These tools structure specifications so AI coding agents can execute reliably.
@@ -166,6 +202,7 @@ tool handles *how*.
 
 | Downstream Tool | What It Consumes from SRD | How |
 |----------------|--------------------------|-----|
+| **SEA** (recommended) | SRD.md + NFR.md + PRIMITIVE_TREE.jsonld + diagrams | `/sea:blueprint` reads the full spec folder and produces a hardened TDD, ADRs, and atomic Work Packages with Red-Green-Blue verification |
 | **Claude Code Plan mode** | SRD.md + diagrams | Reference the spec in Plan mode: "Create an implementation plan based on @.specifications/project/SRD.md" |
 | **GSD** | HANDOVER.md implementation sequence | Use the recommended sequence as GSD milestones and phases. Feed individual requirements into `/gsd:discuss-phase` |
 | **Spec Kit** | Individual use cases from SRD.md | Each use case becomes a Spec Kit specification. The NFRs and business rules carry forward as constraints |
@@ -175,10 +212,12 @@ tool handles *how*.
 A practical workflow:
 
 1. Run SRD to produce the complete specification
-2. Use HANDOVER.md to identify the implementation sequence
-3. Feed features into your preferred execution tool — GSD for orchestrated agent
-   work, Spec Kit for structured templates, or Claude Code Plan mode for
-   implementation planning
+2. Run `/sea:blueprint` to convert it into a hardened TDD and atomic Work Packages
+3. Hand Work Packages to your preferred execution tool — Claude Code, GSD,
+   Spec Kit, or an engineering team
+
+Alternative paths (e.g. SRD → Plan mode directly, skipping SEA) are valid
+when the architectural design is trivial or already decided.
 
 ---
 
