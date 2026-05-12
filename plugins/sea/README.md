@@ -139,6 +139,25 @@ For brownfield work, each delta describes one gap and one fix:
 
 ## Where SEA Fits in the Spec-Driven Pipeline
 
+The SEA pipeline composes with the broader Sulis fleet:
+
+```
+sulis-security                 SEA                              SRD
+(security-reviewer)            (engineering-architect)          (requirements-analyst)
+─────────────────              ─────────────────                ─────────────────
+25-primitive viability    ←→   MECE-3 architecture        ←→    What & Why
+.security/{project}/           .architecture/{project}/         .specifications/{project}/
+viability-report.md            TDD + ADRs + WPs + HDs           SRD + NFR + diagrams
+```
+
+- **`sulis-security`** runs the broader audit (5 categories, OODA spiral).
+  Its Critical and Concern findings convert into SEA Hardening Deltas via
+  `/sea:harden`. SEA's `codebase-audit` focuses on Form/Armor/Proof against
+  the design; `sulis-security` covers a wider surface (code quality, supply
+  chain, infrastructure) and runs without a TDD.
+- **`srd`** produces the specification SEA builds the architecture from.
+- **Execution agents** (Claude Code, GSD) implement SEA's Work Packages.
+
 ```
 SRD                  SEA                   Execution Agent
 (srd:requirements-   (sea:engineering-     (claude code, gsd, ...)

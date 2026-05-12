@@ -10,8 +10,8 @@
     {
       "name": "srd",
       "source": "./plugins/srd",
-      "version": "1.10.0",
-      "description": "Requirements Analyst — facilitates building Software Requirements Documents backed by UML artifacts through guided conversation. Recommends /sea:blueprint as the natural downstream architecture step."
+      "version": "1.10.1",
+      "description": "Requirements Analyst — facilitates building Software Requirements Documents backed by UML artifacts through guided conversation. Recommends /sea:blueprint and /sulis-security:codebase-assess as natural downstream steps."
     },
     {
       "name": "sulis-strategy",
@@ -46,8 +46,14 @@
     {
       "name": "sea",
       "source": "./plugins/sea",
+      "version": "0.2.0",
+      "description": "Senior Engineering Architect — designs hardened architectures, audits brownfield code for primitive gaps, and decomposes designs into atomic Work Packages with Red-Green-Blue verification. Integrates with sulis-security findings."
+    },
+    {
+      "name": "sulis-security",
+      "source": "./plugins/sulis-security",
       "version": "0.1.0",
-      "description": "Senior Engineering Architect — designs hardened architectures, audits brownfield code for primitive gaps, and decomposes designs into atomic Work Packages with Red-Green-Blue verification"
+      "description": "Security & Viability Reviewer — runs a 25-primitive codebase viability assessment (security, data protection, code quality, supply chain, infrastructure) via an OODA-spiral methodology. Composes with SEA for hardening and SRD for requirements-traceable findings."
     }
   ]
 }

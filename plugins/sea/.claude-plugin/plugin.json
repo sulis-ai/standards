@@ -1,7 +1,7 @@
 {
   "name": "sea",
   "description": "Senior Engineering Architect — designs hardened architectures, audits brownfield code for primitive gaps, and decomposes designs into atomic Work Packages with Red-Green-Blue verification",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "Iain"
   },

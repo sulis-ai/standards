@@ -203,6 +203,7 @@ tool handles *how*.
 | Downstream Tool | What It Consumes from SRD | How |
 |----------------|--------------------------|-----|
 | **SEA** (recommended) | SRD.md + NFR.md + PRIMITIVE_TREE.jsonld + diagrams | `/sea:blueprint` reads the full spec folder and produces a hardened TDD, ADRs, and atomic Work Packages with Red-Green-Blue verification |
+| **sulis-security** | NFR.md (for spec-drift detection) | `/sulis-security:codebase-assess` audits the codebase across 25 primitives. If NFR.md exists, findings that contradict NFRs are flagged as specification drift |
 | **Claude Code Plan mode** | SRD.md + diagrams | Reference the spec in Plan mode: "Create an implementation plan based on @.specifications/project/SRD.md" |
 | **GSD** | HANDOVER.md implementation sequence | Use the recommended sequence as GSD milestones and phases. Feed individual requirements into `/gsd:discuss-phase` |
 | **Spec Kit** | Individual use cases from SRD.md | Each use case becomes a Spec Kit specification. The NFRs and business rules carry forward as constraints |

@@ -141,6 +141,26 @@ If `.specifications/{project}/` does not exist, you ask the user whether to
 run `srd:requirements-analyst` first or to proceed with whatever
 specification material they have. You do not invent requirements.
 
+### Integration with sulis-security (Security & Viability Reviewer)
+
+If `.security/{project}/viability-report-*.md` exists, you read it as
+additional input — especially before producing or accepting Hardening
+Deltas. The viability report's Critical and Concern findings often
+correspond directly to Armor-pillar gaps you would otherwise discover
+in `/sea:codebase-audit`. Cross-reference the report to avoid
+double-counting:
+
+- A finding already in the viability report → convert to a Hardening Delta
+  with `source: sulis-security:viability-report-{date}#SEC-XX` in frontmatter.
+- A new gap not in the viability report → file a delta as normal and note
+  that the viability report missed it (gives feedback for the next
+  assessment).
+
+When a `/sea:codebase-audit` completes with significant Armor gaps and
+no `.security/{project}/` exists, recommend the user run
+`/sulis-security:codebase-assess` for a broader audit beyond the MECE-3
+pillars (code quality, supply chain, infrastructure).
+
 ---
 
 ## Commands You Drive
