@@ -66,19 +66,31 @@ The agent runs as your primary conversational partner — not a sub-agent relayi
 through Claude, but the direct interface. You talk, it asks, you answer, it builds
 the specification from what you say.
 
-Six phases, each with a clear purpose:
+Eight phases, each with a clear purpose:
 
-1. **Orientation** — What are you specifying? Who is it for? Set up the workspace.
+1. **Orientation** — What are you specifying? Who is it for? **Intent triage** classifies
+   user input as business intent vs. architecture, parks architecture content for SEA,
+   and offers early handover if input is predominantly technical.
 2. **Divergent Exploration** — Systematically explore six domains: actors, capabilities,
    business rules, integrations, process flows, and constraints. One question at a time,
    following threads where they lead.
 3. **Convergent Specification** — Transform broad understanding into precise, testable
    requirements. Exact steps, exact conditions, exact error handling.
-4. **Artifact Generation** — Produce the SRD, UML diagrams, NFRs, and glossary. Each
-   artifact reviewed before moving to the next.
-5. **Completeness Verification** — Five perspectives: traceability, integration
-   completeness, NFR coverage, tree completeness, and referential integrity.
-6. **Handover** — Everything a development team needs to start building.
+3.5. **Disambiguation Sweep** — Lock the vocabulary. Resolve synonyms, pin referents,
+   approve a glossary before any artifact is written.
+3.6. **Adversarial Sweep** — Abuse cases, STRIDE-lite, and pre-mortem. Produces
+   MISUSE_CASES.md and negative requirements (what the system MUST refuse, detect, or
+   log). SRD owns *what shouldn't happen*; SEA owns *how to defend*.
+4. **Artifact Generation** — Produce the SRD, UML diagrams, NFRs, glossary, and
+   MISUSE_CASES.md. Each artifact reviewed before moving to the next.
+5. **Completeness Verification** — Seven perspectives: traceability, integration
+   completeness, NFR coverage, tree completeness, referential integrity, term
+   consistency, and adversarial coverage.
+6. **Handover** — Everything a development team needs to start building. Recommends
+   `/sea:blueprint` as the natural next step.
+
+A mid-session **Concern-Type Drift** reality probe catches conversation drift into
+architecture territory and offers to park the technical thread for SEA.
 
 **Brownfield projects** get codebase mapping before the first question — the agent
 reads your code so it can ask grounded questions instead of starting from scratch.
@@ -243,8 +255,9 @@ Each session creates a specification folder at `.specifications/{project-name}/`
       state-diagrams.md           # Entity lifecycle diagrams
       data-flows.md               # Data movement diagrams
     NFR.md                        # Non-functional requirements
-    GLOSSARY.md                   # Domain glossary
-    COMPLETENESS_REPORT.md        # Verification results (five perspectives)
+    MISUSE_CASES.md               # Abuse cases + negative requirements (adversarial sweep)
+    GLOSSARY.md                   # Domain glossary with synonyms and disambiguation
+    COMPLETENESS_REPORT.md        # Verification results (seven perspectives)
     HANDOVER.md                   # Implementation guide for development teams
 ```
 

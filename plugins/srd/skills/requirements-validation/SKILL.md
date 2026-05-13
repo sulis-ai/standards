@@ -30,13 +30,15 @@ The completeness assessment uses a spiral approach rather than a single-pass che
 3. NFR Coverage — Are non-functional requirements measurable and comprehensive?
 4. Tree Completeness — Are all primitive tree nodes adequately specified and represented in artifacts?
 5. Referential Integrity — Does the content of generated artifacts accurately reflect the design decisions and assumptions from facilitation?
+6. Term Consistency — Does every recurring noun in the artifacts reconcile with GLOSSARY.md (the locked vocabulary from Phase 3.5 Disambiguation Sweep)?
+7. Adversarial Coverage — Does every security-sensitive use case have a corresponding misuse case (or explicit "no plausible adversary" note), and does every misuse case have a defined system response?
 
 **Fix-as-you-go:** When the assessment finds a gap that can be fixed without user input
 (missing diagram for a well-described flow, adjective-only NFR that has enough context to
 make measurable), the agent fixes it immediately and records the fix. Gaps that require
 user input are flagged for review.
 
-**Max 3 passes:** The spiral runs up to 3 times. Each pass re-examines all five perspectives.
+**Max 3 passes:** The spiral runs up to 3 times. Each pass re-examines all seven perspectives.
 Fixes applied in pass N are verified in pass N+1.
 
 **Exit conditions:**
@@ -48,7 +50,9 @@ of Done. A passing SRD specification is the input SEA is built to consume.
 
 - **PASS** — All traces complete, all integrations specified, all NFR categories covered
   with measurable requirements, all tree nodes represented with attack patterns addressed,
-  all artifacts semantically consistent with facilitation decisions. No flags remain.
+  all artifacts semantically consistent with facilitation decisions, all recurring terms
+  reconcile with the glossary, and every security-sensitive use case has adversarial
+  coverage with defined system responses. No flags remain.
 - **GAPS_FOUND** — After 3 passes, some gaps remain that require user input or decisions
   that cannot be made by the agent. All remaining gaps are documented with their flags.
 
@@ -321,6 +325,130 @@ current definition.
 
 ---
 
+## Perspective 6: Term Consistency
+
+Enforce the vocabulary locked during Phase 3.5 (Disambiguation Sweep). The glossary is
+the authoritative source — every recurring noun in artifacts must reconcile against it.
+
+This perspective overlaps with `GLOSSARY_DRIFT` in Perspective 5 but operates at a
+broader scope: Perspective 5 catches *contradiction* with the glossary; Perspective 6
+catches *absence from* the glossary and *synonym reuse* across artifacts.
+
+### Checks
+
+**Undefined Terms:**
+For each recurring noun in SRD.md, NFR.md, MISUSE_CASES.md, and the diagrams, check
+whether the term appears in GLOSSARY.md as either a preferred term or in the
+`Also Known As` column. Generic words (the, system, user when defined elsewhere, etc.)
+do not warrant a glossary entry.
+- Flag: `UNDEFINED_TERM` — A domain-specific recurring noun is used in artifacts but
+  not present in GLOSSARY.md.
+- Fix strategy: If the term's meaning is clear from the journal, add it to GLOSSARY.md
+  with a precise definition and record the fix. Otherwise, flag for user input.
+
+**Deprecated Synonym Use:**
+For each preferred term in GLOSSARY.md, check that its deprecated synonyms (the
+`Also Known As` entries) do not appear in artifacts. If they do, the artifact is using
+the wrong form.
+- Flag: `DEPRECATED_SYNONYM` — An artifact uses a synonym that was deprecated in
+  favour of a preferred term during Phase 3.5.
+- Fix strategy: Replace the deprecated synonym with the preferred term throughout the
+  artifact. Always fix inline.
+
+**Cross-Artifact Term Conflict:**
+For each recurring noun used across multiple artifacts, verify that all artifacts use
+the same form. If artifact A uses `order` and artifact B uses `request` for what the
+glossary identifies as the same concept, both artifacts must converge on the preferred
+term.
+- Flag: `CROSS_ARTIFACT_TERM_CONFLICT` — The same concept is named differently in
+  different artifacts.
+- Fix strategy: Apply the preferred term per the glossary. Always fix inline.
+
+**Missing Disambiguation:**
+For each pair of terms in GLOSSARY.md's `NOT the Same As` column, verify that no
+artifact uses them interchangeably. If artifacts conflate two terms that the glossary
+distinguishes, flag it.
+- Flag: `CONFLATED_DISTINCT_TERMS` — An artifact uses two terms interchangeably that
+  the glossary marks as distinct concepts.
+- Fix strategy: Surface to user — this is usually a content error in the artifact, not
+  a substitution error.
+
+### Fix Strategy
+
+- `UNDEFINED_TERM`: Add to glossary if meaning is clear from journal; otherwise flag.
+- `DEPRECATED_SYNONYM`: Always fix inline.
+- `CROSS_ARTIFACT_TERM_CONFLICT`: Always fix inline.
+- `CONFLATED_DISTINCT_TERMS`: Always surface to user.
+
+---
+
+## Perspective 7: Adversarial Coverage
+
+Enforce the negative-requirements work from Phase 3.6 (Adversarial Sweep). The
+specification must surface the system's hostile-actor behaviour, not just its
+happy-path behaviour.
+
+### Checks
+
+**Security-Sensitive Use Cases Without Misuse Cases:**
+Identify use cases that touch authentication, authorisation, payment, data
+modification (write/delete), external integration, or PII handling. For each, verify
+either (a) at least one misuse case in MISUSE_CASES.md references this use case in
+its `Targets` field, or (b) the exploration journal records an explicit "no plausible
+adversary" note under `## Adversarial Sweep` for this use case.
+- Flag: `UNCOVERED_SECURITY_USE_CASE` — A security-sensitive use case has no misuse
+  case and no journal note explaining why.
+- Fix strategy: If the journal contains enough context to generate a misuse case
+  (abusive actor, abuse pattern, required system response), generate it. Otherwise,
+  flag for user input.
+
+**Misuse Cases Without System Response:**
+For each misuse case in MISUSE_CASES.md, verify the `System response (REQUIRED)` field
+is populated with a concrete negative requirement (MUST refuse, MUST detect, MUST log,
+MUST rate-limit, MUST alert, etc.).
+- Flag: `MISUSE_CASE_NO_RESPONSE` — A misuse case lacks a defined system response.
+- Fix strategy: Surface to user — the response is the load-bearing requirement; the
+  agent cannot invent it without domain authority.
+
+**Negative Requirements Not Reflected in SRD:**
+For each misuse case's system response, verify that the corresponding negative
+requirement appears in SRD.md (typically under a `Negative Requirements` section of
+the affected use case).
+- Flag: `UNPROPAGATED_NEGATIVE_REQUIREMENT` — A misuse case has a system response but
+  SRD.md does not reference it.
+- Fix strategy: Add the negative requirement to the affected use case's specification.
+  Always fix inline.
+
+**Missing Pre-mortem:**
+Verify that EXPLORATION_JOURNAL.md contains a `## Adversarial Sweep` section with the
+pre-mortem question recorded and at least one user-supplied failure scenario.
+- Flag: `MISSING_PREMORTEM` — The adversarial sweep was skipped or the pre-mortem step
+  was not run.
+- Fix strategy: If the system has any security-sensitive primitives, flag as
+  `GAPS_FOUND` and surface to user. If the system is genuinely scope-skip (read-only
+  public dashboard with no auth, integrations, or sensitive data), record the skip
+  rationale in the journal and accept.
+
+**STRIDE Categories Unconsidered:**
+For each authenticated action, external integration, and sensitive data-store, verify
+that the journal records which STRIDE categories were considered (and which were N/A
+with reason). If a primitive has none recorded, the sweep was incomplete for that
+primitive.
+- Flag: `STRIDE_GAPS` — A security-sensitive primitive has no STRIDE consideration in
+  the journal.
+- Fix strategy: If the primitive's threat surface is clear from the SRD content, run
+  STRIDE-lite inline and record the result. Otherwise, surface to user.
+
+### Fix Strategy
+
+- `UNCOVERED_SECURITY_USE_CASE`: Fix inline if journal context is sufficient; otherwise flag.
+- `MISUSE_CASE_NO_RESPONSE`: Always surface to user.
+- `UNPROPAGATED_NEGATIVE_REQUIREMENT`: Always fix inline.
+- `MISSING_PREMORTEM`: Surface to user unless explicit skip rationale exists.
+- `STRIDE_GAPS`: Fix inline if SRD content is sufficient; otherwise surface to user.
+
+---
+
 ## Content Quality Verification
 
 In addition to the five requirement perspectives, verify that all generated artifacts
@@ -398,6 +526,21 @@ VERDICT: PASS | GAPS_FOUND
 [ASSUMPTION_CONTRADICTION] A-02 (single-tenant) invalidated at turn 22, but NFR-12 still references single-tenant deployment model
 [GLOSSARY_DRIFT] "workspace" in process-flow PF-01 uses original definition, not current glossary definition (updated turn 15)
 
+--- PERSPECTIVE 6: TERM CONSISTENCY ---
+[COMPLETE] "order", "approver", "submission" — all preferred terms appear consistently across SRD.md, MISUSE_CASES.md, and diagrams
+[UNDEFINED_TERM] "settlement" — used 4 times in NFR.md but not in GLOSSARY.md
+[DEPRECATED_SYNONYM] sequence-diagram SD-03 uses "request" — glossary marks this as deprecated; preferred term is "order"
+[CROSS_ARTIFACT_TERM_CONFLICT] SRD.md uses "customer" but MISUSE_CASES.md uses "account holder" for the same actor (glossary preferred: "customer")
+[CONFLATED_DISTINCT_TERMS] process-flow PF-02 uses "approve" and "authorise" interchangeably — glossary marks these as distinct concepts
+
+--- PERSPECTIVE 7: ADVERSARIAL COVERAGE ---
+[COMPLETE] UC-01 (place order) — covered by MUC-01 (replay payment webhook) and MUC-03 (fraudulent input)
+[UNCOVERED_SECURITY_USE_CASE] UC-07 (admin reset password) — touches authentication; no misuse case and no journal note
+[MISUSE_CASE_NO_RESPONSE] MUC-04 (mass enumeration of user emails) — abuse pattern described but no system response defined
+[UNPROPAGATED_NEGATIVE_REQUIREMENT] MUC-02 requires rate-limit-and-alert response — not reflected in SRD.md UC-04 negative requirements
+[MISSING_PREMORTEM] EXPLORATION_JOURNAL.md has no `## Adversarial Sweep` section
+[STRIDE_GAPS] Stripe webhook integration — no STRIDE consideration recorded in journal
+
 --- CONTENT QUALITY ---
 [COMPLETE] SRD.md — summary self-sufficient, rhythm varied, no AI-tell patterns
 [CQ_FLAG] HANDOVER.md — missing summary section (CQ-01)
@@ -439,3 +582,4 @@ Pass 2:
 | 2026-03-17 | Added Perspective 4: Tree Completeness. Updated from three to four perspectives. | Standards team |
 | 2026-03-17 | Added Perspective 5: Referential Integrity. Cross-checks artifact content against exploration journal design decisions, assumptions, and glossary. Updated from four to five perspectives. | Standards team |
 | 2026-03-17 | Audit fixes: updated stale "three" to "five" in pass description; added tree completeness to PASS exit condition; added rate limits to integration checks; formalised content quality flags (CQ_MISSING_SUMMARY, CQ_MISSING_IDENTIFIERS, CQ_RHYTHM_VIOLATION, CQ_READABILITY, CQ_AI_TELL, CQ_UNVERIFIED) with fix strategies; added CQ-04 and CQ-06 checks. | Standards team |
+| 2026-05-13 | Added Perspective 6 (Term Consistency) — enforces Phase 3.5 Disambiguation Sweep vocabulary lock across artifacts. Added Perspective 7 (Adversarial Coverage) — enforces Phase 3.6 Adversarial Sweep produced MISUSE_CASES.md, system responses, propagated negative requirements, and pre-mortem. Updated PASS exit condition to require seven perspectives. | Standards team |
