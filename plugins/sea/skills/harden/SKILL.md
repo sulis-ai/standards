@@ -31,10 +31,19 @@ Otherwise list available projects and ask.
 |---|---|
 | `.architecture/{project}/hardening-deltas/HD-*.md` | The deltas themselves — ADDED/MODIFIED/REMOVED instructions |
 | `.architecture/{project}/hardening-deltas/INDEX.md` | The acceptance order and dependency graph |
+| `.specifications/{project}/MISUSE_CASES.md` (if present) | When a delta's `source` field references `srd:misuse-case-MUC-NN`, you read the originating misuse case for full context — the abuse pattern, the System Response (REQUIRED), and the related NFRs. The MUC is the load-bearing requirement; the delta is its implementation. |
+| `.specifications/{project}/NFR.md` (if present) | NFRs derived from the adversarial sweep (rate limits, retention periods, integrity thresholds) often parameterise hardening implementations — e.g., MUC-02's rate-limit response references NFR-12's specific limit. |
 | The codebase | The current state of the files the delta touches |
 
 You only implement deltas with `status: accepted`. Deltas at `proposed`,
 `rejected`, or `implemented` are skipped.
+
+**Misuse-case-sourced deltas are first-class.** When a delta's frontmatter has
+`source: srd:misuse-case-MUC-NN`, treat it as a contract bound to the MUC's
+System Response — the test you write in Red must prove that the system either
+refused/detected/logged/rate-limited the misuse pattern (as the MUC requires)
+or did not before this delta. If you cannot construct that test, the delta is
+not implementable yet — escalate to the user rather than relaxing the contract.
 
 ---
 

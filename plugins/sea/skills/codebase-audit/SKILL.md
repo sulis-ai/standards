@@ -32,11 +32,24 @@ ask the user.
 | Test tree | Mocks vs real adapters; chaos test presence; contract test presence per port |
 | Build config | Static analysis tools, dependency vulnerabilities, container base image |
 | CI config | Test gates, security scans, deployment policies |
-| Existing `.specifications/` | Compare to SRD/NFR if present — gaps vs spec are extra findings |
+| Existing `.specifications/` | Compare to SRD/NFR/**MISUSE_CASES.md** if present — gaps vs spec are extra findings |
+| `.specifications/{project}/HANDOFF_TO_SEA.md` (if present) | Direct user intent from SRD's Early Handover — read first when there is no SRD.md |
+| `.specifications/{project}/EXPLORATION_JOURNAL.md` `## Deferred to SEA` section (if present) | Architecture content SRD parked mid-session — often points directly at the code regions the user wants audited |
 
 If the project has a prior SRD at `.specifications/{project}/`, the audit
 also reconciles **code vs spec drift** (code does things the spec doesn't,
 spec requires things the code doesn't do).
+
+If `MISUSE_CASES.md` exists, the audit also reconciles **code vs adversarial
+spec drift**: every MUC's System Response is a hardening requirement. Each
+unsatisfied MUC system response becomes a Hardening Delta with
+`source: srd:misuse-case-MUC-NN` in its frontmatter.
+
+If `HANDOFF_TO_SEA.md` exists and `SRD.md` does not, the audit is operating
+in **Early-handoff mode**: read the handoff file first to understand what the
+user actually wants you to look at. Their original message often names
+specific code regions, integrations, or behaviours — let those drive the audit
+scope before running the generic MECE-3 sweep.
 
 ---
 
@@ -74,6 +87,13 @@ table). The non-exhaustive checklist:
 
 1. **Discover** — walk the source tree. Identify language, frameworks,
    structure. Produce a 1-paragraph summary so the user knows what you read.
+   If `HANDOFF_TO_SEA.md` exists, read it first and let it shape the
+   discovery scope. If `## Deferred to SEA` is present in the journal, read
+   the parked items and use them to prioritise the audit.
+1a. **Misuse-case reconciliation (if MISUSE_CASES.md exists)** — for each MUC,
+   determine whether its System Response is implemented in the code. If not,
+   draft a Hardening Delta with `source: srd:misuse-case-MUC-NN`. See
+   `references/hardening-deltas.md` for the translation pattern.
 2. **Scan per gap type** — for each gap type above, search the codebase and
    record findings with file paths and line numbers.
 3. **Score severity** — assign `critical | high | medium | low`:
@@ -145,6 +165,14 @@ table). The non-exhaustive checklist:
 |---|---|---|
 | Code does X, spec doesn't mention | {behaviour} | Update SRD or remove code |
 | Spec requires Y, code doesn't implement | {requirement} | Implement as WP-NNN |
+
+## Adversarial Drift (if MISUSE_CASES.md exists)
+
+| MUC | System Response (Required) | Code Implements? | Delta |
+|-----|----------------------------|-------------------|-------|
+| MUC-01 | Detect-and-reject replayed payment webhooks | No — webhook handler accepts duplicates | HD-007 |
+| MUC-02 | Rate-limit password-reset endpoint to 5/hr/account | No — no rate limit | HD-008 |
+| MUC-03 | Audit log on every authorisation grant | Partial — logs grant but not denial | HD-009 |
 
 ## Suggested Acceptance Order
 

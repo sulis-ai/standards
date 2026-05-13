@@ -179,9 +179,23 @@ and implements them through the Red-Green-Blue cycle.
 SEA parses these SRD artifacts directly:
 
 - `SRD.md` → drives the Form pillar (entities, operations, business rules)
+  and per-use-case Negative Requirements
 - `NFR.md` → drives the Armor pillar and pattern selection
+- `MISUSE_CASES.md` (SRD v1.11.0+) → seeds Armor primitives; each MUC's
+  System Response becomes one or more Hardening Deltas or TDD Armor entries.
+  See `references/hardening-deltas.md` for the MUC → delta translation
+  pattern (with worked example).
 - `PRIMITIVE_TREE.jsonld` → component inventory for the TDD
+- `GLOSSARY.md` (SRD v1.11.0+) → locked vocabulary; SEA uses preferred terms
+  exactly in the TDD, ADRs, and Work Packages
 - `diagrams/` → integration design (sequence, process, data-flow)
+- `EXPLORATION_JOURNAL.md` `## Deferred to SEA` section (SRD v1.11.0+) →
+  architecture content SRD parked mid-session; treated as additional user
+  design intent
+- `HANDOFF_TO_SEA.md` (SRD v1.11.0+, only present in Early Handover path) →
+  the sole upstream context when SRD bailed out because the user arrived
+  with predominantly technical input; read first, then ask for any missing
+  business intent before producing artifacts
 
 If `.specifications/{project}/` doesn't exist, SEA blocks and refers the
 user to `srd:requirements-analyst`. It does not invent requirements.

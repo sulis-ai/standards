@@ -123,19 +123,43 @@ the minimum sufficient change to close each gap.
 
 If `.specifications/{project}/` exists, you read its outputs as input:
 
-- **`SRD.md`** — functional requirements, use cases, business rules. Drives
-  the Form pillar (what entities and operations need to exist).
-- **`NFR.md`** — non-functional requirements. Drives the Armor pillar
-  (which resiliency, security, observability primitives are needed) and
-  pattern selection from `references/architecture-patterns.md`.
+- **`SRD.md`** — functional requirements, use cases, business rules, and
+  per-use-case `Negative Requirements` sections (added by SRD's Phase 3.6
+  Adversarial Sweep). Drives the Form pillar (what entities and operations
+  need to exist) and seeds Armor work via the negative requirements.
+- **`NFR.md`** — non-functional requirements, including those derived from
+  the adversarial sweep (rate limits, audit retention, integrity guarantees).
+  Drives the Armor pillar and pattern selection from
+  `references/architecture-patterns.md`.
+- **`MISUSE_CASES.md`** (SRD v1.11.0+) — abuse cases, misuse flows, and the
+  **System Response (REQUIRED)** field for each misuse case. Every MUC system
+  response is a hardening requirement: it becomes one or more Hardening Deltas
+  in brownfield mode, or one or more Armor primitives in the greenfield TDD.
+  See `references/hardening-deltas.md` for the MUC-to-delta translation pattern.
 - **`PRIMITIVE_TREE.jsonld`** — the structural decomposition of architectural
   building blocks. You parse this directly to seed the TDD's component
   inventory. Each node in the tree maps to one or more Work Packages.
+- **`GLOSSARY.md`** — the locked vocabulary from SRD's Phase 3.5 Disambiguation
+  Sweep, including synonym and "NOT the Same As" tables. Use the preferred
+  terms exactly in your TDD, ADRs, and Work Packages — do not invent synonyms
+  or use the deprecated forms.
 - **`diagrams/`** — sequence diagrams, process flows, data flows. Inform
   integration points and message flow design.
+- **`EXPLORATION_JOURNAL.md`** — read the `## Deferred to SEA` section if
+  present. SRD parks architecture-and-implementation content here during
+  facilitation (mid-session park) so it isn't lost. Each entry has a turn
+  number, a one-line summary, and the verbatim user statement that triggered
+  the park. Treat these as additional user-provided design intent.
 - **`HANDOVER.md`** — implementation sequence suggested by SRD. You may
   honour, reorder, or override this — but if you override it, document the
   reason in an ADR.
+- **`HANDOFF_TO_SEA.md`** (SRD v1.11.0+) — present only when SRD took the
+  Early Handover path (user arrived with predominantly technical input).
+  In that case `.specifications/{project}/` will contain ONLY this file plus
+  the workspace skeleton; no SRD.md, no NFR.md, no PRIMITIVE_TREE.jsonld.
+  Read it first to understand what the user is trying to do, then ask for
+  any business intent SRD didn't capture before producing a TDD or running
+  `/sea:codebase-audit`.
 
 If `.specifications/{project}/` does not exist, you ask the user whether to
 run `srd:requirements-analyst` first or to proceed with whatever
@@ -231,17 +255,19 @@ nothing. The Sequence ID and `dependsOn` graph express ordering.
 
 Run this check at the start of every session:
 
-1. Does `.specifications/{project}/` exist? Does `SRD.md` exist?
-2. Does the working directory contain a non-trivial codebase
+1. Does `.specifications/{project}/` exist?
+2. Inside it: does `SRD.md` exist? Does `HANDOFF_TO_SEA.md` exist?
+3. Does the working directory contain a non-trivial codebase
    (>100 source files, or any production deploy artifact like a Dockerfile
    pointing to a real image)?
 
-| SRD exists? | Codebase exists? | Mode |
-|---|---|---|
-| Yes | No | **Greenfield** — `/sea:blueprint` → `/sea:decompose` |
-| Yes | Yes | **Brownfield with spec** — `/sea:codebase-audit`, reconcile with SRD, propose deltas |
-| No | Yes | **Brownfield audit-only** — `/sea:codebase-audit` against MECE-3 pillars; flag missing SRD as the first gap |
-| No | No | **Block** — ask the user to run `srd:requirements-analyst` first |
+| Inputs | Mode |
+|--------|------|
+| SRD.md exists + no codebase | **Greenfield** — `/sea:blueprint` → `/sea:decompose` |
+| SRD.md exists + codebase exists | **Brownfield with spec** — `/sea:codebase-audit`, reconcile with SRD, propose deltas |
+| HANDOFF_TO_SEA.md exists (no SRD.md) | **Early-handoff mode** — read HANDOFF_TO_SEA.md first; pick command per the file's `## Recommended Command` field. If user intent is "design something new," produce a lightweight TDD without an SRD (and document the SRD gap as the first ADR). If intent is "analyse existing code," go straight to `/sea:codebase-audit`. |
+| No SRD.md + no HANDOFF_TO_SEA.md + codebase exists | **Brownfield audit-only** — `/sea:codebase-audit` against MECE-3 pillars; flag missing SRD as the first gap |
+| No SRD.md + no HANDOFF_TO_SEA.md + no codebase | **Block** — ask the user to run `srd:requirements-analyst` first |
 
 ---
 

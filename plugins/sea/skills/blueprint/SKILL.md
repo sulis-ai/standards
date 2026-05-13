@@ -27,14 +27,22 @@ If no SRD specification exists, stop and tell the user — refer them to
 
 | File | Why |
 |---|---|
-| `SRD.md` | Functional requirements, use cases, business rules → Form pillar |
+| `SRD.md` | Functional requirements, use cases, business rules, per-use-case Negative Requirements → Form pillar (and seeds Armor) |
 | `NFR.md` | Non-functional requirements → drives Armor pillar + pattern selection |
+| `MISUSE_CASES.md` (SRD v1.11.0+) | Abuse cases, misuse flows, **System Response (REQUIRED)** for each → seeds Armor primitives (rate limits, audit logging, replay protection, integrity guards) and shapes the TDD's security boundary |
 | `PRIMITIVE_TREE.jsonld` | Structural decomposition of building blocks → component inventory |
+| `GLOSSARY.md` | Locked vocabulary from SRD Phase 3.5 Disambiguation Sweep — use preferred terms exactly in the TDD and ADRs |
 | `diagrams/*.md` | Sequence, process, data-flow diagrams → integration design |
+| `EXPLORATION_JOURNAL.md` `## Deferred to SEA` (if present) | Architecture-and-implementation content parked by SRD mid-session — treat as additional design intent from the user |
 | `HANDOVER.md` (if present) | Suggested implementation sequence → may inform WP ordering |
+| `HANDOFF_TO_SEA.md` (if present, instead of SRD.md) | SRD took the Early Handover path — user arrived with predominantly technical content. Read it as the sole upstream context; fill business-intent gaps by asking the user, not by inventing. |
 
 Read all of them. If any are missing, list them and ask the user how to
 proceed before writing anything.
+
+**MISUSE_CASES.md is required reading when present.** Each MUC's System Response
+becomes Armor input. Skipping it means you write a TDD that addresses the happy
+path but not the adversarial path SRD already specified.
 
 ---
 
@@ -126,14 +134,15 @@ deciders: [iain]
 
 ## Workflow
 
-1. **Discover** — locate the spec folder; read all five inputs; report what's missing.
+1. **Discover** — locate the spec folder; read all inputs in the table above; report what's missing. If `HANDOFF_TO_SEA.md` is present and `SRD.md` is absent, read the handoff file first and ask the user for any business intent it doesn't capture before proceeding.
 2. **Inventory** — parse `PRIMITIVE_TREE.jsonld` for components. List them. Map each to a TDD section.
 3. **Select patterns** — for each NFR, pick patterns from `references/architecture-patterns.md`. Surface trade-offs explicitly.
-4. **Cover all three pillars** — for every component, ensure Form, Armor, and Proof are addressed. If you cannot address one pillar for a component, flag it in Open Questions; do not silently skip.
-5. **Draft TDD** — write `TDD.md` following the template.
-6. **Extract ADRs** — for each non-trivial decision in the TDD, factor it out into an ADR file. The TDD references the ADR by ID.
-7. **Write `ARCH.yaml`** — link back to the source SPEC.
-8. **Report** — summarise what was produced, what patterns were chosen, what open questions remain.
+4. **Translate misuse cases** — for each MUC in `MISUSE_CASES.md`, translate its `System Response (REQUIRED)` into one or more Armor-pillar primitives in the TDD. Cross-reference: every MUC ID must appear in the TDD's Armor section. See `references/hardening-deltas.md` for the MUC → delta/primitive translation pattern (the same translation applies to greenfield TDD entries).
+5. **Cover all three pillars** — for every component, ensure Form, Armor, and Proof are addressed. If you cannot address one pillar for a component, flag it in Open Questions; do not silently skip.
+6. **Draft TDD** — write `TDD.md` following the template. Use GLOSSARY.md's preferred terms exactly.
+7. **Extract ADRs** — for each non-trivial decision in the TDD, factor it out into an ADR file. The TDD references the ADR by ID.
+8. **Write `ARCH.yaml`** — link back to the source SPEC.
+9. **Report** — summarise what was produced, what patterns were chosen, what open questions remain, and which misuse cases drove which Armor primitives.
 
 After the blueprint is accepted, the user typically runs `/sea:decompose`
 next.
@@ -150,11 +159,14 @@ next.
 
 ## Gotchas
 
-- **No SRD, no TDD.** If `SRD.md` does not exist, the skill blocks. Refer the user back to `srd:requirements-analyst`. Do not invent requirements.
+- **No SRD, no TDD — except for Early Handover.** If `SRD.md` does not exist and `HANDOFF_TO_SEA.md` does not exist, the skill blocks. Refer the user back to `srd:requirements-analyst`. Do not invent requirements. If `HANDOFF_TO_SEA.md` exists, you may proceed with a lightweight TDD provided you record the absent SRD as an explicit gap in the first ADR.
 - **No NFR, no Armor.** The NFRs determine which resiliency and security patterns are needed. If `NFR.md` is missing or thin, surface that as the first Open Question — do not pick patterns by guesswork.
+- **No MISUSE_CASES.md when one is expected.** If `SRD.md` exists but `MISUSE_CASES.md` does not, the SRD was produced by a pre-v1.11.0 facilitation or the adversarial sweep was skipped. Note this in the TDD's Open Questions: "Adversarial spec absent — Armor primitives derived from NFR only. Recommend the user re-run `/srd:requirements-analyst` for the misuse-case sweep, or accept the gap."
 - **One ADR per decision.** Resist bundling. "Why we chose PostgreSQL" and "Why we chose logical replication" are two ADRs if both decisions had viable alternatives.
 - **TDD is design, not implementation.** No code in the TDD beyond illustrative type signatures. Implementation lives in Work Packages.
 - **Cross-reference the PRIMITIVE_TREE.** Every node in the tree should map to at least one TDD component. Nodes that don't map are gaps — flag them.
+- **Cross-reference MISUSE_CASES.md.** Every MUC should map to at least one Armor primitive in the TDD. MUCs that don't map are gaps — flag them.
+- **Use the locked vocabulary.** Use only the preferred terms from `GLOSSARY.md` — do not introduce synonyms or use forms the glossary marks as deprecated.
 
 ---
 

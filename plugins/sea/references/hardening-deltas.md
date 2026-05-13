@@ -69,9 +69,23 @@ gap_type: resiliency          # see HD-02
 severity: high                # critical | high | medium | low
 status: proposed              # proposed | accepted | implemented | verified | rejected
 source_file: src/payments/provider-client.ts
+source: srd:misuse-case-MUC-04   # optional — provenance of this delta
 created: 2026-05-12
 ---
 ```
+
+The optional **`source`** field records where the delta came from. Recognised forms:
+
+| Source value | Meaning |
+|--------------|---------|
+| (omitted) | Delta originated from a `/sea:codebase-audit` finding with no upstream spec |
+| `srd:misuse-case-MUC-NN` | Delta implements the System Response required by an SRD misuse case (SRD v1.11.0+) |
+| `srd:negative-requirement-NR-NN` | Delta implements a per-use-case negative requirement from SRD.md |
+| `sulis-security:viability-report-{date}#SEC-NN` | Delta closes a finding from a sulis-security viability report |
+| `nfr:NFR-NN` | Delta implements a non-functional requirement from NFR.md |
+
+The source field is for traceability — when SRD or sulis-security re-run, the upstream
+artifact's status can be reconciled against the delta's status without manual matching.
 
 ### HD-02: Gap Type
 
@@ -262,6 +276,109 @@ intervention.
 
 ---
 
+## Misuse-Case-to-Delta Translation (SRD v1.11.0+)
+
+When `.specifications/{project}/MISUSE_CASES.md` exists, each misuse case is a
+candidate for one or more Hardening Deltas. The MUC's **System Response (REQUIRED)**
+is the contract; the delta is its implementation.
+
+### Translation pattern
+
+| MUC field | Becomes delta field |
+|-----------|---------------------|
+| `MUC-NN` | `source: srd:misuse-case-MUC-NN` (in HD frontmatter) |
+| Abusive Actor + Misuse Flow | HD-03 Context section — explain why the gap is exploitable |
+| System Response (REQUIRED) | HD-04 Change section — the ADDED/MODIFIED to satisfy the requirement |
+| Misuse Flow's "System (no response)" column | HD-05 Verification — the failing test reproduces this column |
+| Misuse Flow's "System (with required response)" column | HD-05 Verification — the test that passes after the change |
+| MUC-linked NFR (rate ceiling, retention period, integrity threshold) | Test assertion thresholds; if values change, NFR is the source of truth |
+
+### Worked example — MUC-04 (replay payment webhook) → HD-007
+
+**MUC-04 (in MISUSE_CASES.md):**
+- Abusive Actor: any party who captured a Stripe webhook payload
+- Targets: UC-03 (payment confirmation)
+- System Response (REQUIRED): MUST detect-and-reject webhook deliveries whose
+  Stripe signature timestamp is older than 5 minutes OR whose payload-hash
+  matches a delivery in the last 24 hours
+
+**HD-007 derived from MUC-04:**
+
+```yaml
+---
+id: HD-007
+title: Reject replayed Stripe webhooks (signature freshness + dedup)
+pillar: armor
+gap_type: idempotency
+severity: high
+status: proposed
+source_file: src/payments/webhook-handler.ts
+source: srd:misuse-case-MUC-04
+created: 2026-05-13
+---
+
+## Context
+
+UC-03 (payment confirmation) processes Stripe webhooks. MUC-04 in
+`.specifications/{project}/MISUSE_CASES.md` requires detect-and-reject for
+replayed deliveries. Today the handler accepts any payload with a valid signature
+regardless of timestamp or payload-hash history. This is the gap MUC-04 names.
+
+## Change
+
+### ADDED
+- `src/payments/webhook-replay-guard.ts` — verifies Stripe `t=` timestamp is within
+  5 minutes, looks up payload-hash in 24-hour Redis dedup window, rejects if either
+  check fails.
+
+### MODIFIED
+- `src/payments/webhook-handler.ts` — calls `webhook-replay-guard` before payload
+  processing; returns 409 on rejection per Stripe's recommended replay-handling
+  convention.
+
+## Verification
+
+### Failing test (proves gap exists today)
+- `tests/payments/webhook-replay.test.ts::rejects_replayed_signature` — replays
+  a captured webhook payload 6 minutes later; currently passes the handler
+  (returns 200); after change, must return 409.
+
+### Additional tests added by this delta
+- `rejects_payload_hash_within_dedup_window` — same payload twice within 24h.
+- `accepts_payload_hash_after_dedup_window` — same payload 25h later.
+
+## Rationale
+
+MUC-04 requires detect-and-reject — see `.specifications/{project}/MISUSE_CASES.md`.
+NFR-09 sets the dedup window at 24 hours. Stripe's signature freshness window of
+5 minutes is the industry default and matches Stripe's own guidance.
+
+## Sequence
+
+`dependsOn: []` — independent change.
+`blocks: HD-012` (payment audit log, which assumes only-non-replayed webhooks reach it).
+```
+
+### What `/sea:codebase-audit` does with MUCs
+
+When auditing a brownfield codebase that has a `MISUSE_CASES.md`:
+
+1. For each MUC, look up the implementation status of its System Response in the code.
+2. If absent or partial, draft a Hardening Delta with `source: srd:misuse-case-MUC-NN`.
+3. Record adversarial drift in the audit report's "Adversarial Drift" table.
+4. Cross-reference: every MUC should appear either as an implemented system response
+   in the code OR as a draft delta. MUCs that appear in neither are a process gap —
+   surface them to the user.
+
+### What `/sea:blueprint` does with MUCs
+
+For greenfield work, MUCs are baked directly into the TDD's Armor section rather
+than emerging as deltas (deltas are a brownfield concept). The MUC-to-primitive
+translation is the same — replay guard, rate limiter, audit logger, integrity
+verifier, etc. — but it appears in the TDD's Armor inventory, not as HD-NNN files.
+
+---
+
 ## Gotchas
 
 - **One gap, one delta.** Do not bundle "harden all of service X" into one
@@ -283,3 +400,4 @@ intervention.
 | Version | Date | Change |
 |---------|------|--------|
 | 0.1.0 | 2026-05-12 | Initial format spec. Adapts OpenSpec delta convention for SEA's hardening output. |
+| 0.2.0 | 2026-05-13 | Added optional `source` frontmatter field for upstream provenance (SRD misuse cases, SRD negative requirements, sulis-security findings, NFRs). Added "Misuse-Case-to-Delta Translation" section with the MUC → HD mapping pattern, the MUC-04 → HD-007 worked example, and the audit/blueprint usage notes. |
