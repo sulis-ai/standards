@@ -1,0 +1,106 @@
+# Rehearsal Notes — {{COMPANY_NAME}}
+
+**Stage:** {{STAGE}}
+**Rehearsal date:** {{YYYY-MM-DD}}
+**Mode:** {{mock partner meeting | demo-day timing | angel coffee}}
+
+A timed walkthrough of the deck plus mock investor Q&A. The agent plays
+the investor in-character. The founder presents. Both timing and answer
+strength are scored.
+
+---
+
+## Timing breakdown
+
+Target: 5/15/30 arc per SQ-11.
+
+| Section | Slides | Target time | Actual time | Within ±20%? |
+|---|---|---|---|---|
+| Opening hook | 1–4 | 5 min | {{actual}} | {{yes / no}} |
+| Core argument | 5–7 | 10 min | {{actual}} | {{yes / no}} |
+| Evidence build | 8–10 | 10 min | {{actual}} | {{yes / no}} |
+| Q&A | — | 25 min | {{actual}} | {{yes / no}} |
+| **Total** | | 50 min | {{actual}} | |
+
+**Pace observations:**
+
+- {{e.g., "Spent 3 minutes on Slide 01; partner would have been hooked by minute 1 — consider trimming."}}
+
+---
+
+## Mock Q&A transcript
+
+The agent asked {{N}} questions in-character. Each is scored on the
+founder's answer:
+
+| Strength | Meaning |
+|---|---|
+| **Strong** | Clear, specific, evidence-backed, lands in <30s |
+| **Medium** | Reasonable but could be sharper / shorter |
+| **Weak** | Vague, evasive, or missed the question |
+| **Evaded** | Founder pivoted away from the question |
+
+### Q1 — {{IO-NN}} ({{character: partner | angel | LP}})
+
+- **Investor voice:** "{{verbatim}}"
+- **Founder's answer:** "{{paraphrase or transcript}}"
+- **Strength:** {{Strong | Medium | Weak | Evaded}}
+- **Why:** {{specific observation}}
+- **Strengthened version:** "{{coached version of the answer}}"
+
+### Q2 — ...
+
+(repeat for each question)
+
+---
+
+## Weak-answer drill list
+
+Questions where the founder scored Weak or Evaded. Run these again next
+session.
+
+| Q# | Objection | First-pass strength | Coached answer drafted |
+|---|---|---|---|
+| Q{{N}} | {{IO-NN}} | {{strength}} | {{yes / no}} |
+
+---
+
+## Slide cuts and strengthens
+
+What the rehearsal revealed about the deck itself:
+
+| Slide | Observation | Action |
+|---|---|---|
+| {{NN}} | {{e.g., "Founder hesitated reading the third bullet — bullet too dense"}} | {{cut bullet / rephrase}} |
+
+---
+
+## Founder self-assessment
+
+After the rehearsal, the founder rates:
+
+| Aspect | 1 (low) – 5 (high) | Notes |
+|---|---|---|
+| Confidence in delivery | {{N}} | {{}} |
+| Knowledge of own financial model | {{N}} | {{}} |
+| Knowledge of competitor positioning | {{N}} | {{}} |
+| Comfort handling difficult Qs | {{N}} | {{}} |
+
+---
+
+## Coaching notes (from the agent)
+
+After the hat-change back to coaching mode:
+
+- **Two things that landed best:** {{LIST}}
+- **One thing to strengthen most:** {{SPECIFIC_ACTION}}
+- **Specific drill recommended before the next rehearsal:** {{LIST}}
+
+---
+
+## Next steps
+
+- [ ] Address {{N}} slide-level fixes listed above
+- [ ] Re-rehearse weak-answer drill list
+- [ ] Re-time after fixes
+- [ ] Schedule next rehearsal: {{YYYY-MM-DD}}

@@ -1,0 +1,61 @@
+# src-{{NNN}}: {{TITLE}}
+
+**ID:** src-{{NNN}}
+**Tier:** {{T1 | T2 | T3 | T4}}
+**Type:** {{analyst-report | regulatory | primary-interview | public-filing | blog | conference-talk | other}}
+**URL or location:** {{URL or file path}}
+**Publication date:** {{YYYY-MM-DD}}
+**Accessed:** {{YYYY-MM-DD}}
+
+---
+
+## Tier Rationale
+
+Why this source receives its tier per FN-05:
+
+> {{ONE_PARAGRAPH}}
+
+---
+
+## Authority
+
+The source's expertise / track record on this specific topic:
+
+> {{ONE_PARAGRAPH}}
+
+---
+
+## Potential Biases and Limitations
+
+- **Bias:** {{e.g., "Sponsored by [vendor]" or "Funded by industry association"}}
+- **Limitation:** {{e.g., "Methodology not disclosed for the 22% figure"}}
+- **Recency:** {{CURRENT | RECENT | DATED | OUTDATED}}
+- **Primary vs Secondary:** {{primary | secondary | tertiary-synthesis}}
+- **Methodology transparency:** {{stated | inferred | absent}}
+
+---
+
+## Key Contributions to the Research
+
+Which findings or proof-points draw on this source:
+
+- pp-{{NNN}} — {{one-line description}}
+- pp-{{NNN}} — {{one-line description}}
+
+---
+
+## Verbatim Quotes / Data Points
+
+For preserving specific claims used downstream:
+
+> "{{verbatim quote}}" — page/section reference
+
+| Data point | Value | Page/section |
+|---|---|---|
+| {{e.g., 2025 market size}} | ${{X}} | p. {{N}} |
+
+---
+
+## Notes
+
+Any caveats, related sources, or follow-up considerations.

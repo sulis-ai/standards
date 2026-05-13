@@ -1,0 +1,64 @@
+# Exploration Journal — {{COMPANY_NAME}}
+
+The facilitation record. Append-only. Captures decisions, assumptions,
+patterns detected, term locks, and approvals across the engagement.
+
+This file is consulted at every phase transition. It is the agent's
+memory across sessions.
+
+---
+
+## Session log
+
+### {{YYYY-MM-DD HH:MM}} — Phase {{N}} ({{phase-name}})
+
+**Summary:** {{ONE_LINE}}
+
+**Decisions:**
+
+- {{DECISION + rationale}}
+
+**Assumptions captured:**
+
+- {{ASSUMPTION + flag for validation}}
+
+**Term locks:**
+
+- {{TERM}} → {{DEFINITION}} (entered in GLOSSARY.md)
+
+**Patterns / coaching observations:**
+
+- {{OBSERVATION}}
+
+**Open questions for next session:**
+
+- [ ] {{QUESTION}}
+
+**Approvals (founder sign-off):**
+
+- {{ARTIFACT or DECISION}} — approved by {{FOUNDER_NAME}}
+
+---
+
+### {{YYYY-MM-DD HH:MM}} — Phase {{N}}
+
+(repeat)
+
+---
+
+## Term-lock register (cross-reference for GLOSSARY.md)
+
+| Date | Term | Locked definition | Reason |
+|---|---|---|---|
+| {{YYYY-MM-DD}} | {{e.g., CAC}} | {{Blended CAC: total S&M ÷ new customers acquired in period}} | {{disambiguation from paid-only}} |
+
+---
+
+## Hat-change log
+
+When the agent enters or exits adversarial mode.
+
+| Date | Phase | Direction | Confirmed by founder |
+|---|---|---|---|
+| {{YYYY-MM-DD}} | 7 | coaching → adversarial | yes |
+| {{YYYY-MM-DD}} | 7 | adversarial → coaching | (automatic at end of phase) |

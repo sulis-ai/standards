@@ -1,0 +1,165 @@
+# financial-model.yaml — Structured source of truth for the financial model.
+# Rendered to financial-model.xlsx and financial-summary.html by build scripts.
+# Governed by financial-rigor-standard.md (FN-01 through FN-16).
+
+id: FM-{{NNN}}
+company: "{{COMPANY_NAME}}"
+stage: "{{angel | pre-seed | seed | series-a | series-b}}"
+currency: USD
+created: "{{YYYY-MM-DD}}"
+updated: "{{YYYY-MM-DD}}"
+
+# FN-01: Horizon set by stage.
+# Pre-seed: thesis | Seed: 12mo | A: 24mo | B: 36mo
+horizon_months: {{12 | 24 | 36 | null}}
+
+# ---------------------------------------------------------------
+# Stage-appropriate inputs. Cells marked [N/A by stage] are skipped
+# for that stage; do not fabricate them.
+# ---------------------------------------------------------------
+
+revenue_model:
+  type: "{{subscription | transaction | usage | hybrid | other}}"
+  pricing:
+    average_acv_usd: {{N}}
+    pricing_methodology: "{{value-based | cost-plus | competitive | hybrid}}"
+    proof_point: "pp-{{NNN}}"
+
+unit_economics:
+  gross_margin_pct: {{N}}                       # decimal, e.g. 0.78
+  gross_margin_confidence: "{{HIGH | MEDIUM | LOW}}"
+  gross_margin_observation_months: {{N}}
+  cac_blended_usd: {{N | null}}                 # null for pre-seed
+  cac_by_channel:
+    - channel: "{{name}}"
+      cac_usd: {{N}}
+      monthly_acquisitions: {{N}}
+      proof_point: "pp-{{NNN}}"
+  ltv_usd: {{N | null}}                         # null for pre-seed/seed if <6mo retention data
+  ltv_cac_ratio: {{N | null}}
+  payback_months: {{N | null}}
+  nrr_pct: {{N | null}}                         # required for A+
+  grr_pct: {{N | null}}                         # required for B
+  sales_efficiency_magic_number: {{N | null}}   # required for B
+
+# FN-03: Cohort definitions
+cohorts:
+  definition: "{{e.g., 'customers acquired in a calendar month'}}"
+  intervals_measured: ["M+1", "M+3", "M+6", "M+12"]
+  retention_type: "{{logo | revenue | both}}"
+  cohort_data:
+    - cohort: "2025-01"
+      acquired: {{N}}
+      retained_m6: {{N}}
+      retained_m12: {{N}}
+      proof_point: "pp-{{NNN}}"
+
+# FN-04: TAM/SAM/SOM with both top-down and bottom-up
+market_sizing:
+  tam:
+    top_down_usd: {{N}}
+    top_down_proof_point: "pp-{{NNN}}"
+    bottom_up_usd: {{N}}
+    bottom_up_proof_point: "pp-{{NNN}}"
+    convergence_note: "{{within 2x | divergent — explanation}}"
+    confidence: "{{HIGH | MEDIUM | LOW}}"
+  sam:
+    top_down_usd: {{N}}
+    bottom_up_usd: {{N}}
+    restriction_from_tam: "{{geography / motion / segment}}"
+    confidence: "{{HIGH | MEDIUM | LOW}}"
+  som:
+    top_down_usd: {{N}}
+    bottom_up_usd: {{N}}
+    horizon_years: {{N}}
+    confidence: "{{HIGH | MEDIUM | LOW}}"
+
+# Monthly (or quarterly for B) projections.
+# Use ranges (low/base/high) when confidence is MEDIUM or LOW per FN-07.
+projections:
+  - period: "{{YYYY-MM}}"
+    revenue_low: {{N | null}}
+    revenue_base: {{N}}
+    revenue_high: {{N | null}}
+    headcount: {{N}}
+    gross_burn_usd: {{N}}
+    net_burn_usd: {{N}}
+    customers_active: {{N}}
+    notes: "{{milestone or context}}"
+
+# Burn and runway snapshot (FN-13)
+burn:
+  current_cash_usd: {{N}}
+  current_gross_burn_usd_monthly: {{N}}
+  current_net_burn_usd_monthly: {{N}}
+  trailing_3mo_net_burn_avg_usd: {{N}}
+  runway_months: {{N}}
+  burn_type_used_for_runway: "net"             # always net per convention
+
+# FN-15: Use of funds — milestone-tied
+use_of_funds:
+  - category: "{{e.g., 'Expand sales team'}}"
+    amount_usd: {{N}}
+    milestone: "{{e.g., 'Hire VP Sales + 2 AEs by Q1 2027'}}"
+    expected_outcome: "{{e.g., 'Drive $5M new ARR by Q4 2027'}}"
+    proof_point: "pp-{{NNN}}"
+
+# FN-16: Round sizing
+round:
+  ask_usd: {{N}}
+  expected_runway_months: {{N}}
+  next_round_milestone: "{{e.g., '$5M ARR with NRR ≥ 120%'}}"
+  next_round_target: "{{Series B by Q4 2027}}"
+  justification: "{{one paragraph}}"
+
+# FN-09: Assumptions register
+assumptions:
+  - id: "A-{{NNN}}"
+    statement: "{{e.g., '5% trial-to-paid conversion based on B2B SaaS median'}}"
+    rationale: "{{methodology / source}}"
+    proof_point: "pp-{{NNN | ASSERTED}}"
+    risk_if_wrong: "{{impact on model}}"
+
+# FN-10: Pre-mortem — top 3 reasons projections might miss by 50%
+risks:
+  - reason: "{{e.g., 'Sales cycle extends from 90 to 180 days as ACV grows'}}"
+    likelihood: "{{HIGH | MEDIUM | LOW}}"
+    impact: "{{HIGH | MEDIUM | LOW}}"
+    mitigation: "{{specific action}}"
+  - reason: "..."
+  - reason: "..."
+
+# FN-11: Stop/pivot triggers
+triggers:
+  - bet: "{{e.g., 'Paid social drives <$40 CAC'}}"
+    target: "${{N}} CAC by Month {{N}}"
+    pivot_condition: "{{specific observation that would trigger reconsideration}}"
+    pivot_action: "{{what we would do}}"
+
+# FN-14: Sensitivity analysis (required for Series A+)
+sensitivity:
+  enabled: {{true | false}}             # false for pre-seed/seed
+  drivers:
+    - name: "Revenue growth rate"
+      base: {{N}}
+      downside: {{N}}                   # e.g., 50% of base
+      upside: {{N}}                     # e.g., 150% of base
+    - name: "CAC"
+      base: {{N}}
+      downside: {{N}}                   # e.g., 150% of base (worse)
+      upside: {{N}}                     # e.g., 70% of base (better)
+  outcomes:
+    - scenario: "Downside-Downside"
+      runway_months: {{N}}
+      arr_12mo_usd: {{N}}
+    - scenario: "Base-Base"
+      runway_months: {{N}}
+      arr_12mo_usd: {{N}}
+    - scenario: "Upside-Upside"
+      runway_months: {{N}}
+      arr_12mo_usd: {{N}}
+
+# Audit trail
+provenance:
+  facilitator_notes: "EXPLORATION_JOURNAL.md"
+  rigor_check: "COMPLETENESS_REPORT.md"

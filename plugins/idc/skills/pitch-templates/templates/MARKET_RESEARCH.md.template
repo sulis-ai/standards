@@ -1,0 +1,191 @@
+# Market Research — {{COMPANY_NAME}}
+
+**Stage:** {{STAGE}}
+**Updated:** {{YYYY-MM-DD}}
+**Overall Evidence Quality:** {{STRONG | ADEQUATE | WEAK | INSUFFICIENT}}
+**Verdict:** {{PASS | GAPS_FOUND}}
+
+The evidence dossier behind the deck. Every numerical claim in any
+artifact (deck, financial model, speaker notes) MUST trace to a
+proof-point referenced here.
+
+---
+
+## Decision Summary (SCQA)
+
+- **Situation:** {{The market context as we found it.}}
+- **Complication:** {{What's changed or what was missed before.}}
+- **Question:** {{What this research answers about market viability.}}
+- **Answer:** {{The headline finding.}}
+
+---
+
+## Research Question and Scope
+
+- **Primary question:** {{e.g., "Is the TAM for vertical SaaS in dental practices large enough to support a $100M+ outcome?"}}
+- **Sub-questions:**
+  - {{SUBQ_1}}
+  - {{SUBQ_2}}
+- **Source types prioritised:** {{e.g., industry analyst reports, regulatory filings, primary interviews}}
+- **Time period:** {{e.g., 2023–2026 data, with 5-year forward look}}
+- **Goal context:** {{What decision this informs in the deck.}}
+
+---
+
+## Sources Consulted
+
+### Source Inventory
+
+| ID | Title | Type | Credibility Tier | Key Contribution |
+|---|---|---|---|---|
+| src-001 | {{TITLE}} | {{analyst-report | regulatory | primary-interview | public-filing | etc.}} | T{{1..4}} | {{contribution}} |
+| src-002 | ... | ... | T{{1..4}} | ... |
+
+### Tier Distribution
+
+| Tier | Count |
+|---|---|
+| Tier 1 (primary, audited, observed) | {{N}} |
+| Tier 2 (reputable secondary) | {{N}} |
+| Tier 3 (practitioner / community) | {{N}} |
+| Tier 4 (unattributed / promotional) | {{N}} |
+
+**Overall Evidence Quality:** {{STRONG | ADEQUATE | WEAK | INSUFFICIENT}}
+
+(STRONG: ≥3 T1/T2 with convergence. ADEQUATE: T1+T2 with some gaps. WEAK:
+mostly T3/T4 or contradictions unresolved. INSUFFICIENT: <3 sources or
+critical gaps.)
+
+---
+
+## Key Findings
+
+For each finding: confidence level, supporting proof-points, and what
+would change the conclusion.
+
+### Finding 1: {{HEADLINE_AS_CONCLUSION}}
+
+- **Confidence:** {{HIGH | MEDIUM | LOW}}
+- **Supporting evidence:** pp-{{NNN}}, pp-{{NNN}}, pp-{{NNN}}
+- **Description:** {{ONE_PARAGRAPH}}
+- **What would change this conclusion:** {{ONE_SENTENCE}}
+
+### Finding 2: ...
+
+---
+
+## Market Sizing (TAM / SAM / SOM)
+
+Per FN-04: both top-down and bottom-up are required.
+
+### TAM (Total Addressable Market)
+
+- **Top-down:** ${{X}} — source: src-{{NNN}}, pp-{{NNN}}
+- **Bottom-up:** ${{X}} — {{customers}} × ${{per-customer-per-year}} — pp-{{NNN}}
+- **Convergence:** {{convergent within 2x | divergent — explanation}}
+- **Confidence:** {{HIGH | MEDIUM | LOW}}
+
+### SAM (Serviceable Addressable Market)
+
+- **Top-down:** ${{X}} — pp-{{NNN}}
+- **Bottom-up:** ${{X}} — pp-{{NNN}}
+- **Restriction from TAM:** {{geography, motion, segment exclusions}}
+- **Confidence:** {{HIGH | MEDIUM | LOW}}
+
+### SOM (Serviceable Obtainable Market)
+
+- **Top-down:** ${{X}} — pp-{{NNN}}
+- **Bottom-up:** ${{X}} — pp-{{NNN}}
+- **Capturable within projection horizon:** {{N years}}
+- **Confidence:** {{HIGH | MEDIUM | LOW}}
+
+---
+
+## Competitive Landscape
+
+Named competitors with falsifiable differentiation axes.
+
+### Direct competitors
+
+| Competitor | Positioning | Strength | Weakness | Source |
+|---|---|---|---|---|
+| {{NAME}} | {{ONE_SENTENCE}} | {{ONE_SENTENCE}} | {{ONE_SENTENCE}} | src-{{NNN}} |
+
+### Adjacent competitors / threats
+
+| Competitor | Adjacency | Threat path | Source |
+|---|---|---|---|
+| {{NAME}} | {{ONE_SENTENCE}} | {{ONE_SENTENCE}} | src-{{NNN}} |
+
+### Differentiation thesis
+
+The falsifiable reason this company wins.
+
+> {{ONE_PARAGRAPH — falsifiable claim with stated condition under which it would be wrong.}}
+
+---
+
+## Convergence Points
+
+Where sources agree.
+
+| Topic | Sources | Strength (STRONG/MODERATE/WEAK) |
+|---|---|---|
+| {{TOPIC}} | {{IDs}} | {{rating}} |
+
+---
+
+## Contradictions
+
+Where sources disagree. **Preserve; do not average.**
+
+### Contradiction 1: {{TOPIC}}
+
+- **Position A:** {{statement}} — src-{{NNN}} (T{{tier}})
+- **Position B:** {{statement}} — src-{{NNN}} (T{{tier}})
+- **Why they differ:** {{methodological / temporal / definitional / genuine uncertainty}}
+- **Resolution:** {{reconciled by … | unresolvable, treat as caveat}}
+
+---
+
+## Gaps Identified
+
+What credible evidence is missing.
+
+| Gap | Impact (CRITICAL / SIGNIFICANT / MINOR) | Why unanswered | Next research step |
+|---|---|---|---|
+| {{GAP}} | {{rating}} | {{methodology limitation}} | {{action}} |
+
+---
+
+## Confidence Assessment
+
+- **Overall confidence:** {{HIGH | MEDIUM | LOW}}
+- **Rationale:** {{e.g., "MEDIUM: 4 Tier 2 sources converge on TAM, but bottom-up unit-volume estimate rests on a single survey"}}
+
+### Per-Finding Confidence
+
+| Finding | Confidence | Basis |
+|---|---|---|
+| F1 | {{H/M/L}} | {{e.g., "3 T1 sources, methodology overlaps"}} |
+
+### What Would Change Our Conclusions
+
+- {{Specific evidence that would alter findings}}
+
+---
+
+## Recommendations for the Deck
+
+Based on this research:
+
+1. {{RECOMMENDATION — e.g., "Lead market-size slide with bottom-up, not top-down. The top-down number is plausible but unsourceable to a peer-reviewed report."}}
+2. {{RECOMMENDATION}}
+
+---
+
+## Methodology Notes
+
+- **Searches performed:** {{N supporting, N counter, N triangulation}}
+- **Source types not consulted:** {{and why — e.g., paywalled reports without access}}
+- **Reproducibility:** {{anyone repeating this should find similar results because…}}

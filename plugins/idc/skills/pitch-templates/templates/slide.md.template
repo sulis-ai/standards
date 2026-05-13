@@ -1,0 +1,53 @@
+---
+slide_id: "{{NN}}"
+slide_role: "{{SQ-01 | SQ-02 | ... | SQ-10 | appendix}}"
+headline: "{{CONCLUSION_AS_TITLE — full sentence or specific claim}}"
+investor_question: "{{The one question this slide answers}}"
+layout: "{{title | title-content | two-column | full-image | chart | quote | team | comparison-matrix}}"
+proof_points:
+  - "pp-{{NNN}}"
+  - "pp-{{NNN}}"
+image:
+  src: "{{relative path to image, or none}}"
+  alt: "{{accessibility text}}"
+  purpose: "{{what this image does for the slide}}"
+chart:
+  type: "{{line | bar | stacked-bar | pie | none}}"
+  data_ref: "{{financial-model.yaml path or proof-point ID}}"
+  axis_break_note: "{{required if y-axis truncated, per VD-12}}"
+chunk_count: {{N}}        # CL-01 / VD-02 — must be ≤ 5
+---
+
+# {{HEADLINE}}
+
+<!-- Slide body — the visible content on the slide. Keep tight. -->
+
+## Body
+
+- {{Bullet 1 — single chunk}}
+- {{Bullet 2 — single chunk}}
+- {{Bullet 3 — single chunk}}
+
+<!-- For chart slides, body may just describe the chart's takeaway. -->
+
+---
+
+## Speaker Notes
+
+<!-- ND-11: ≤ 80 words. Bullet form. Talking points + verbal transition. -->
+
+- {{Talking point 1}}
+- {{Talking point 2}}
+- **Source:** pp-{{NNN}} states {{specific figure or claim}}
+- **Transition to next:** {{"…which is why we built …" / "…this brings us to …"}}
+
+---
+
+## SCQA (argument slides only)
+
+<!-- ND-03: required for argument slides (SQ-01, SQ-05, SQ-08). -->
+
+- **Situation:** {{ONE_LINE}}
+- **Complication:** {{ONE_LINE}}
+- **Question:** {{ONE_LINE}}
+- **Answer:** {{ONE_LINE — matches the headline}}

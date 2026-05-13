@@ -1,0 +1,59 @@
+# pp-{{NNN}}: {{ONE_LINE_CLAIM}}
+
+**ID:** pp-{{NNN}}
+**Slug:** {{kebab-case-claim}}
+**Created:** {{YYYY-MM-DD}}
+**Confidence:** {{HIGH | MEDIUM | LOW}}
+
+Atomic claim file. **One claim, one source.** If supported by multiple
+sources, create multiple proof-points and reference all from the deck or
+finding that uses the claim.
+
+---
+
+## The claim
+
+> {{The exact statement, in a falsifiable form. e.g., "The US small-fleet trucking software market grew at 14% CAGR between 2020 and 2024."}}
+
+---
+
+## Source
+
+- **Source ID:** src-{{NNN}}
+- **Tier:** {{T1 | T2 | T3 | T4}}
+- **Specific location:** {{page, section, table, URL anchor}}
+
+---
+
+## Evidence
+
+Verbatim quote, data point, or chart reference from the source.
+
+> "{{verbatim}}"
+
+Or:
+
+| Field | Value |
+|---|---|
+| {{e.g., 2020 figure}} | {{$X}} |
+| {{e.g., 2024 figure}} | {{$X}} |
+| {{e.g., implied CAGR}} | {{X%}} |
+
+---
+
+## Caveats
+
+What this claim does NOT support:
+
+- {{e.g., "Does not include long-haul fleet management software"}}
+- {{e.g., "Reported figures are revenue, not unit volume"}}
+
+---
+
+## Used By
+
+Which artifacts cite this proof-point:
+
+- slides/{{NN-name}}.md — {{specific claim on slide}}
+- financial/financial-model.yaml — {{which assumption or input}}
+- MARKET_RESEARCH.md — {{which section}}

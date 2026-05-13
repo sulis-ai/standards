@@ -1,0 +1,160 @@
+# Narrative — {{COMPANY_NAME}}
+
+**Stage:** {{STAGE}}
+**Variant applied:** {{SQ-V1 | SQ-V2 | SQ-V3 | SQ-V4}}
+**Updated:** {{YYYY-MM-DD}}
+
+The deck's story arc. Reviewed with the founder BEFORE individual slides
+are composed (ND-07). Slide titles in this file are the slide headlines
+that will appear on the deck — reading them in order should convey the
+pitch.
+
+---
+
+## One-sentence pitch
+
+> {{The deck condensed to one sentence. This is what the founder says when
+> the partner says "tell me what you do."}}
+
+---
+
+## Opening hook (Slides 1–4, ≈5 min)
+
+Goal: earn the next 15 minutes.
+
+### Slide 01 — What's Changed?
+
+- **Headline:** {{CONCLUSION_AS_TITLE}}
+- **Investor question:** Why now?
+- **One-paragraph speaker plan:** {{key points + transition}}
+- **Proof-points:** pp-{{NNN}}, pp-{{NNN}}
+
+### Slide 02 — What You Do
+
+- **Headline:** {{CONCLUSION_AS_TITLE}}
+- **Investor question:** In one sentence, what does this company do?
+- **One-paragraph speaker plan:** {{key points + transition}}
+
+### Slide 03 — Fast Facts
+
+- **Headline:** {{CONCLUSION_AS_TITLE}}
+- **Investor question:** What context do I need?
+- **Six facts:** {{LIST}}
+- **Proof-points:** pp-{{NNN}}, pp-{{NNN}}
+
+### Slide 04 — Agenda
+
+- **Headline:** Here's what we'll cover today
+- **Investor question:** What are we covering, and when can I interrupt?
+- **Pause prompt (verbal):** "Before I dive in — anything you want to make sure I cover, or questions you have already?"
+
+---
+
+## Core argument (Slides 5–7, ≈10 min)
+
+Goal: earn the final 30 minutes.
+
+### Slide 05 — Pain
+
+- **Headline:** {{CONCLUSION_AS_TITLE}}
+- **Investor question:** What problem are you solving, and how badly?
+- **SCQA speaker plan:**
+  - Situation: {{ONE_LINE}}
+  - Complication: {{ONE_LINE}}
+  - Question: {{ONE_LINE}}
+  - Answer: {{ONE_LINE — the headline}}
+- **Customer artefact:** {{quote | metric | workflow}}
+- **Proof-points:** pp-{{NNN}}
+
+### Slide 06 — Solution
+
+- **Headline:** {{CONCLUSION_AS_TITLE}}
+- **Investor question:** What did you build?
+- **Visual:** {{screenshot | demo frame | workflow diagram}}
+- **The mechanism (one sentence):** {{HOW}}
+- **Proof-points:** pp-{{NNN}}
+
+### Slide 07 — Market Size
+
+- **Headline:** {{CONCLUSION_AS_TITLE}}
+- **Investor question:** How big can this become?
+- **TAM:** ${{X}} (top-down {{src}}, bottom-up {{src}})
+- **SAM:** ${{X}}
+- **SOM:** ${{X}} within {{N}} years
+- **Per-customer value:** ${{X}}
+- **Proof-points:** pp-{{NNN}}, pp-{{NNN}}, pp-{{NNN}}
+
+---
+
+## Evidence build (Slides 8–10, ≈10 min)
+
+Goal: convert interest into a follow-up.
+
+### Slide 08 — Competition
+
+- **Headline:** {{CONCLUSION_AS_TITLE — falsifiable differentiation claim}}
+- **Investor question:** Who else is doing this, and why will you win?
+- **Named competitors:** {{LIST}}
+- **Differentiation axes (falsifiable):** {{LIST}}
+- **Proof-points:** pp-{{NNN}}
+
+### Slide 09 — Team
+
+- **Headline:** {{CONCLUSION_AS_TITLE — why this team for this problem}}
+- **Investor question:** Why is this team right?
+- **Per-founder proprietary insight:** {{LIST}}
+- **Missing roles + hiring plan:** {{IF_APPLICABLE}}
+
+### Slide 10 — Financials
+
+- **Headline:** {{CONCLUSION_AS_TITLE — the ask + the milestone it buys}}
+- **Investor question:** How will the capital be spent, and what will it produce?
+- **Stage-appropriate detail:**
+  - Pre-seed/seed: use of funds + runway + 12mo milestones
+  - Series A: 24mo forecast + cohort + payback
+  - Series B: 36mo forecast + sensitivity + sales efficiency
+- **The ask:** ${{X}}, runway {{N}} months, next-round positioning {{milestone}}
+- **Proof-points:** pp-{{NNN}}, pp-{{NNN}}
+
+---
+
+## The close
+
+What the founder says after Slide 10:
+
+> {{Three-sentence close: what we've shown, what we're asking, what
+> happens next.}}
+
+---
+
+## Planned Q&A redirects
+
+Pre-empt the top 3 objections from `ADVERSARIAL_REPORT.md` with planned
+verbal redirects. The founder rehearses these in Phase 9.
+
+| Likely objection | Redirect / response |
+|---|---|
+| {{IO-NN}} | {{ONE_SENTENCE_REDIRECT_TO_PREPARED_MATERIAL}} |
+| {{IO-NN}} | {{ONE_SENTENCE_REDIRECT}} |
+| {{IO-NN}} | {{ONE_SENTENCE_REDIRECT}} |
+
+---
+
+## Appendix slides (referenced only, not in main deck)
+
+For deeper material to surface on request.
+
+- A1 — {{topic}}
+- A2 — {{topic}}
+- A3 — {{topic}}
+
+---
+
+## Coherence check (read titles in order)
+
+Reading slide 01–10 headlines in sequence, does the pitch make sense?
+
+> {{Pasted headline string:}}
+> {{S01}} | {{S02}} | {{S03}} | {{S04}} | {{S05}} | {{S06}} | {{S07}} | {{S08}} | {{S09}} | {{S10}}
+
+If a reader skimmed only those, would they get the pitch? {{yes | no, fix → ...}}

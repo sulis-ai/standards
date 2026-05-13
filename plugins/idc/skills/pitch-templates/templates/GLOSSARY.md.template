@@ -1,0 +1,57 @@
+# Glossary — {{COMPANY_NAME}}
+
+Locked vocabulary for this pitch. Every term used in the deck, financial
+model, and supporting artifacts uses these definitions. CL-06 (coherent
+mental model) and ND-09 (term consistency) require this discipline.
+
+When the founder or agent notices a term being used inconsistently —
+**stop**, lock the definition here, then continue.
+
+---
+
+## Competitors
+
+| Name (canonical) | What product/segment specifically | Aliases to avoid |
+|---|---|---|
+| {{e.g., Stripe Connect}} | Stripe's payments infrastructure for platforms | "Stripe" (ambiguous), "Stripe Payments" (different product) |
+
+---
+
+## Market segments
+
+| Segment | Bounds | Source |
+|---|---|---|
+| {{e.g., SMB pharmacy}} | {{e.g., independent pharmacies with 1–5 locations in the US}} | pp-{{NNN}} |
+
+---
+
+## Metrics
+
+| Metric | Locked definition | Note |
+|---|---|---|
+| CAC | {{Blended: total S&M spend ÷ new customers in period | Paid-only: paid-channel spend ÷ paid-channel customers in period}} | Use locked variant throughout |
+| LTV | {{e.g., Gross margin × ACV × (1/churn rate), using observed M+12 churn}} | |
+| ARR | {{e.g., MRR × 12, where MRR is current-month subscription revenue}} | Not forward-looking |
+| Cohort retention | {{Logo retention at fixed intervals (M+1, M+3, M+6, M+12)}} | Distinct from revenue retention |
+| Gross burn | Total monthly cash outflow | |
+| Net burn | Gross burn minus revenue and other inflow | |
+| Runway | Current cash ÷ trailing-3-month net burn avg | Always net |
+
+---
+
+## Product / category terms
+
+| Term | Locked definition |
+|---|---|
+| {{e.g., "the product"}} | {{canonical name when referring to the company's product}} |
+
+---
+
+## Vocabulary the founder uses that the deck should NOT use
+
+Terms that survived discovery but failed the precision / brand /
+adversarial filter.
+
+| Founder's word | Why not in deck | Replacement |
+|---|---|---|
+| {{e.g., "AI-powered"}} | Adjective without specific advance (PL) | {{specific mechanism}} |

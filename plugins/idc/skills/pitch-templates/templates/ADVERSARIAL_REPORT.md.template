@@ -1,0 +1,91 @@
+# Adversarial Report — {{COMPANY_NAME}}
+
+**Stage:** {{STAGE}}
+**Generated:** {{YYYY-MM-DD}}
+**Catalogue version:** investor-objection-catalogue.md v{{X.Y.Z}}
+**Objections selected:** {{N}} of 40
+**Objections requiring action:** {{N}} (Weak or None rebuttal)
+
+The pitch as a Sequoia partner, a sceptical angel, and a domain-expert
+LP would attack it. Objections are riskiest-first, ordered by impact ×
+(1 − current rebuttal strength).
+
+The point is not to defeat the deck — the point is to harden it. Every
+Weak / None rebuttal is a hole the partner will find. Better here than
+in the meeting.
+
+---
+
+## Hat-change protocol
+
+This report was produced under an explicit hat-change. The agent
+switched from coaching mode to adversarial mode for this phase. After
+review, the agent returns to coaching mode.
+
+---
+
+## Summary
+
+| Severity | Count |
+|---|---|
+| Strong rebuttal (deck already addresses) | {{N}} |
+| Medium rebuttal (deck partially addresses) | {{N}} |
+| Weak rebuttal (deck mentions, doesn't defend) | {{N}} |
+| None (deck doesn't address) | {{N}} |
+
+**Top 3 objections requiring action:**
+
+1. {{IO-NN}} — {{short name}}
+2. {{IO-NN}} — {{short name}}
+3. {{IO-NN}} — {{short name}}
+
+---
+
+## Objections (riskiest first)
+
+### 1. {{IO-NN}}: {{SHORT_NAME}}
+
+- **Likelihood at this stage:** {{HIGH | MEDIUM | LOW}}
+- **Slide most likely to trigger:** {{NN — slide name}}
+- **Investor voice:** "{{verbatim from catalogue or partner-adapted}}"
+- **Weakest claim it targets:** {{specific deck claim or implication}}
+- **Current rebuttal strength:** {{Strong | Medium | Weak | None}}
+- **Why this rating:** {{evidence the deck contains / lacks}}
+- **Mitigation options:**
+  - Option A — {{specific action: revise slide / add proof-point / change ask}}
+  - Option B — {{alternative action}}
+- **Recommended:** {{one of the options, with rationale}}
+
+### 2. {{IO-NN}}: {{SHORT_NAME}}
+
+(repeat)
+
+---
+
+## Cross-cutting themes
+
+Patterns observed across the objections (e.g., "Three objections point to
+TAM credibility — the deck would benefit from a single, cleaner
+market-sizing slide rather than scattered figures.").
+
+- {{THEME}}
+
+---
+
+## Recommended next actions (prioritised)
+
+1. {{ACTION — e.g., "Strengthen rebuttal to IO-10 by adding pp-NNN documenting the data network effect"}}
+2. {{ACTION}}
+3. {{ACTION}}
+
+---
+
+## Founder acknowledgments
+
+For any Weak / None rebuttals the founder chooses NOT to address before
+the pitch, the founder MUST explicitly acknowledge the residual risk
+here. The journal records the decision.
+
+| Objection | Decision | Founder rationale | Date |
+|---|---|---|---|
+| {{IO-NN}} | {{address | accept risk}} | {{founder's reasoning}} | {{YYYY-MM-DD}} |

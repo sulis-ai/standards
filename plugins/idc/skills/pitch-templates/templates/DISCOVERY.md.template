@@ -1,0 +1,121 @@
+# Discovery — {{COMPANY_NAME}}
+
+**Stage:** {{STAGE}}
+**Round:** {{ROUND_SIZE}}
+**Updated:** {{YYYY-MM-DD}}
+
+Captures the substance the deck will rest on, from Phase 1–2 of the
+facilitation. Each section is populated through guided conversation; gaps
+remain as `[TODO]` markers until resolved.
+
+---
+
+## 1. What you do
+
+One sentence. Verb-first. Names customer, job, mechanism.
+
+> {{COMPANY_NAME}} helps {{CUSTOMER}} {{ACCOMPLISH_JOB}} by {{MECHANISM}}.
+
+**Passes competitor-substitution test (BR-02):** {{yes | no — explanation}}
+
+---
+
+## 2. What's changed (the why-now)
+
+The discontinuous shift — technology, regulation, behaviour, primitive, or
+distribution change — that makes this company possible now and not five
+years ago.
+
+- **Type of shift:** {{technology | regulation | behaviour | primitive | distribution}}
+- **The specific change:** {{ONE_PARAGRAPH}}
+- **Evidence the shift has occurred:** {{SOURCED_DATA_POINT}}
+- **Why prior attempts failed (if applicable):** {{ONE_PARAGRAPH}}
+
+---
+
+## 3. Traction
+
+Concrete numbers, not adjectives. Distinguish evidence from intent.
+
+| Metric | Value | As of | Notes |
+|---|---|---|---|
+| {{e.g., paying customers}} | {{N}} | {{YYYY-MM}} | {{methodology}} |
+| {{e.g., MRR}} | {{$X}} | {{YYYY-MM}} | {{cohort definition}} |
+| {{e.g., LOIs in pipeline}} | {{N}} | {{YYYY-MM}} | {{ACV range}} |
+
+**Strongest customer signal:** {{ONE_PARAGRAPH — quote, retention pattern, etc.}}
+
+---
+
+## 4. Pain (in the customer's voice)
+
+The customer's job, their current struggle, and a concrete artefact of
+that struggle (quote, workaround, metric).
+
+- **The job:** {{ONE_SENTENCE}}
+- **The struggle:** {{ONE_PARAGRAPH}}
+- **Concrete artefact:** {{quote | metric | workflow | image reference}}
+
+---
+
+## 5. Solution
+
+What you've built. What it does. The mechanism.
+
+- **The product:** {{ONE_SENTENCE}}
+- **The mechanism:** {{ONE_SENTENCE — the how}}
+- **Demo material available:** {{links or descriptions}}
+
+---
+
+## 6. Team
+
+For each founder and key hire: the specific reason they are right for
+this specific problem. Not credentials — proprietary insight.
+
+### {{FOUNDER_NAME}} — {{ROLE}}
+
+- **Proprietary insight for this problem:** {{ONE_SENTENCE}}
+- **Relevant experience:** {{BULLET_POINTS}}
+
+### Key hires / pipeline
+
+- {{ROLE}} — {{status: in seat | identified | seeking}}
+
+---
+
+## 7. Initial competitive landscape (placeholder for MARKET_RESEARCH.md)
+
+Named competitors known at this stage. Detailed analysis happens in
+Phase 4.
+
+- {{COMPETITOR_1}} — {{positioning thesis}}
+- {{COMPETITOR_2}} — {{positioning thesis}}
+
+---
+
+## 8. Ask
+
+- **Round size:** {{$X}}
+- **Use of funds (one sentence):** {{SUMMARY}}
+- **Runway target:** {{N}} months
+- **Next-round positioning:** {{milestone for next round}}
+
+---
+
+## 9. Open questions for Phase 4 (Market Research)
+
+Captured during discovery — to be answered with evidence.
+
+- [ ] {{QUESTION_1}}
+- [ ] {{QUESTION_2}}
+- [ ] {{QUESTION_3}}
+
+---
+
+## 10. Coaching notes
+
+Observations from the agent during discovery. Not for inclusion in the
+deck — these inform facilitation.
+
+- {{NOTE}}
