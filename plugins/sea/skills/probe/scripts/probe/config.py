@@ -247,7 +247,7 @@ EXTRA_EXCLUDE_DIRS: tuple[str, ...] = (
     ".venv", "venv", "node_modules", "__pycache__",
     "dist", "build", ".next", "target", "vendor", "third_party",
     "coverage", ".turbo", ".nx", ".cache", ".pytest_cache",
-    ".mypy_cache", ".ruff_cache", ".tox",
+    ".mypy_cache", ".ruff_cache", ".tox", ".nox",
 )
 
 # ─── Monorepo detection ───────────────────────────────────────────────────

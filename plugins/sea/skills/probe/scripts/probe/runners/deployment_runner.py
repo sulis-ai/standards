@@ -119,27 +119,67 @@ def _should_skip_dir(dirname: str) -> bool:
     return dirname in DEPLOYMENT_SCAN_SKIP_DIRS or dirname.startswith(".")
 
 
+_CANDIDATE_EXTS: frozenset[str] = frozenset({
+    ".yaml", ".yml", ".tf", ".tfvars", ".hcl",
+    ".json", ".toml",  # cdk.json, vercel.json, fly.toml, netlify.toml
+})
+
+_CANDIDATE_BASENAMES: frozenset[str] = frozenset({
+    "Dockerfile", "Procfile", "WORKSPACE", "WORKSPACE.bazel", "MODULE.bazel",
+})
+
+_CANDIDATE_GLOBS: tuple[str, ...] = (
+    "Dockerfile.*", "*.Dockerfile",
+    "Pulumi.*",
+)
+
+
+def _is_candidate_file(name: str) -> bool:
+    """Cheap pre-filter — is this file plausibly a deployment artifact?
+
+    Saves walking millions of source-code files in big repos. Anything that
+    matches gets the full classification pass; anything that doesn't is
+    silently ignored. Aggressive enough that the cap is reserved for
+    pathological cases (e.g. a directory full of generated YAMLs).
+    """
+    if name in _CANDIDATE_BASENAMES:
+        return True
+    ext = Path(name).suffix.lower()
+    if ext in _CANDIDATE_EXTS:
+        return True
+    for glob in _CANDIDATE_GLOBS:
+        if fnmatch.fnmatch(name, glob):
+            return True
+    return False
+
+
 def _iter_repo_files(root: Path, max_files: int) -> tuple[list[Path], int]:
-    """Walk the repo, returning (files, files_skipped_cap).
+    """Walk the repo, returning (candidate-files, files_skipped_cap).
+
+    Pre-filters by `_is_candidate_file` so the per-tool cap protects against
+    pathological cases (thousands of generated YAMLs) rather than against
+    normal source-file volume.
 
     Skip rules:
-      - DEPLOYMENT_SCAN_SKIP_DIRS by name.
+      - DEPLOYMENT_SCAN_SKIP_DIRS by name (covers EXTRA_EXCLUDE_DIRS plus
+        test/fixture subtrees).
       - Dotfile-prefixed directories EXCEPT the well-known deployment dirs
-        `.github`, `.circleci`, `.gitlab` — these are scanned (workflows live
-        there).
+        `.github`, `.circleci`, `.gitlab` — workflows live there.
     """
     files: list[Path] = []
     skipped = 0
     allowed_dot_dirs = {".github", ".circleci", ".gitlab"}
+    skip_set = set(DEPLOYMENT_SCAN_SKIP_DIRS)
 
     for dirpath, dirnames, filenames in os.walk(root):
-        # Prune dirs in-place
         dirnames[:] = [
             d for d in dirnames
-            if d not in DEPLOYMENT_SCAN_SKIP_DIRS
+            if d not in skip_set
             and (not d.startswith(".") or d in allowed_dot_dirs)
         ]
         for fn in filenames:
+            if not _is_candidate_file(fn):
+                continue
             if len(files) >= max_files:
                 skipped += 1
                 continue
