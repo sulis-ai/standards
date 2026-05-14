@@ -99,32 +99,54 @@ queries that extract:
 - Exported functions and their signatures
 - Type definitions (TypeScript types/interfaces; Python protocols; Go interfaces; etc.)
 
+**Mandatory ignore-override flags.** By default ast-grep skips:
+- Hidden files/directories (anything starting with `.`)
+- Files matching `.gitignore`
+- VCS metadata directories
+
+For probe work, you want to scan tooling under `.claude/`, `.config/`, etc.,
+but NOT venvs or vendored deps (which `.gitignore` correctly excludes). Use
+`--no-ignore hidden --no-ignore dot` (keep VCS-ignore active so .venv,
+node_modules, etc. stay excluded).
+
 Example queries (use the `run` subcommand, default; partial patterns match
 across variants — over-specifying the body or return-type clause causes
 misses):
 
 ```bash
-# TypeScript: classes, functions, interfaces (partial patterns)
-ast-grep -p 'class $NAME' -l ts src/         # matches both 'class' and 'export class'
-ast-grep -p 'function $NAME' -l ts src/      # matches functions with and without return-type annotations
-ast-grep -p 'interface $NAME' -l ts src/
+# Common flags: respect .gitignore but enter dotfile-prefixed dirs
+AG="ast-grep run --no-ignore hidden --no-ignore dot"
 
-# Python: classes and functions
-ast-grep -p 'class $NAME' -l python src/
-ast-grep -p 'def $NAME' -l python src/
+# TypeScript: classes, functions, interfaces
+$AG -p 'class $NAME' -l ts src/
+$AG -p 'function $NAME' -l ts src/
+$AG -p 'interface $NAME' -l ts src/
+
+# Python: use BARE keyword patterns
+# (class $NAME: and def $NAME($$$): produce ERROR nodes — see below)
+$AG -p 'class' -l python src/        # matches all class declarations
+$AG -p 'def' -l python src/          # matches all function definitions
 
 # Go: types and functions
-ast-grep -p 'type $NAME' -l go .
-ast-grep -p 'func $NAME' -l go .
+$AG -p 'type $NAME' -l go .
+$AG -p 'func $NAME' -l go .
 ```
 
-**Important pattern lesson:** ast-grep matches the AST structurally. An
-over-specific pattern like `'export function $NAME($$$) { $$$ }'` will
-FAIL to match a function with a return-type annotation (`function foo(): string { ... }`),
-because the AST node has an extra child for the annotation that the pattern
-doesn't account for. Prefer partial patterns (just `function $NAME`) for the
-inventory pass; use post-processing (or follow-up patterns) to capture
-signatures.
+**Critical pattern lessons:**
+
+1. **ast-grep matches the AST structurally.** An over-specific pattern like
+   `'export function $NAME($$$) { $$$ }'` will FAIL to match a function with
+   a return-type annotation, because the AST has an extra child. Prefer
+   partial patterns (`function $NAME`) for the inventory pass.
+
+2. **Python patterns with body markers fail.** `class $NAME:` and
+   `def $NAME($$$):` produce ERROR nodes — Python's AST expects a body block.
+   For inventory passes, use just `class` and `def` — partial bare keywords
+   match all variants.
+
+3. **Default ignore rules will hide your code.** Always probe with
+   `--no-ignore hidden --no-ignore dot` unless you know your project keeps
+   everything outside dot-prefixed paths.
 
 To inspect the AST structure of a pattern when debugging, use
 `--debug-query=ast` or `--debug-query=cst`.
@@ -159,17 +181,21 @@ graph:
   for Decompose"
 - Identify cycles (any cycle is a structural smell)
 
-**1.6 — Complexity hotspots.** Run lizard:
+**1.6 — Complexity hotspots.** Run lizard. Lizard walks all subdirectories
+by default, including `.venv/` and `site-packages/` — you MUST exclude
+these or your hotspot list will be polluted by third-party code.
 
 ```bash
-# Threshold-based warnings (default thresholds: CCN 15, length 1000):
-lizard --CCN 15 -L 80 -l typescript src/
-
-# Filter to specific languages with -l (repeatable):
-lizard -l typescript -l python src/
+# Threshold-based warnings with VENV/vendored exclusion:
+lizard --CCN 15 -L 80 -l python \
+       -x "*.venv*" -x "*site-packages*" -x "*node_modules*" \
+       src/
 
 # Warnings-only mode (suppresses summary, prints only over-threshold items):
-lizard --CCN 15 -L 80 -w src/
+lizard --CCN 15 -L 80 -w -x "*.venv*" -x "*site-packages*" src/
+
+# Filter to specific languages with -l (repeatable):
+lizard -l typescript -l python -x "*.venv*" src/
 
 # Available languages (lizard --help):
 #   cpp, java, csharp, javascript, python, objectivec, ttcn, ruby, php,
@@ -193,8 +219,13 @@ distinguishes the McCabe lizard from the compression utility by grepping
 naming:
 
 ```bash
-# Classes whose name suffix suggests wrapping
-ast-grep -p 'class $NAME' -l ts src/ | grep -E 'V2|V3|Facade|Wrapper|Adapter|Proxy|Compat'
+# Classes whose name suffix suggests wrapping (TypeScript)
+ast-grep run --no-ignore hidden --no-ignore dot \
+  -p 'class $NAME' -l ts src/ | grep -E 'V2|V3|Facade|Wrapper|Adapter|Proxy|Compat'
+
+# Python equivalent (use bare 'class' pattern)
+ast-grep run --no-ignore hidden --no-ignore dot \
+  -p 'class' -l python src/ | grep -E 'V2|V3|Facade|Wrapper|Adapter|Proxy|Compat'
 
 # For each match, find its dependency target — does it depend on another
 # internal module with a similar name minus the suffix?
