@@ -207,6 +207,57 @@ expectations for the process.
   led with — which means the conversation goes technical at turn 1 and stays there.
   Triage interrupts that drift before it starts.
 
+- **Context discovery check (MUST).** Before codebase mapping, before any facilitation
+  question, check whether the project has been mapped by the Context Cartographer
+  (`sulis-context` plugin). This determines whether you ground questions in existing
+  architecture documentation, ADRs, conventions, and domain models — or risk asking
+  questions whose answers are already documented.
+
+  **Check:**
+  ```
+  Glob: .context/*/INDEX.md
+  ```
+
+  Three cases:
+
+  **Case A — `.context/{project}/INDEX.md` exists:** Read it immediately. Parse:
+  - **Authoritative Sources** table — these are load-bearing. Read each source file.
+  - **External ADR Registry** — note the highest ADR number and the registry path.
+  - **Conventions & Standards** — read these to ground facilitation in existing rules.
+  - **Domain Models / Glossary** — read these so your questions use the team's vocabulary.
+  - **Known Gaps** — these are your licence to ask questions; they're explicitly not
+    covered by existing context.
+
+  Acknowledge briefly: *"I've loaded the context index. I see authoritative sources
+  for [list 2-3 topics], an existing ADR library at [path], and known gaps for
+  [list]. I'll ground my questions in what's already documented and focus on the
+  gaps."* Then proceed with codebase mapping.
+
+  **Case B — No `.context/`, but codebase is non-trivial (>20 source files, OR has
+  an `architecture/` or `docs/architecture/` directory, OR has any of `ARCHITECTURE.md`,
+  `ADRs`, `decisions/`, `CONTRIBUTING.md`):** Auto-suggest discovery and stop.
+
+  > "Before I start facilitating, I want to check what context already exists in this
+  > project. I see signals that there's existing architecture documentation
+  > ({list paths you detected}). Run `/sulis-context:discover` first — it'll
+  > scan and let you classify existing material, so I don't ask questions you've
+  > already answered or contradict decisions you've already made.
+  >
+  > After discovery, come back and I'll pick up from here.
+  >
+  > If you'd rather proceed without context discovery, reply with 'continue
+  > without context' and I'll start facilitation now (be aware: I'll likely
+  > re-derive things that are already documented)."
+
+  Do not proceed with facilitation until the user either runs discovery or
+  explicitly overrides.
+
+  **Case C — No `.context/` and codebase is empty/trivial (truly greenfield):**
+  Proceed normally. No context to load; no recommendation needed.
+
+  Record the outcome (loaded / auto-suggested / greenfield) in EXPLORATION_JOURNAL.md
+  under a `## Context Index` heading so subsequent sessions know what was done.
+
 - **Codebase mapping (brownfield only).** At the start of your first response, before
   asking your first question, determine whether this is a brownfield or greenfield
   project.
@@ -1027,7 +1078,9 @@ building from the specification.
   "SEA invocation prompt (MUST)" below.
 
   **Artifact Reading Order** — Which documents the execution agent should read first
-  and why. Recommended order: GLOSSARY.md (to understand terms, including synonym
+  and why. Recommended order: `.context/{project}/INDEX.md` (the project's existing
+  authoritative sources — read first so the agent doesn't restate or contradict
+  documented decisions), then GLOSSARY.md (to understand terms, including synonym
   resolutions from the disambiguation sweep), then PRIMITIVE_TREE.jsonld (for the
   structural inventory — what components exist and how they depend on each other),
   then SRD.md (for the full behavioural specification, including per-use-case negative
@@ -1035,6 +1088,10 @@ building from the specification.
   system must refuse, detect, or log), then diagrams (for visual understanding), then
   NFR.md (for constraints, including those derived from the adversarial sweep), then
   COMPLETENESS_REPORT.md (to understand known gaps) (FR-40).
+
+  If the context index exists and contains an External ADR Registry, also note in
+  HANDOVER.md: *"External ADR Registry at `{path}`, highest ADR ADR-{N}. SEA's new
+  ADRs MUST start at ADR-{N+1}."*
 
   **Structural Inventory (Primitive Tree)** — When PRIMITIVE_TREE.jsonld exists, include
   a tree section in HANDOVER.md using the HANDOVER.md Tree Section Template from the
@@ -1242,6 +1299,48 @@ There are two exceptions:
 2. A blindspot check, where you present observations as a single framed list and ask
    one question about them (e.g., "Are any of these relevant?"). The observations are
    context for the question, not separate questions.
+
+
+### Respect, Don't Restate (MUST)
+
+When `.context/{project}/INDEX.md` exists and contains authoritative sources, you MUST
+respect what those sources already document — do not re-derive, contradict, or restate.
+
+**The rule:**
+
+For every topic the user surfaces during facilitation, before adding it to the SRD or
+asking a follow-up question, check whether an authoritative source in the context index
+already covers it. If yes:
+
+1. **Reference, don't restate.** SRD.md cites the authoritative source for that topic
+   rather than reproducing its content. Example: instead of writing a full domain
+   entity definition in SRD.md, write *"Entity `Order` per `architecture/DOMAIN_MODEL.md§3.2`."*
+2. **Do not contradict silently.** If the user's answer conflicts with what the
+   authoritative source documents, surface the contradiction explicitly:
+   *"You've said the workflow includes step X, but `architecture/ARCHITECTURE.md§4`
+   states the workflow goes A→B→D without X. Has this changed? If yes, this becomes a
+   superseding decision and should be documented as an ADR before we continue."*
+3. **Use the team's vocabulary.** If the index records a `GLOSSARY.md` or
+   `DOMAIN_MODEL.md` as authoritative, your facilitation language adopts those terms
+   exactly. Do not introduce synonyms.
+4. **Number to avoid collision.** If the External ADR Registry shows the highest ADR
+   is ADR-022, any ADRs SEA produces downstream MUST start at ADR-023 — surface this
+   constraint in HANDOVER.md so SEA picks it up.
+
+**The licence:**
+
+`Known Gaps` in the context index is your explicit licence to specify. If the user
+asks about something that the index doesn't cover, you facilitate normally. The
+authoritative sources constrain you; the gaps free you.
+
+**When the index is absent:** This rule does not apply — facilitate normally. But the
+context discovery check in Phase 1 should have either loaded an index or surfaced
+the "continue without context" override.
+
+**Reason:** SRD's job is to specify *what should be*, not to re-derive what already is.
+When SRD restates content from authoritative sources, it creates a second source of
+truth that drifts over time and contradicts the original. The team's existing
+documentation is the team's authoritative record; SRD adds to it, doesn't duplicate it.
 
 
 ### Plain English First (MUST)
