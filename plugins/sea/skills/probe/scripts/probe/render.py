@@ -66,6 +66,20 @@ PHASE_TOOLS: dict[str, str] = {
 # ─── Loaders ──────────────────────────────────────────────────────────────
 
 
+def _load_repo_phase(raw_dir: Path, phase: str) -> dict[str, Any] | None:
+    """Load a repo-wide phase JSON (1.16 / 1.17) from probe-raw/."""
+    fname = PHASE_FILES.get(phase)
+    if not fname:
+        return None
+    path = raw_dir / fname
+    if not path.is_file():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
 def _load_phase(workspace_dir: Path, phase: str) -> dict[str, Any] | None:
     fname = PHASE_FILES.get(phase)
     if not fname:
@@ -186,6 +200,14 @@ def render_markdown(cfg: OrchestratorConfig) -> Path | None:
                 lines.append(f"   Evidence: {', '.join(ev)}")
             lines.append(f"   Confidence: {rec.get('confidence', 'unknown')}")
             lines.append("")
+
+    # Repo-wide phases (1.16, 1.17) — between Recommendations and per-workspace
+    deployment_data = _load_repo_phase(cfg.output_dir, "1.16")
+    if deployment_data:
+        _md_deployment(lines, deployment_data)
+    credentials_data = _load_repo_phase(cfg.output_dir, "1.17")
+    if credentials_data:
+        _md_credentials(lines, credentials_data)
 
     for ws_info in workspaces:
         ws_name = ws_info["name"]
@@ -459,6 +481,127 @@ _PHASE_MD_RENDERERS: dict[str, Any] = {
 }
 
 
+# ─── Repo-wide section renderers (1.16 Deployment / 1.17 Credentials) ─────
+
+
+def _md_deployment(lines: list[str], data: dict) -> None:
+    p = data.get("payload") or {}
+    artifacts = p.get("artifacts") or []
+    by_kind = p.get("by_kind") or {}
+    by_env = p.get("by_environment") or {}
+    sulis_kinds = p.get("sulis_kinds_present") or []
+    platforms = p.get("target_platforms") or []
+
+    lines.append("## Deployment Topology")
+    lines.append("")
+    if data.get("warnings"):
+        for w in data["warnings"]:
+            lines.append(f"> ⚠ {w}")
+        lines.append("")
+    lines.append(f"- **Artifacts catalogued:** {len(artifacts)}")
+    lines.append(f"- **Kinds detected:** {len(by_kind)}")
+    lines.append(f"- **Target platforms:** {', '.join(platforms) if platforms else '_none_'}")
+    if by_env:
+        lines.append("- **Environments observed:** " + ", ".join(
+            f"{k} ({v})" for k, v in sorted(by_env.items())
+        ))
+    lines.append(f"- **YAML parser:** {p.get('yaml_parser', 'unknown')}")
+    lines.append("")
+    if by_kind:
+        lines.append("### Artifacts by kind")
+        lines.append("")
+        lines.append("| Kind | Count |")
+        lines.append("|---|---|")
+        for k, v in sorted(by_kind.items(), key=lambda kv: -kv[1]):
+            lines.append(f"| `{k}` | {v} |")
+        lines.append("")
+
+    if sulis_kinds:
+        sulis_artifacts = [a for a in artifacts if a.get("kind") == "sulis-manifest"]
+        lines.append("### Sulis Manifests")
+        lines.append("")
+        lines.append(f"Kinds present: {', '.join(f'`{k}`' for k in sulis_kinds)}")
+        lines.append("")
+        lines.append("| Sub-kind | Name | Path | Image | Port | Replicas |")
+        lines.append("|---|---|---|---|---|---|")
+        for a in sulis_artifacts[:50]:
+            ex = a.get("extras") or {}
+            lines.append(
+                f"| {a.get('sub_kind') or ''} | `{a.get('name') or ''}` | "
+                f"`{a.get('path', '')}` | "
+                f"{ex.get('image') or '—'} | {ex.get('port') or '—'} | "
+                f"{ex.get('replicas') or '—'} |"
+            )
+        lines.append("")
+
+    # Generic artifact listing (truncated)
+    if artifacts:
+        lines.append("### All artifacts (first 80)")
+        lines.append("")
+        lines.append("| Kind | Sub-kind | Name | Path | Environment | Secrets |")
+        lines.append("|---|---|---|---|---|---|")
+        for a in artifacts[:80]:
+            secrets = ", ".join(a.get("secret_references") or []) or "—"
+            lines.append(
+                f"| {a.get('kind', '')} | {a.get('sub_kind') or ''} | "
+                f"`{a.get('name') or ''}` | `{a.get('path', '')}` | "
+                f"{a.get('environment') or '—'} | {secrets} |"
+            )
+        lines.append("")
+
+
+def _md_credentials(lines: list[str], data: dict) -> None:
+    p = data.get("payload") or {}
+    lines.append("## Credential Scanning")
+    lines.append("")
+    if p.get("skipped"):
+        lines.append(f"> _Phase skipped: {p.get('skip_reason') or 'unknown reason'}_")
+        lines.append("")
+        lines.append("To enable credential scanning, install detect-secrets:")
+        lines.append("")
+        lines.append("```")
+        lines.append("pipx install detect-secrets")
+        lines.append("```")
+        lines.append("")
+        return
+    findings = p.get("findings") or []
+    new_findings = p.get("new_findings") or []
+    known_findings = p.get("known_findings") or []
+    by_type = p.get("by_type") or {}
+
+    lines.append(f"- **Total findings:** {len(findings)}")
+    lines.append(f"- **New (not in baseline):** **{len(new_findings)}**")
+    lines.append(f"- **Known (acknowledged in baseline):** {len(known_findings)}")
+    lines.append(
+        f"- **Baseline present:** "
+        f"{'yes (' + p.get('baseline_path', '') + ')' if p.get('baseline_present') else 'no'}"
+    )
+    lines.append("")
+    lines.append("> Privacy contract: only SHA-1 hashes are stored; secret values never appear in this report.")
+    lines.append("")
+
+    if by_type:
+        lines.append("### Findings by type")
+        lines.append("")
+        lines.append("| Type | Count |")
+        lines.append("|---|---|")
+        for k, v in sorted(by_type.items(), key=lambda kv: -kv[1]):
+            lines.append(f"| `{k}` | {v} |")
+        lines.append("")
+
+    if new_findings:
+        lines.append("### New findings")
+        lines.append("")
+        lines.append("| Type | File | Line | Hash (SHA-1) |")
+        lines.append("|---|---|---|---|")
+        for f in new_findings[:80]:
+            lines.append(
+                f"| `{f.get('secret_type', '')}` | `{f.get('file', '')}` | "
+                f"{f.get('line', 0)} | `{f.get('hashed_secret', '')[:16]}…` |"
+            )
+        lines.append("")
+
+
 # ─── HTML rendering ───────────────────────────────────────────────────────
 
 
@@ -489,12 +632,33 @@ def render_html_doc(cfg: OrchestratorConfig) -> Path | None:
         wr = _load_phase(ws_dir, "1.7") or {}
         total_wrappers_internal += (wr.get("payload") or {}).get("count_internal", 0)
 
+    # Repo-wide phases — load once before dashboard so we can count
+    deployment_data = _load_repo_phase(cfg.output_dir, "1.16")
+    credentials_data = _load_repo_phase(cfg.output_dir, "1.17")
+    deployment_count = (
+        len((deployment_data.get("payload") or {}).get("artifacts") or [])
+        if deployment_data else 0
+    )
+    credential_new_count = (
+        len((credentials_data.get("payload") or {}).get("new_findings") or [])
+        if credentials_data else 0
+    )
+
     # Build HTML
     body_parts: list[str] = []
     body_parts.append(_html_header(cfg.project, system))
-    body_parts.append(_html_dashboard(total_loc, total_hotspots, total_wrappers_internal, total_recommendations))
+    body_parts.append(_html_dashboard(
+        total_loc, total_hotspots, total_wrappers_internal,
+        total_recommendations,
+        deployment_count=deployment_count if deployment_data else None,
+        credential_new_count=credential_new_count if credentials_data else None,
+    ))
     body_parts.append('<div class="layout">')
-    body_parts.append(_html_sidebar(workspaces))
+    body_parts.append(_html_sidebar(
+        workspaces,
+        has_deployment=deployment_data is not None,
+        has_credentials=credentials_data is not None,
+    ))
     body_parts.append('<main class="content">')
 
     if synthesis and synthesis.get("summary"):
@@ -507,6 +671,12 @@ def render_html_doc(cfg: OrchestratorConfig) -> Path | None:
 
     if synthesis and synthesis.get("recommendations"):
         body_parts.append(_html_recommendations(synthesis["recommendations"]))
+
+    # Repo-wide sections between Recommendations and workspaces
+    if deployment_data:
+        body_parts.append(_html_deployment(deployment_data))
+    if credentials_data:
+        body_parts.append(_html_credentials(credentials_data))
 
     for ws_info in workspaces:
         body_parts.append(_html_workspace(ws_info, cfg.output_dir))
@@ -549,27 +719,48 @@ def _html_header(project: str, system: dict) -> str:
     )
 
 
-def _html_dashboard(loc: int, hotspots: int, wrappers: int, recs: int) -> str:
-    def card(metric: str, label: str) -> str:
+def _html_dashboard(
+    loc: int, hotspots: int, wrappers: int, recs: int,
+    *,
+    deployment_count: int | None = None,
+    credential_new_count: int | None = None,
+) -> str:
+    def card(metric: str, label: str, klass: str = "") -> str:
+        cls = "card" + (f" {klass}" if klass else "")
         return (
-            f'<div class="card">'
+            f'<div class="{cls}">'
             f'<div class="metric">{html.escape(metric)}</div>'
             f'<div class="label">{html.escape(label)}</div>'
             f'</div>'
         )
-    return (
-        '<div class="dashboard">'
-        + card(f"{loc:,}", "LOC")
-        + card(str(hotspots), "Complexity hotspots")
-        + card(str(wrappers), "Internal wrappers (review)")
-        + card(str(recs), "Recommendations")
-        + '</div>'
-    )
+    cards_html = [
+        card(f"{loc:,}", "LOC"),
+        card(str(hotspots), "Complexity hotspots"),
+        card(str(wrappers), "Internal wrappers (review)"),
+        card(str(recs), "Recommendations"),
+    ]
+    if deployment_count is not None:
+        cards_html.append(card(str(deployment_count), "Deployment artifacts"))
+    if credential_new_count is not None:
+        klass = "alert" if credential_new_count > 0 else ""
+        cards_html.append(card(
+            str(credential_new_count), "Credential findings (new)", klass=klass,
+        ))
+    return '<div class="dashboard">' + "".join(cards_html) + '</div>'
 
 
-def _html_sidebar(workspaces: list[dict]) -> str:
+def _html_sidebar(
+    workspaces: list[dict],
+    *,
+    has_deployment: bool = False,
+    has_credentials: bool = False,
+) -> str:
     items: list[str] = ['<li><a href="#summary">Summary</a></li>',
                         '<li><a href="#recommendations">Recommendations</a></li>']
+    if has_deployment:
+        items.append('<li><a href="#deployment">Deployment Topology</a></li>')
+    if has_credentials:
+        items.append('<li><a href="#credentials">Credential Scanning</a></li>')
     for ws in workspaces:
         ws_name = ws["name"]
         slug = _slug(ws_name)
@@ -585,6 +776,132 @@ def _html_sidebar(workspaces: list[dict]) -> str:
         f'<ul>{"".join(items)}</ul>'
         '</nav>'
     )
+
+
+def _html_deployment(data: dict) -> str:
+    p = data.get("payload") or {}
+    artifacts = p.get("artifacts") or []
+    by_kind = p.get("by_kind") or {}
+    by_env = p.get("by_environment") or {}
+    sulis_kinds = p.get("sulis_kinds_present") or []
+    platforms = p.get("target_platforms") or []
+    warnings = data.get("warnings") or []
+
+    parts: list[str] = []
+    parts.append(f'<p><strong>Artifacts catalogued:</strong> {len(artifacts)}</p>')
+    parts.append(f'<p><strong>Kinds:</strong> {len(by_kind)}</p>')
+    if platforms:
+        parts.append('<p><strong>Target platforms:</strong> ' +
+                     ", ".join(f'<code>{html.escape(s)}</code>' for s in platforms) + '</p>')
+    if by_env:
+        env_str = ", ".join(f'{html.escape(k)} ({v})' for k, v in sorted(by_env.items()))
+        parts.append(f'<p><strong>Environments observed:</strong> {env_str}</p>')
+    parts.append(f'<p><strong>YAML parser:</strong> <code>{html.escape(p.get("yaml_parser", "unknown"))}</code></p>')
+    for w in warnings:
+        parts.append(f'<div class="warning">⚠ {html.escape(str(w))}</div>')
+
+    if by_kind:
+        rows = [[html.escape(k), str(v)] for k, v in sorted(by_kind.items(), key=lambda kv: -kv[1])]
+        parts.append('<h3>Artifacts by kind</h3>')
+        parts.append(_table(["Kind", "Count"], rows))
+
+    if sulis_kinds:
+        sulis_artifacts = [a for a in artifacts if a.get("kind") == "sulis-manifest"]
+        parts.append('<h3>Sulis Manifests</h3>')
+        parts.append(
+            '<p>Kinds present: '
+            + ", ".join(f'<code>{html.escape(k)}</code>' for k in sulis_kinds)
+            + '</p>'
+        )
+        rows = []
+        for a in sulis_artifacts[:200]:
+            ex = a.get("extras") or {}
+            rows.append([
+                html.escape(a.get("sub_kind") or ""),
+                html.escape(a.get("name") or ""),
+                html.escape(a.get("path", "")),
+                html.escape(str(ex.get("image") or "—")),
+                html.escape(str(ex.get("port") or "—")),
+                html.escape(str(ex.get("replicas") or "—")),
+            ])
+        parts.append(_table(
+            ["Sub-kind", "Name", "Path", "Image", "Port", "Replicas"],
+            rows,
+        ))
+
+    # Full artifact table.
+    parts.append('<h3>All artifacts</h3>')
+    rows = []
+    for a in artifacts[:500]:
+        secrets = ", ".join(a.get("secret_references") or [])
+        rows.append([
+            html.escape(a.get("kind", "")),
+            html.escape(a.get("sub_kind") or ""),
+            html.escape(a.get("name") or ""),
+            html.escape(a.get("path", "")),
+            html.escape(a.get("environment") or ""),
+            html.escape(secrets),
+        ])
+    parts.append(_table(
+        ["Kind", "Sub-kind", "Name", "Path", "Environment", "Secrets-referenced"],
+        rows,
+    ))
+    return _html_section("deployment", "Deployment Topology", "".join(parts))
+
+
+def _html_credentials(data: dict) -> str:
+    p = data.get("payload") or {}
+    parts: list[str] = []
+    if p.get("skipped"):
+        parts.append(
+            '<div class="info-card">'
+            f'<p><strong>Phase skipped:</strong> {html.escape(p.get("skip_reason") or "")}</p>'
+            '<p>To enable credential scanning, install detect-secrets:</p>'
+            '<pre><code>pipx install detect-secrets</code></pre>'
+            '</div>'
+        )
+        return _html_section("credentials", "Credential Scanning", "".join(parts))
+
+    findings = p.get("findings") or []
+    new_findings = p.get("new_findings") or []
+    known_findings = p.get("known_findings") or []
+    by_type = p.get("by_type") or {}
+
+    new_class = "alert" if new_findings else "ok"
+    parts.append(
+        f'<div class="credential-banner {new_class}">'
+        f'<strong>NEW: {len(new_findings)}</strong> · '
+        f'KNOWN (baselined): {len(known_findings)} · '
+        f'Total: {len(findings)} · '
+        f'Baseline: {"yes (" + html.escape(p.get("baseline_path", "")) + ")" if p.get("baseline_present") else "no"}'
+        f'</div>'
+    )
+    parts.append(
+        '<p><em>Privacy contract: only SHA-1 hashes are stored; secret values '
+        'never appear in this report.</em></p>'
+    )
+
+    if by_type:
+        rows = [[k, str(v)] for k, v in sorted(by_type.items(), key=lambda kv: -kv[1])]
+        parts.append('<h3>Findings by type</h3>')
+        parts.append(_table(["Type", "Count"], rows))
+
+    if findings:
+        parts.append('<h3>All findings</h3>')
+        rows = []
+        for f in findings[:500]:
+            rows.append([
+                html.escape(f.get("secret_type", "")),
+                html.escape(f.get("file", "")),
+                str(f.get("line", 0)),
+                html.escape((f.get("hashed_secret") or "")[:16]) + "…",
+                "yes" if f.get("is_known") else "<strong>NEW</strong>",
+            ])
+        parts.append(_table(
+            ["Type", "File", "Line", "Hash (SHA-1)", "Known?"],
+            rows,
+        ))
+    return _html_section("credentials", "Credential Scanning", "".join(parts))
 
 
 def _html_section(section_id: str, title: str, inner: str) -> str:

@@ -21,6 +21,7 @@ from .config import MANIFEST_FILE, PHASE_FILES, RAW_SUBDIR, SYSTEM_MANIFEST_FILE
 from .detection import DetectionReport, detect_tools, format_report
 from .models import (
     Manifest,
+    RepoInput,
     RunnerInput,
     RunnerResult,
     SystemManifest,
@@ -275,6 +276,58 @@ def _snapshot_config() -> dict:
     }
 
 
+# ─── Repo-wide phases (1.16, 1.17) ────────────────────────────────────────
+
+
+def _run_repo_phases(
+    repo_input: RepoInput,
+    cfg: OrchestratorConfig,
+    errors: list[str],
+) -> None:
+    """Run Phases 1.16 (deployment) and 1.17 (credentials) at repo level."""
+    # Phase 1.16 — Deployment topology.
+    if "1.16" not in cfg.skip_phases:
+        try:
+            from .runners.deployment_runner import DeploymentRunner
+            result = DeploymentRunner().run_repo(repo_input)
+            _persist_repo_phase(result, cfg)
+        except Exception as exc:
+            msg = f"[1.16/deployment-scan] unexpected error: {exc!r}"
+            errors.append(msg)
+            if not cfg.continue_on_error:
+                raise
+
+    # Phase 1.17 — Credential scanning.
+    if "1.17" not in cfg.skip_phases:
+        try:
+            from .runners.credential_runner import CredentialRunner
+            result = CredentialRunner().run_repo(repo_input)
+            _persist_repo_phase(result, cfg)
+        except Exception as exc:
+            msg = f"[1.17/detect-secrets] unexpected error: {exc!r}"
+            errors.append(msg)
+            if not cfg.continue_on_error:
+                raise
+
+
+def _persist_repo_phase(result: RunnerResult, cfg: OrchestratorConfig) -> None:
+    """Write a repo-wide phase JSON to probe-raw/ (not per-workspace)."""
+    out_file = PHASE_FILES.get(result.phase)
+    if not out_file:
+        return
+    write_json(
+        {
+            "phase": result.phase,
+            "tool": result.tool,
+            "started_at": result.started_at,
+            "duration_ms": result.duration_ms,
+            "warnings": list(result.warnings),
+            "payload": result.payload,
+        },
+        cfg.output_dir / out_file,
+    )
+
+
 # ─── Public entry ─────────────────────────────────────────────────────────
 
 
@@ -323,6 +376,18 @@ def run(cfg: OrchestratorConfig) -> OrchestratorResult:
             continue
         manifests[workspace.name] = manifest
         all_errors.extend(errors)
+
+    # ─── Repo-wide phases (1.16, 1.17) ──────────────────────────────────
+    # Run once after per-workspace loop; output lands in probe-raw/, not
+    # in a per-workspace subdir.
+    repo_input = RepoInput(
+        repo_root=str(cfg.root.resolve()),
+        project=cfg.project,
+        extra_excludes=cfg.extra_excludes,
+        output_dir=str(cfg.output_dir),
+        workspaces=tuple(workspaces),
+    )
+    _run_repo_phases(repo_input, cfg, all_errors)
 
     system_manifest = SystemManifest(
         project=cfg.project,

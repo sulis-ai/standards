@@ -1,0 +1,8 @@
+apiVersion: sulis.io/v1
+kind: BusinessManifest
+metadata:
+  name: polyglot-product
+spec:
+  businessType: SaaS
+  version: 0.1.0
+  schemaVersion: v1

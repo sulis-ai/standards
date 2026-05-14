@@ -57,6 +57,10 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--git-lookback-days", type=int, default=probe_config.GIT_HISTORY_LOOKBACK_DAYS_DEFAULT, help="Phase 1.11 lookback window (default 365)")
     for opt_phase in ("tests", "lints", "history", "duplication", "deadcode", "architecture"):
         p.add_argument(f"--skip-{opt_phase}", action="store_true", help=f"Skip Phase relating to {opt_phase}")
+    p.add_argument("--skip-deployment", action="store_true", help="Skip Phase 1.16 (Deployment Topology)")
+    p.add_argument("--skip-credentials", action="store_true", help="Skip Phase 1.17 (Credential Scanning)")
+    p.add_argument("--exclude-dir", action="append", default=[], help="Exclude a top-level directory from workspace enumeration (repeatable)")
+    p.add_argument("--secrets-baseline", default=None, help="Override path to .secrets.baseline (default: <root>/.secrets.baseline)")
     p.add_argument("--continue-on-error", action="store_true", help="Don't fail-fast on runner errors")
     p.add_argument("--json-only", action="store_true", help="Skip rendering Markdown + HTML")
     p.add_argument("--md-only", action="store_true", help="Render Markdown but skip HTML")
@@ -99,6 +103,10 @@ def _skip_phases(args: argparse.Namespace) -> frozenset[str]:
         skip.add("1.13")
     if args.skip_architecture:
         skip.add("1.14")
+    if args.skip_deployment:
+        skip.add("1.16")
+    if args.skip_credentials:
+        skip.add("1.17")
     return frozenset(skip)
 
 

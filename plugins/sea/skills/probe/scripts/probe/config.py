@@ -53,6 +53,7 @@ TOOL_OPTIONAL: tuple[str, ...] = (
     "golangci-lint",
     "go",
     "cargo",
+    "detect-secrets",    # v0.9.0: Phase 1.17 credential scanning
 )
 
 # Lizard sanity check: must be Terry Yin's McCabe analyser, not the
@@ -77,6 +78,7 @@ TOOL_TIMEOUTS_SEC: dict[str, int] = {
     "ruff": 60,
     "mypy": 180,
     "golangci-lint": 180,
+    "detect-secrets": 300,
 }
 
 # Truncate runaway stdout to keep memory bounded.
@@ -282,6 +284,45 @@ WORKSPACE_PROJECT_MANIFESTS: tuple[str, ...] = (
     "composer.json",
 )
 
+# ─── Polyglot workspace enumeration (v0.9.0, 4-stage pipeline) ────────────
+#
+# Stage 1 — existing monorepo manifest (MONOREPO_MANIFESTS, above).
+# Stage 2 — auxiliary packages: top-level dirs with a WORKSPACE_PROJECT_MANIFESTS
+#           file but not declared by a monorepo manifest.
+# Stage 3 — code-bearing dirs: ≥ CODE_BEARING_MIN_SOURCE_FILES source files
+#           with an extension in CODE_BEARING_EXTENSIONS, OR any *.tf/*.tfvars.
+# Stage 4 — deployment-only dirs: contain Dockerfile, docker-compose YAML, or
+#           a k8s/sulis manifest.
+#
+# Later stages skip any path already claimed by an earlier stage.
+
+# Workspace-style tags emitted by each stage.
+WS_STYLE_AUX_PACKAGE: str = "auxiliary-package"
+WS_STYLE_CODE_BEARING: str = "code-bearing-dir"
+WS_STYLE_DEPLOYMENT: str = "deployment-dir"
+
+# Stage 3 thresholds and extensions.
+CODE_BEARING_MIN_SOURCE_FILES: int = 10
+CODE_BEARING_EXTENSIONS: tuple[str, ...] = (
+    ".py", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs",
+    ".go", ".rs", ".java", ".kt", ".kts", ".scala",
+    ".rb", ".php", ".cs", ".c", ".cc", ".cpp", ".h", ".hpp",
+    ".swift", ".m", ".mm",
+    ".sh", ".bash", ".zsh", ".fish",
+    ".tf", ".tfvars", ".hcl",
+)
+
+# Dirs never enumerated as workspaces, regardless of contents.
+# These exist for tooling/config, not for application code.
+WORKSPACE_SCAN_SKIP_DIRS: tuple[str, ...] = EXTRA_EXCLUDE_DIRS + (
+    ".github", ".vscode", ".idea", ".devcontainer", ".husky",
+    ".claude", ".git", ".circleci", ".gitlab",
+    "docs", "doc",
+)
+
+# Soft cap — warn but proceed.
+WORKSPACE_COUNT_WARN_THRESHOLD: int = 25
+
 # ─── Test framework signals (Phase 1.9) ───────────────────────────────────
 
 TEST_FRAMEWORK_SIGNALS: dict[str, dict[str, list[str]]] = {
@@ -402,6 +443,120 @@ ARCH_RULE_CONFIGS_BY_LANG: dict[str, list[str]] = {
     "python": [".importlinter", "pyproject.toml"],   # importlinter section in pyproject
 }
 
+# ─── Deployment topology (Phase 1.16, repo-wide) ──────────────────────────
+
+# Detection kinds — first match wins per file. Order matters: more specific
+# filename patterns appear before generic YAML sniffs.
+#
+# Each entry is (kind, signal-type, signal-value). Signal types:
+#   "filename"      — exact basename match
+#   "filename-glob" — fnmatch glob against basename
+#   "dirfile"       — directory contains this filename
+#   "yaml-api"      — first 64 KiB contains `apiVersion: <value>` (regex)
+#   "content"       — first 64 KiB contains the literal string
+#   "ext"           — file extension match
+DEPLOYMENT_KIND_PATTERNS: tuple[tuple[str, str, str], ...] = (
+    ("docker-compose", "filename-glob", "docker-compose.y*ml"),
+    ("docker-compose", "filename-glob", "compose.y*ml"),
+    ("dockerfile", "filename", "Dockerfile"),
+    ("dockerfile", "filename-glob", "Dockerfile.*"),
+    ("dockerfile", "filename-glob", "*.Dockerfile"),
+    ("helm-chart", "dirfile", "Chart.yaml"),
+    ("terraform", "ext", ".tf"),
+    ("terraform", "ext", ".tfvars"),
+    ("pulumi", "filename-glob", "Pulumi.y*ml"),
+    ("pulumi", "filename-glob", "Pulumi.*.y*ml"),
+    ("github-actions", "filename-glob", "*.yml"),     # path-filtered: .github/workflows/
+    ("github-actions", "filename-glob", "*.yaml"),    # path-filtered: .github/workflows/
+    ("circleci", "filename", "config.yml"),           # path-filtered: .circleci/
+    ("gitlab-ci", "filename", ".gitlab-ci.yml"),
+    ("vercel", "filename", "vercel.json"),
+    ("netlify", "filename", "netlify.toml"),
+    ("fly", "filename", "fly.toml"),
+    ("heroku", "filename", "Procfile"),
+    ("heroku", "filename", "app.json"),
+    ("serverless-framework", "filename-glob", "serverless.y*ml"),
+    ("aws-cdk", "filename", "cdk.json"),
+    ("aws-sam", "content", "Transform: AWS::Serverless"),
+    ("skaffold", "filename", "skaffold.yaml"),
+    # YAML apiVersion sniffs — checked when filename hasn't matched a more
+    # specific kind. Regex applied against first DEPLOYMENT_YAML_PROBE_BYTES.
+    ("argocd", "yaml-api", r"argoproj\.io/"),
+    ("flux", "yaml-api", r"[a-z0-9.-]+\.toolkit\.fluxcd\.io/"),
+    ("sulis-manifest", "yaml-api", r"sulis\.io/v1"),
+    ("k8s-manifest", "yaml-api",
+     r"(?:v1|apps/v[12]|batch/v[12]|networking\.k8s\.io/v1"
+     r"|rbac\.authorization\.k8s\.io/v1|autoscaling/v[12]"
+     r"|policy/v1|storage\.k8s\.io/v1|apiextensions\.k8s\.io/v1)\b"),
+)
+
+# Dirs skipped during deployment scan (avoid flagging test fixtures as prod).
+DEPLOYMENT_SCAN_SKIP_DIRS: tuple[str, ...] = EXTRA_EXCLUDE_DIRS + (
+    "tests", "__tests__", "test", "fixtures", "testdata",
+    ".git",
+)
+
+# Safety caps.
+DEPLOYMENT_SCAN_MAX_FILES: int = 5000
+DEPLOYMENT_YAML_PROBE_BYTES: int = 64 * 1024  # first 64 KiB only
+
+# Sulis manifest contract.
+SULIS_API_VERSION: str = "sulis.io/v1"
+SULIS_KNOWN_KINDS: tuple[str, ...] = (
+    "Workload", "Application", "BusinessManifest", "BusinessManifestDelta",
+    "Plan", "DomainRole", "DomainPermission", "EventDefinition",
+    "Content", "Build", "CustomDomain", "DNSRecord",
+)
+
+# ─── Credential scanning (Phase 1.17, repo-wide, detect-secrets) ──────────
+
+# Privacy contract: probe NEVER stores plaintext secret values. Only the
+# SHA-1 hash that detect-secrets itself produces. Enforced by unit test
+# `test_credential_finding_never_contains_value`.
+
+DETECT_SECRETS_BASELINE_NAME: str = ".secrets.baseline"
+
+# Plugin set passed to detect-secrets via --plugin flags (default behaviour
+# if not overridden by a project-level config).
+DETECT_SECRETS_DEFAULT_PLUGINS: tuple[str, ...] = (
+    "AWSKeyDetector",
+    "AzureStorageKeyDetector",
+    "BasicAuthDetector",
+    "Base64HighEntropyString",
+    "GitHubTokenDetector",
+    "HexHighEntropyString",
+    "IbmCloudIamDetector",
+    "IbmCosHmacDetector",
+    "JwtTokenDetector",
+    "KeywordDetector",
+    "MailchimpDetector",
+    "NpmDetector",
+    "PrivateKeyDetector",
+    "SlackDetector",
+    "SoftlayerDetector",
+    "SquareOAuthDetector",
+    "StripeDetector",
+    "TwilioKeyDetector",
+)
+
+# Directories/files excluded from credential scan.
+DETECT_SECRETS_EXCLUDE_DIRS: tuple[str, ...] = EXTRA_EXCLUDE_DIRS + (
+    "tests", "__tests__", "fixtures", "testdata",
+    ".git",
+)
+
+# Files always excluded by name (lockfiles, etc).
+DETECT_SECRETS_EXCLUDE_FILES: tuple[str, ...] = (
+    "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
+    "Cargo.lock", "Gemfile.lock", "composer.lock", "poetry.lock",
+)
+
+# Lines containing these tokens are skipped (case-insensitive) — handles
+# common false positives (example values in fixtures, docs, AWS sample keys).
+DETECT_SECRETS_EXCLUDE_LINES_RE: str = (
+    r"(?i)(EXAMPLE|FAKE|DUMMY|PLACEHOLDER|SAMPLE|MOCK|FIXTURE)"
+)
+
 # ─── Cross-reference thresholds (Phase 2 LLM synthesis) ───────────────────
 
 HIGH_CCN_THRESHOLD: int = 15
@@ -434,7 +589,14 @@ PHASE_FILES: dict[str, str] = {
     "1.13": "1_13_deadcode.json",
     "1.14": "1_14_architecture.json",
     "1.15": "1_15_coverage.json",
+    # Repo-wide phases (v0.9.0) — emitted once at repo root, not per-workspace.
+    "1.16": "1_16_deployment.json",
+    "1.17": "1_17_credentials.json",
 }
+
+# Subset of PHASE_FILES that are written at the repo root (probe-raw/)
+# rather than per-workspace (probe-raw/{workspace}/).
+REPO_WIDE_PHASES: frozenset[str] = frozenset({"1.16", "1.17"})
 
 MANIFEST_FILE: str = "00_manifest.json"
 SYSTEM_MANIFEST_FILE: str = "00_system_manifest.json"

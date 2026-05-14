@@ -136,6 +136,18 @@ install_macos() {
       warn "npm not found; skipping repomix. Install Node.js for: npm install -g repomix"
     fi
   fi
+
+  # detect-secrets — optional, used by Phase 1.17 (credential scanning).
+  # Skip silently if pipx is unavailable; the probe will warn and produce
+  # an empty payload rather than fail.
+  if ! is_installed detect-secrets; then
+    if is_installed pipx; then
+      info "Installing detect-secrets via pipx (optional, Phase 1.17)…"
+      pipx install detect-secrets || warn "detect-secrets install failed; Phase 1.17 will be skipped."
+    else
+      warn "pipx not found; skipping detect-secrets. Phase 1.17 (credentials) will be skipped."
+    fi
+  fi
 }
 
 install_debian() {
@@ -190,6 +202,19 @@ install_debian() {
       npm install -g repomix
     else
       warn "npm not found; skipping repomix."
+    fi
+  fi
+
+  # detect-secrets — optional, used by Phase 1.17 (credential scanning).
+  if ! is_installed detect-secrets; then
+    if is_installed pipx; then
+      info "Installing detect-secrets via pipx (optional, Phase 1.17)…"
+      pipx install detect-secrets || warn "detect-secrets install failed; Phase 1.17 will be skipped."
+    elif is_installed pip3; then
+      info "pipx not found; installing detect-secrets via pip3 (--user)…"
+      pip3 install --user detect-secrets || warn "detect-secrets install failed; Phase 1.17 will be skipped."
+    else
+      warn "Neither pipx nor pip3 found; skipping detect-secrets. Phase 1.17 will be skipped."
     fi
   fi
 }

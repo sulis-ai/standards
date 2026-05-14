@@ -53,6 +53,20 @@ class RunnerResult:
     warnings: tuple[str, ...]    # non-fatal issues
 
 
+@dataclass(frozen=True)
+class RepoInput:
+    """Input passed to repo-wide runners (Phases 1.16 / 1.17).
+
+    Distinct from RunnerInput because these phases operate on the whole repo,
+    not a single workspace. Output lands in probe-raw/ (not per-workspace).
+    """
+    repo_root: str               # absolute path to repo root
+    project: str                 # project slug
+    extra_excludes: tuple[str, ...]
+    output_dir: str              # absolute path to probe-raw/ (root, not per-ws)
+    workspaces: tuple[Workspace, ...] = ()  # for cross-referencing
+
+
 # ─── Phase 1.1: scc — stack inference ─────────────────────────────────────
 
 
@@ -369,6 +383,88 @@ class CoveragePayload:
     by_file: dict[str, float]
     low_coverage_files: list[str]
     source: str                          # "vitest" | "jest" | "coverage.py" | "go-cover"
+
+
+# ─── Phase 1.16: deployment topology (repo-wide) ──────────────────────────
+
+
+@dataclass
+class DeploymentArtifact:
+    """A single deployment-related file or directory.
+
+    `extras` is a free-form dict for kind-specific fields (image, port,
+    workload_type, etc.). `secret_references` captures secret NAMES only —
+    never values.
+    """
+    kind: str                            # "dockerfile" | "docker-compose" |
+                                         # "k8s-manifest" | "sulis-manifest" | ...
+    sub_kind: str | None                 # for kind="k8s-manifest" → "Deployment"|"Service"|...
+                                         # for kind="sulis-manifest" → "Workload"|"Application"|...
+    name: str | None                     # metadata.name / image name / etc.
+    path: str                            # repo-relative
+    line: int | None                     # for multi-doc YAML, where the doc starts
+    environment: str | None              # "dev"|"staging"|"prod"|"qa"|None
+    target_platform: str | None          # "kubernetes" | "ecs" | "lambda" | ...
+    secret_references: list[str]         # NAMES only — values never captured
+    extras: dict[str, Any]               # kind-specific structured fields
+
+
+@dataclass
+class SulisWorkloadExtras:
+    """Structured extras for kind=sulis-manifest, sub_kind=Workload."""
+    image: str | None
+    port: int | None
+    replicas: int | None
+    memory: str | None
+    cpu: str | None
+    health_check_path: str | None
+    env_var_names: list[str]             # NAMES only
+
+
+@dataclass
+class DeploymentPayload:
+    artifacts: list[DeploymentArtifact]
+    by_kind: dict[str, int]              # "dockerfile" → 9, ...
+    by_environment: dict[str, int]       # "prod" → 3, ...
+    sulis_kinds_present: list[str]       # ["Workload", "Application", ...]
+    target_platforms: list[str]
+    files_scanned: int
+    files_skipped_cap: int               # how many were skipped by MAX_FILES cap
+    yaml_parser: str                     # "pyyaml" | "regex-fallback"
+
+
+# ─── Phase 1.17: credential scanning (repo-wide, detect-secrets) ──────────
+
+
+@dataclass
+class CredentialFinding:
+    """A single hardcoded-credential candidate.
+
+    PRIVACY CONTRACT (MUST): `hashed_secret` is the SHA-1 hash produced by
+    detect-secrets — never the plaintext value. Probe does not store secret
+    values in any output (JSON, Markdown, HTML). Asserted by unit test
+    `test_credential_finding_never_contains_value`.
+    """
+    file: str                            # repo-relative
+    line: int
+    secret_type: str                     # "AWS Access Key" | "Private Key" | ...
+    hashed_secret: str                   # SHA-1 hash — NEVER the value
+    is_verified: bool                    # detect-secrets verification status
+    is_known: bool                       # in .secrets.baseline = previously triaged
+    plugin_name: str                     # which detect-secrets plugin flagged it
+
+
+@dataclass
+class CredentialPayload:
+    findings: list[CredentialFinding]
+    by_type: dict[str, int]
+    new_findings: list[CredentialFinding]    # not in baseline
+    known_findings: list[CredentialFinding]  # in baseline
+    baseline_present: bool
+    baseline_path: str | None                # repo-relative, if found
+    scanned_files: int
+    skipped: bool                            # True if detect-secrets unavailable
+    skip_reason: str | None
 
 
 # ─── Per-workspace manifest ───────────────────────────────────────────────

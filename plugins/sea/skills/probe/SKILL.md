@@ -4,10 +4,12 @@ description: >
   Deterministic structural analysis of a brownfield codebase. Runs a Python
   orchestrator (`scripts/probe.py`) that invokes ast-grep, lizard, scc, git
   (required) plus optional tools (jscpd, ts-prune, vulture, deadcode,
-  dependency-cruiser, import-linter) and produces structured JSON outputs
-  per phase, a Markdown summary, and a navigable HTML report at
-  `.architecture/{project}/CODE_INTELLIGENCE.html`. Required reading for
-  downstream SEA skills (blueprint, decompose, harden, verify).
+  dependency-cruiser, import-linter, detect-secrets) and produces 17 phases
+  of structured JSON output, a Markdown summary, and a navigable HTML report
+  at `.architecture/{project}/CODE_INTELLIGENCE.html`. v0.9.0 adds polyglot
+  monorepo enumeration (4-stage), Phase 1.16 Deployment Topology with
+  first-class Sulis manifest support, and Phase 1.17 Credential Scanning
+  (hash-only, baseline-aware). Required reading for downstream SEA skills.
 user_invocable: true
 ---
 
@@ -73,34 +75,39 @@ Common flags:
 - `--git-lookback-days N` — git churn window (default 365)
 - `--skip-tests` / `--skip-lints` / `--skip-history` / `--skip-duplication`
   / `--skip-deadcode` / `--skip-architecture` — opt out of specific phases
+- `--skip-deployment` — skip Phase 1.16 (Deployment Topology, repo-wide)
+- `--skip-credentials` — skip Phase 1.17 (Credential Scanning, repo-wide)
+- `--exclude-dir DIR` — exclude a top-level dir from enumeration (repeatable)
+- `--secrets-baseline PATH` — override `.secrets.baseline` location
 - `--continue-on-error` — don't fail-fast on individual runner errors
 - `--json-only` — skip Markdown + HTML rendering
 - `--md-only` — render Markdown but skip HTML
 
-The orchestrator runs 15 phases per workspace:
+The orchestrator runs 15 per-workspace phases + 2 repo-wide phases:
 
-| Phase | Tool | Output |
-|---|---|---|
-| 1.1 | scc | stack inventory, LOC, complexity totals |
-| 1.2 | ast-grep | capabilities (classes / functions / interfaces / types) |
-| 1.3 | ast-grep | extension points (abstract classes, interfaces, registries) |
-| 1.4 | ast-grep + grep | reusable abstractions (consumer counts) |
-| 1.5 | ast-grep + Tarjan | coupling (fan-in/out, cycles) |
-| 1.6 | lizard | complexity hotspots (CCN > threshold) |
-| 1.7 | ast-grep | wrapper-rot candidates |
-| 1.8 | filesystem | conventions (naming, layout, error handling) |
-| 1.9 | pytest / vitest / jest / go test / cargo test | test discovery + optional execution |
-| 1.10 | eslint / ruff / mypy / clippy / golangci-lint | lint dry-run signal |
-| 1.11 | git | history: churn, age, authors, co-change |
-| 1.12 | jscpd | code duplication (optional) |
-| 1.13 | ts-prune / vulture / deadcode | dead code (optional) |
-| 1.14 | dependency-cruiser / import-linter | architecture rule violations (optional) |
-| 1.15 | (parses Phase 1.9) | coverage signal |
+| Phase | Scope | Tool | Output |
+|---|---|---|---|
+| 1.1 | per-workspace | scc | stack inventory, LOC, complexity totals |
+| 1.2 | per-workspace | ast-grep | capabilities (classes / functions / interfaces / types) |
+| 1.3 | per-workspace | ast-grep | extension points (abstract classes, interfaces, registries) |
+| 1.4 | per-workspace | ast-grep + grep | reusable abstractions (consumer counts) |
+| 1.5 | per-workspace | ast-grep + Tarjan | coupling (fan-in/out, cycles) |
+| 1.6 | per-workspace | lizard | complexity hotspots (CCN > threshold) |
+| 1.7 | per-workspace | ast-grep | wrapper-rot candidates |
+| 1.8 | per-workspace | filesystem | conventions (naming, layout, error handling) |
+| 1.9 | per-workspace | pytest / vitest / jest / go test / cargo test | test discovery + optional execution |
+| 1.10 | per-workspace | eslint / ruff / mypy / clippy / golangci-lint | lint dry-run signal |
+| 1.11 | per-workspace | git | history: churn, age, authors, co-change |
+| 1.12 | per-workspace | jscpd | code duplication (optional) |
+| 1.13 | per-workspace | ts-prune / vulture / deadcode | dead code (optional) |
+| 1.14 | per-workspace | dependency-cruiser / import-linter | architecture rule violations (optional) |
+| 1.15 | per-workspace | (parses Phase 1.9) | coverage signal |
+| **1.16** | **repo-wide** | **filesystem + YAML** | **Deployment topology — Dockerfiles, K8s, Helm, Terraform, GH Actions, Sulis manifests** |
+| **1.17** | **repo-wide** | **detect-secrets** | **Credential scanning — hardcoded secrets (hash-only, baseline-aware)** |
 
-Each phase produces one JSON file at
-`.architecture/{project}/probe-raw/{workspace}/1_N_xxx.json`.
-A per-workspace `00_manifest.json` and top-level `00_system_manifest.json`
-are also written.
+Per-workspace phases write to `.architecture/{project}/probe-raw/{workspace}/1_N_xxx.json`.
+Repo-wide phases (1.16, 1.17) write to `.architecture/{project}/probe-raw/1_16_deployment.json`
+and `.architecture/{project}/probe-raw/1_17_credentials.json` — once per run, not per-workspace.
 
 **Graceful degradation:** if an optional tool is missing, that phase is
 skipped with a warning recorded in the workspace manifest. The probe never
@@ -211,6 +218,8 @@ gate.
 └── probe-raw/
     ├── 00_system_manifest.json
     ├── synthesis.json
+    ├── 1_16_deployment.json      # repo-wide: Deployment Topology
+    ├── 1_17_credentials.json     # repo-wide: Credential Scanning
     └── {workspace}/
         ├── 00_manifest.json
         ├── 1_1_stack.json
@@ -245,6 +254,65 @@ gate.
 - **Monorepo support:** the orchestrator detects pnpm-workspace, lerna,
   nx, turborepo, cargo, maven, gradle, bazel, rush, and go-workspaces. Each
   workspace gets its own per-workspace JSONs.
+- **Polyglot enumeration (v0.9.0):** even when a monorepo manifest is
+  present, the orchestrator additively discovers (Stage 2) top-level
+  auxiliary packages with their own manifest (`pyproject.toml`, `Cargo.toml`,
+  `go.mod`, etc.) at depth 1 or 2; (Stage 3) code-bearing dirs with ≥ 10
+  source files in known extensions OR any `.tf`/`.tfvars`; and (Stage 4)
+  deployment-only dirs containing `Dockerfile`, compose YAML, or
+  k8s/Sulis YAML. Each stage skips paths already claimed by an earlier
+  stage. `.github`, `docs`, `.vscode`, etc. are never enumerated.
+
+---
+
+## Polyglot Workspace Enumeration
+
+The default assumption is that the repo is a polyglot monorepo. The 4-stage
+pipeline runs additively:
+
+| Stage | Adds | Style tag |
+|---|---|---|
+| 1 | Existing monorepo manifest (pnpm/lerna/nx/turborepo/cargo/maven/gradle/bazel/rush/go-workspaces) | matches the manifest |
+| 2 | Top-level (depth 1-2) dirs with a project manifest (`pyproject.toml`, `Cargo.toml`, `go.mod`, `setup.py`, `Gemfile`, `composer.json`) | `auxiliary-package` |
+| 3 | Top-level dirs with ≥ 10 source files in known extensions, OR any `.tf`/`.tfvars` | `code-bearing-dir` |
+| 4 | Top-level dirs with `Dockerfile`, `docker-compose.yml`, or a k8s/Sulis YAML manifest | `deployment-dir` |
+
+A dir is skipped by stages 2-4 if it (or any of its children/parents) is already
+claimed by an earlier stage. Hard skip list: `.github`, `.vscode`, `.idea`,
+`.devcontainer`, `.husky`, `.claude`, `.git`, `.circleci`, `.gitlab`, `docs`,
+`doc`, plus the standard build-output exclusions (`node_modules`, `.venv`, etc.).
+
+If workspace count exceeds 25, a warning is logged to stderr — narrow with
+`--workspace` or `--exclude-dir`.
+
+---
+
+## Credential Scanning Privacy Contract
+
+Phase 1.17 invokes [detect-secrets](https://github.com/Yelp/detect-secrets)
+to find hardcoded credentials. Three invariants apply:
+
+1. **Hashes only.** The runner stores the SHA-1 hash that detect-secrets
+   produces — never the plaintext value. No `secret`, `value`, `plaintext`,
+   `raw_secret`, or `password` field exists in `CredentialFinding`. A unit
+   test (`test_credential_finding_never_contains_value`) asserts this.
+
+2. **Baseline-aware.** If a `.secrets.baseline` file exists at the repo
+   root (or at the path supplied via `--secrets-baseline`), the runner
+   loads it and marks each finding's `is_known` flag accordingly:
+   `is_known=True` for hashes acknowledged in the baseline, `False` for
+   new findings. The probe does **not** pass `--baseline` to detect-secrets
+   directly (that would filter known findings from the output); it tags
+   them itself so both categories appear in the payload.
+
+3. **Graceful degradation.** If detect-secrets is not on `PATH`, Phase
+   1.17 emits a payload with `skipped=True` and `skip_reason` populated;
+   the probe never fails for a missing optional tool.
+
+Sulis manifests and CI workflows are scanned separately by Phase 1.16 for
+**secret references** (e.g. `${{ secrets.NAME }}`) — these are NAMES only,
+never values. Together, Phases 1.16 and 1.17 answer "what credentials does
+this codebase depend on AND where might it have leaked them."
 
 ---
 
