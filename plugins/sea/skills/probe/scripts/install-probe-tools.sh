@@ -97,12 +97,36 @@ install_macos() {
     exit 3
   fi
 
-  for t in "${REQUIRED_TOOLS[@]}"; do
+  # ast-grep and scc both ship via brew correctly
+  for t in ast-grep scc; do
     if ! is_installed "$t"; then
       info "Installing $t via brew…"
       brew install "$t"
     fi
   done
+
+  # lizard CANNOT be installed via brew on macOS —
+  # `brew install lizard` installs a DIFFERENT lizard (the compression
+  # utility, https://github.com/inikep/lizard), NOT Terry Yin's McCabe
+  # complexity analyser (https://github.com/terryyin/lizard).
+  # The complexity tool is a Python package; pipx isolates it correctly
+  # and puts it on PATH.
+  if ! is_installed lizard; then
+    if ! is_installed pipx; then
+      info "Installing pipx via brew (for isolated Python CLIs)…"
+      brew install pipx
+      info "Ensuring pipx bin directory is on PATH…"
+      pipx ensurepath >/dev/null 2>&1 || true
+    fi
+    info "Installing lizard via pipx…"
+    # System Python 3 (/usr/bin/python3) is reliable; some brew-managed
+    # Python betas are broken with uv/pipx.
+    if [[ -x /usr/bin/python3 ]]; then
+      pipx install --python /usr/bin/python3 lizard
+    else
+      pipx install lizard
+    fi
+  fi
 
   if [[ "$INSTALL_REPOMIX" -eq 1 ]] && ! is_installed repomix; then
     if is_installed npm; then
@@ -130,16 +154,21 @@ install_debian() {
     fi
   fi
 
-  # lizard — pip
+  # lizard — pipx (preferred for PATH management) or pip --user fallback
   if ! is_installed lizard; then
-    if is_installed pip3; then
-      info "Installing lizard via pip3 (--user)…"
+    if is_installed pipx; then
+      info "Installing lizard via pipx…"
+      pipx install lizard
+    elif is_installed pip3; then
+      info "pipx not found; installing lizard via pip3 (--user)…"
       pip3 install --user lizard
+      warn "lizard installed to ~/.local/bin; ensure that's on your PATH."
     elif is_installed pip; then
-      info "Installing lizard via pip (--user)…"
+      info "pipx not found; installing lizard via pip (--user)…"
       pip install --user lizard
+      warn "lizard installed to ~/.local/bin; ensure that's on your PATH."
     else
-      err "pip not found. Try: sudo apt-get install -y python3-pip"
+      err "Neither pipx nor pip found. Try: sudo apt-get install -y pipx python3-pip"
       exit 1
     fi
   fi
@@ -181,9 +210,20 @@ Manual installation instructions:
 
   ast-grep:    https://ast-grep.github.io/guide/quick-start.html
                (brew install ast-grep  |  cargo install ast-grep --locked  |  npm i -g @ast-grep/cli)
-  lizard:      pip install --user lizard
+
+  lizard:      Terry Yin's McCabe complexity analyser — NOT the compression
+               tool of the same name. Install via pipx (preferred):
+                   brew install pipx       (macOS)
+                   pipx ensurepath
+                   pipx install lizard
+               or via pip --user:
+                   pip3 install --user lizard
+                   # ensure ~/.local/bin is on PATH
+               DO NOT use 'brew install lizard' — that installs the wrong tool.
+
   scc:         https://github.com/boyter/scc/releases
                (brew install scc  |  go install github.com/boyter/scc/v3@latest)
+
   repomix:     npm install -g repomix   (optional)
 
 Run this script again with --check after installing to verify.
@@ -220,6 +260,7 @@ fi
 # Re-verify after install
 printf "\n%bVerification:%b\n" "$c_bold" "$c_reset"
 final_missing=0
+wrong_tool=0
 for t in "${REQUIRED_TOOLS[@]}"; do
   if is_installed "$t"; then
     ok "$t  ($(command -v "$t"))"
@@ -229,15 +270,37 @@ for t in "${REQUIRED_TOOLS[@]}"; do
   fi
 done
 
+# Sanity check: lizard must be Terry Yin's McCabe complexity analyser, NOT the
+# compression utility of the same name (which `brew install lizard` would
+# install instead). The complexity tool reports "Lizard … Cyclomatic Complexity
+# Analyzer" in --help and "1.x" or similar in --version.
+if is_installed lizard; then
+  if ! lizard --help 2>&1 | grep -qi "cyclomatic complexity"; then
+    err ""
+    err "Wrong 'lizard' detected on PATH — found the compression utility, not"
+    err "the McCabe complexity analyser. The complexity tool is Terry Yin's"
+    err "lizard (https://github.com/terryyin/lizard) and must be installed via"
+    err "pipx or pip, NOT brew."
+    err ""
+    err "To fix:"
+    err "  brew uninstall lizard"
+    err "  brew install pipx"
+    err "  pipx ensurepath"
+    err "  pipx install lizard"
+    err ""
+    wrong_tool=1
+  fi
+fi
+
 for t in "${OPTIONAL_TOOLS[@]}"; do
   if is_installed "$t"; then
     ok "$t  ($(command -v "$t"))  (optional)"
   fi
 done
 
-if [[ "$final_missing" -eq 1 ]]; then
+if [[ "$final_missing" -eq 1 ]] || [[ "$wrong_tool" -eq 1 ]]; then
   err ""
-  err "One or more required tools could not be installed automatically."
+  err "Required tools missing or incorrect after install attempt."
   show_manual_instructions
   exit 1
 fi

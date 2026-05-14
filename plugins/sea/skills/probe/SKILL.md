@@ -99,22 +99,35 @@ queries that extract:
 - Exported functions and their signatures
 - Type definitions (TypeScript types/interfaces; Python protocols; Go interfaces; etc.)
 
-Example queries:
+Example queries (use the `run` subcommand, default; partial patterns match
+across variants — over-specifying the body or return-type clause causes
+misses):
 
 ```bash
-# TypeScript: every exported class/function
-ast-grep --pattern 'export class $NAME { $$$ }' --lang ts src/
-ast-grep --pattern 'export function $NAME($$$) { $$$ }' --lang ts src/
-ast-grep --pattern 'export interface $NAME { $$$ }' --lang ts src/
+# TypeScript: classes, functions, interfaces (partial patterns)
+ast-grep -p 'class $NAME' -l ts src/         # matches both 'class' and 'export class'
+ast-grep -p 'function $NAME' -l ts src/      # matches functions with and without return-type annotations
+ast-grep -p 'interface $NAME' -l ts src/
 
-# Python: every public class/function
-ast-grep --pattern 'class $NAME($$$):' --lang python src/
-ast-grep --pattern 'def $NAME($$$):' --lang python src/
+# Python: classes and functions
+ast-grep -p 'class $NAME' -l python src/
+ast-grep -p 'def $NAME' -l python src/
 
-# Go: every exported type/func
-ast-grep --pattern 'type $NAME $$$' --lang go .
-ast-grep --pattern 'func $NAME($$$) $$$' --lang go .
+# Go: types and functions
+ast-grep -p 'type $NAME' -l go .
+ast-grep -p 'func $NAME' -l go .
 ```
+
+**Important pattern lesson:** ast-grep matches the AST structurally. An
+over-specific pattern like `'export function $NAME($$$) { $$$ }'` will
+FAIL to match a function with a return-type annotation (`function foo(): string { ... }`),
+because the AST node has an extra child for the annotation that the pattern
+doesn't account for. Prefer partial patterns (just `function $NAME`) for the
+inventory pass; use post-processing (or follow-up patterns) to capture
+signatures.
+
+To inspect the AST structure of a pattern when debugging, use
+`--debug-query=ast` or `--debug-query=cst`.
 
 Each match → one entry in the Capability Inventory with `[deterministic:
 ast-grep]` provenance.
@@ -149,19 +162,39 @@ graph:
 **1.6 — Complexity hotspots.** Run lizard:
 
 ```bash
-lizard -l <language> --CCN 15 --length 80 -E sloc -E maxcc src/
+# Threshold-based warnings (default thresholds: CCN 15, length 1000):
+lizard --CCN 15 -L 80 -l typescript src/
+
+# Filter to specific languages with -l (repeatable):
+lizard -l typescript -l python src/
+
+# Warnings-only mode (suppresses summary, prints only over-threshold items):
+lizard --CCN 15 -L 80 -w src/
+
+# Available languages (lizard --help):
+#   cpp, java, csharp, javascript, python, objectivec, ttcn, ruby, php,
+#   swift, scala, GDScript, go, lua, rust, typescript, fortran, kotlin,
+#   solidity, erlang, zig, tsx, vue, perl, st, r, plsql
 ```
+
+**Lizard version requirement:** must be Terry Yin's lizard (v1.x). Verify
+with `lizard --help | grep -i cyclomatic` — if the help text doesn't
+mention "Cyclomatic Complexity Analyzer", the wrong tool is on PATH (likely
+the compression utility from `brew install lizard`). Run the installer
+again to fix.
 
 Functions with CCN > 15 (cyclomatic complexity > 15) go in the Hotspots
 section as Refactor candidates. Files with average CCN > 10 go on the
-"module-level fragility" list.
+"module-level fragility" list. The installer's verification step
+distinguishes the McCabe lizard from the compression utility by grepping
+`lizard --help` output.
 
 **1.7 — Wrapper rot detection.** Pattern-match for suspicious wrapper
 naming:
 
 ```bash
 # Classes whose name suffix suggests wrapping
-ast-grep --pattern 'class $NAME { $$$ }' --lang ts src/ | grep -E 'V2|V3|Facade|Wrapper|Adapter|Proxy|Compat'
+ast-grep -p 'class $NAME' -l ts src/ | grep -E 'V2|V3|Facade|Wrapper|Adapter|Proxy|Compat'
 
 # For each match, find its dependency target — does it depend on another
 # internal module with a similar name minus the suffix?
