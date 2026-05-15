@@ -55,8 +55,22 @@ toward conventions; specific conventions evolve over time.
 ## CP-01: Default to the established convention (MUST)
 
 When recommending a solution, the default answer is the most established
-convention that meets the requirements. "Established" means one of:
+convention that meets the requirements. The priority order is precise:
 
+0. **Internal prior art** — if the project already implements the
+   capability in code, that is the strongest possible default. A working,
+   shipping component outranks every external convention, because it is
+   not just a preferred pattern, it is the system's existing reality.
+   Specifying around it (or duplicating it) creates downstream collisions
+   that are more expensive than any deviation from external standards.
+   Discover internal prior art via:
+   - `.context/{project}/INDEX.md` authoritative sources
+   - `.architecture/{project}/probe-raw/1_2_capabilities.json` capability
+     inventory (produced by `/sea:probe`)
+   - Direct codebase grep for cross-cutting concern names (rate limiting,
+     auth, caching, retries, secrets management, observability, feature
+     flags, audit, idempotency — see the Prior-Art Check rule in the SRD
+     analyst's Facilitation Rules)
 1. **An IETF, W3C, ISO, or comparable standards-body document exists.**
    Recommend that.
 2. **A dominant industry convention exists** (≥ 70% adoption in the
@@ -64,6 +78,13 @@ convention that meets the requirements. "Established" means one of:
 3. **A widely-cited reference work covers the case** (e.g. the SRE book
    for SLOs, the Stripe API design notes for idempotency). Recommend per
    that reference.
+
+**Two bespoke approaches must be defended, not one.** The first is
+reinventing what an external standard already covers. The second — more
+common, often invisible — is reinventing what the project already has.
+Both are bespoke deviations. Both require explicit justification under
+CP-03. An agent that respects external conventions but happily duplicates
+internal implementations has only half-applied this principle.
 
 When the choice is between an industry standard and a bespoke approach,
 **the recommendation defaults to the standard, even when the bespoke

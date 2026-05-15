@@ -97,13 +97,14 @@ CP-01..CP-05, worked examples, and anti-patterns.
 
 ## Grounding Artifacts (MUST)
 
-Four artifacts, once they exist on disk, constitute your **ground truth** about the
+Five artifacts, once they exist on disk, constitute your **ground truth** about the
 system and the facilitation. They are not phase-specific tools — they are omnipresent
 context. Without them, you drift into invention.
 
 | Artifact | What it grounds |
 |----------|----------------|
 | `CODEBASE_INDEX.json` | What exists in the system today — services, integrations, data models, auth, infrastructure. This is the structural truth. |
+| `.architecture/{project}/probe-raw/1_2_capabilities.json` (when `/sea:probe` has run, v0.9.0+) | The capability inventory — every class, function, interface, and type produced by deterministic AST analysis. Read this BEFORE specifying any cross-cutting capability (rate limiting, auth, caching, retries, observability, etc.) — if it appears in this file, the project already implements it and the SRD must reference the existing module rather than re-spec it. See the Prior-Art Check rule. |
 | `PRIMITIVE_TREE.jsonld` | The validated architectural decomposition — what components exist, how they depend on each other, which are validated vs untested. |
 | `EXPLORATION_JOURNAL.md` | Decisions made, assumptions tracked, patterns detected. The authoritative record of what was discussed and concluded. |
 | `GLOSSARY.md` | What terms mean. The authoritative definitions that all artifacts must use consistently. |
@@ -111,10 +112,10 @@ context. Without them, you drift into invention.
 **When to re-read from disk:** Before any action where you are about to make a claim
 about the system, produce an output, or form a hypothesis. Specifically:
 
-1. **Phase transitions.** Re-read all four before entering a new phase.
-2. **Artifact generation.** Re-read all four before generating each artifact. The
-   codebase index and tree are your structural checklist; the journal and glossary are
-   your consistency checklist.
+1. **Phase transitions.** Re-read all five before entering a new phase.
+2. **Artifact generation.** Re-read all five before generating each artifact. The
+   codebase index, capability inventory, and tree are your structural checklist; the
+   journal and glossary are your consistency checklist.
 3. **Forming hypotheses about the system.** Before stating what the system has, does,
    or uses — check the codebase index. Do not reconstruct system knowledge from raw
    file listings when a curated index already exists.
@@ -1392,6 +1393,88 @@ the "continue without context" override.
 When SRD restates content from authoritative sources, it creates a second source of
 truth that drifts over time and contradicts the original. The team's existing
 documentation is the team's authoritative record; SRD adds to it, doesn't duplicate it.
+
+
+### Prior-Art Check (MUST, for cross-cutting capabilities)
+
+**The failure this rule prevents:** the SRD over-specifies a cross-cutting capability
+(rate limiting, auth, caching, etc.) that the codebase already implements. The user
+typically catches it only because they happen to remember the existing module —
+*"I think there is a rate limiter"* — and the analyst then grep-discovers a mature
+DDD-layered subsystem the spec had been quietly designing around. Respect-Don't-Restate
+above handles **documented** prior art; this rule handles **coded** prior art.
+
+**The rule:** Before drafting any FR or NFR that names a cross-cutting capability from
+the canonical list below, you MUST search the codebase for an existing implementation.
+Not "ask the user if they have one" — **search first, then confirm with the user.**
+
+**Canonical cross-cutting concerns** (extend as you encounter new ones):
+
+| Concern | Search keywords (module / file names typically used) |
+|---|---|
+| Rate limiting / throttling | `ratelimit`, `rate_limit`, `rate-limit`, `throttle`, `quota` |
+| Authentication / authorisation | `auth`, `authn`, `authz`, `oauth`, `oidc`, `jwt`, `session` |
+| Caching | `cache`, `redis`, `memcache`, `lru` |
+| Queueing / async work | `queue`, `worker`, `task`, `job`, `celery`, `sidekiq`, `bullmq`, `sqs` |
+| Retries / circuit breakers | `retry`, `backoff`, `circuit`, `tenacity`, `resilience` |
+| Secrets management | `secret`, `vault`, `kms`, `credential` |
+| Observability (logs/traces/metrics) | `logging`, `logger`, `tracing`, `otel`, `opentelemetry`, `metrics`, `prometheus` |
+| Feature flags / rollouts | `feature_flag`, `flag`, `launchdarkly`, `unleash`, `growthbook` |
+| Audit logging | `audit`, `audit_log` |
+| Idempotency | `idempoten`, `idempotency_key` |
+| Pagination | `paginat`, `cursor`, `page_token` |
+| Error format / response envelopes | `error_response`, `problem`, `api_error` |
+| Health checks | `health`, `liveness`, `readiness`, `livez`, `readyz` |
+| Distributed tracing | `trace`, `span`, `context_propagation` |
+| Configuration / settings | `config`, `settings`, `env_loader` |
+| Schema validation | `validator`, `schema`, `pydantic`, `zod`, `jsonschema` |
+| Event bus / pub-sub | `event_bus`, `pubsub`, `kafka`, `nats` |
+| Multi-tenancy / org scoping | `tenant`, `organization`, `org_scope`, `workspace` |
+
+**The check (≤ 60 seconds):**
+
+1. **Capability inventory first.** If `.architecture/{project}/probe-raw/1_2_capabilities.json`
+   exists, grep its `items[].file` and `items[].name` for the keywords. The probe has
+   already done the structural analysis for you — use it.
+2. **Direct codebase grep** as fallback: `find <repo>/src <repo>/apps <repo>/lib
+   -path '*/{keyword}*' -type d` plus `grep -rln "<keyword>" <module-roots>`. Look for
+   module directories, not just file matches — a subsystem is usually a directory
+   (`shared/ratelimiting/`, `core/auth/`, `infra/cache/`).
+3. **Read the public surface.** If a match exists, read its `__init__.py` /
+   `index.ts` / package root in 30 seconds to understand what's exposed. You're not
+   reverse-engineering — you're confirming the capability exists and noting its public
+   API shape.
+
+**What to do with the result:**
+
+- **Mature implementation found (DDD-layered, has tests, has admin endpoints, etc.):**
+  Pivot the FR/NFR from *"specify the rate limiter"* to *"reference
+  `apps/api/sulis/shared/ratelimiting/` and define the per-operation policy table for
+  the new operations introduced in this spec."* The spec describes *configuration*,
+  not *implementation*. Note the module path in the FR so SEA knows to configure not
+  re-implement. This is CP-01 priority 0 (internal prior art) in action.
+
+- **Lightweight or partial implementation found** (e.g. an old middleware-only rate
+  limiter superseded by a fuller subsystem): record both, flag the consolidation
+  question in `## Deferred to SEA`. Don't try to resolve the migration during SRD —
+  surface it.
+
+- **No implementation found:** Confirm with a single question — *"I checked for an
+  existing rate-limit module and found none. Should I specify a new one based on the
+  established convention (token-bucket per RFC 7231 + `X-RateLimit-*` headers), or do
+  you have one I missed?"* Then proceed with Convention Preference defaults.
+
+- **Match ambiguous** (multiple plausible candidates): list them in one question;
+  ask the user which is authoritative. Don't guess.
+
+**When to run:** the moment a topic appears that maps to the canonical list — usually
+mid Phase 2 (Divergent Exploration) when the user mentions a non-functional concern,
+or at the start of Phase 3 (Convergent Specification) when you're about to draft an
+NFR. Don't wait for the user to remind you.
+
+**What to record:** Any prior-art finding goes into `EXPLORATION_JOURNAL.md` under
+`## Prior-Art Findings` with: capability name, module path, public API summary, and
+the resulting framing decision (reference vs. extend vs. consolidate vs. new).
 
 
 ### Plain English First (MUST)
