@@ -4,14 +4,14 @@
     "name": "Iain"
   },
   "metadata": {
-    "version": "1.8.0",
-    "description": "Sulis AI plugin marketplace — methodology studios, requirements analysis, facilitation, context cartography, right-sized architecture, disciplined change primitives, and deterministic code intelligence. v1.8.0 codifies Convention Preference (CP-01..CP-05) — every agent now defaults to established conventions (IETF / W3C / ISO / dominant industry pattern) over bespoke approaches; bespoke recommendations require explicit defence. Also includes SEA v0.9.1 with Reserved-Vocabulary Sweep, 17 deterministic probe phases (15 per-workspace + Deployment Topology + Credential Scanning with hash-only privacy contract), and polyglot 4-stage workspace enumeration."
+    "version": "1.9.0",
+    "description": "Sulis AI plugin marketplace — methodology studios, requirements analysis, facilitation, context cartography, right-sized architecture, disciplined change primitives, and deterministic code intelligence. v1.9.0 operationalises Convention Preference (CP-01..CP-05) inside the rules agents actually use when posing questions and emitting decisions — the SRD analyst's `Question + Convention-Default Assumption` rule (MUST for technical/methodology choices), Phase 3 Convergent Specification rewritten to anchor on conventions first, plus 10 tactical patches across strategy/design/idc/sea/product skills so option-presentation moments always recommend the established convention instead of presenting neutral menus."
   },
   "plugins": [
     {
       "name": "srd",
       "source": "./plugins/srd",
-      "version": "1.12.0",
+      "version": "1.13.0",
       "description": "Requirements Analyst — facilitates building Software Requirements Documents backed by UML artifacts through guided conversation. Includes intent triage (Phase 1), disambiguation sweep (Phase 3.5), and adversarial sweep (Phase 3.6 — produces MISUSE_CASES.md with negative requirements). Reads .context/{project}/INDEX.md (from sulis-context) on Phase 1 to apply Respect-Don't-Restate. Hands architecture work over to SEA via early or mid-session handover."
     },
     {
@@ -23,13 +23,13 @@
     {
       "name": "sulis-strategy",
       "source": "./plugins/sulis-strategy",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "description": "Business strategy studio — vision, strategy, principles, commercial, GTM, roadmap, and domain-specific research"
     },
     {
       "name": "sulis-product-development",
       "source": "./plugins/sulis-product-development",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "description": "Product development studio — design, plan, implement, complete, feature lifecycle, validation, and autonomous sub-agents"
     },
     {
@@ -41,7 +41,7 @@
     {
       "name": "sulis-design",
       "source": "./plugins/sulis-design",
-      "version": "1.0.0",
+      "version": "1.1.1",
       "description": "Design studio — design language, tokens, visual identity, customer experience, and cross-outcome coherence verification"
     },
     {
@@ -53,7 +53,7 @@
     {
       "name": "sea",
       "source": "./plugins/sea",
-      "version": "0.9.1",
+      "version": "0.9.2",
       "description": "Senior Engineering Architect — designs hardened architectures, audits brownfield code for primitive gaps, and decomposes designs into atomic Work Packages with Red-Green-Blue verification. /sea:probe v0.9.0 runs 17 deterministic phases via ast-grep + lizard + scc + git plus optional tools (jscpd, ts-prune, vulture, deadcode, dependency-cruiser, import-linter, detect-secrets). Polyglot 4-stage workspace enumeration discovers TS, Python, Go, Rust, Terraform, and deployment-only dirs alongside monorepo manifests. Phase 1.16 (Deployment Topology) catalogues Dockerfiles, K8s manifests, Helm charts, Terraform, GitHub Actions, Argo CD, Flux, and Sulis manifests (Workload/Application/BusinessManifest) with secret-reference extraction (NAMES only). Phase 1.17 (Credential Scanning) invokes detect-secrets with a strict hash-only privacy contract — plaintext never appears in any output — and respects .secrets.baseline for new-vs-known triage. Outputs structured JSON + Markdown + self-contained navigable HTML. Tools auto-install via the bundled installer; no LLM fallback. Every WP carries a change primitive (22-primitive Minto-pyramid catalogue). Enforces No-Band-Aid-Wrappers (MUST). Reads .context/{project}/INDEX.md (sulis-context); computes SIZING.md (sFPC + ASR). Consumes SRD v1.11.0+ MISUSE_CASES.md, GLOSSARY.md, ## Deferred to SEA journal sections, and HANDOFF_TO_SEA.md."
     },
     {

@@ -122,7 +122,16 @@ brand-assets/
 ## Coaching gates
 
 - **Show, don't tell:** present brand visually, not as a token table.
-- **Offer alternatives:** always show 2–3 options, never declare one.
+- **Recommend the convention, then offer alternatives:** lead with the
+  BP-03 default (system typography stack + professional/modern/crisp
+  palette + accessible contrast pair) as the recommended brand, and
+  explain why it's the boring-default choice (no font licensing, fast
+  load, accessible by construction). Then offer 1–2 alternatives only
+  with explicit rationale for the deviation (e.g. "Inter via Google
+  Fonts buys you a more distinctive feel at the cost of an external
+  dependency"). Never present 2–3 options as a neutral menu — per
+  Convention Preference (CP-05), the founder needs the recommendation
+  to react to, not a flat list of choices.
 - **Respect iteration:** founders refine brand by feedback. Welcome 3
   rounds before considering scope creep.
 - **Acknowledge complexity:** the founder may have brand intuitions

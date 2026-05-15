@@ -153,25 +153,36 @@ reprice, adjust pricing
 
 ### Phase 3: Pricing Model Selection
 
-| Model | Best For | Alignment | Complexity |
-|-------|----------|-----------|------------|
-| **Free** | Acquisition, community | High | Low |
-| **Freemium** | Self-serve growth | High (if natural tiers) | Medium |
-| **Subscription** | Predictable value | Medium | Low |
-| **Usage-Based** | Variable workloads | High | High |
-| **Tiered** | Segmented market | Medium | Medium |
-| **Seat-Based** | Collaboration tools | Low-Medium | Low |
-| **Enterprise** | Custom needs | Variable | High |
+**Recommend the canonical model for the customer-value pattern, then check it.** Do
+not present the table as a neutral menu (per CP-01..CP-05). Apply the convention map
+below; only deviate when the user can name a specific constraint the canonical model
+cannot satisfy.
 
-**Selection Criteria:**
+**Canonical pricing model by customer-value pattern:**
 
-| Criterion | Questions |
-|-----------|-----------|
-| **Value Pattern** | Continuous or burst? |
-| **Usage Pattern** | Predictable or variable? |
-| **Customer Segment** | Self-serve or sales-driven? |
-| **Competitive Norm** | What do users expect? |
-| **Cost Structure** | Fixed or usage-based? |
+| Customer-value pattern | Canonical model | Why this is the boring default |
+|---|---|---|
+| Predictable continuous value, sales-led mid-market+ | **Tiered subscription** (Salesforce, HubSpot pattern) | Forecastable revenue, well-understood unit economics, every CFO knows how to read it |
+| Predictable continuous value, self-serve SMB | **Freemium → tiered subscription** (Notion, Linear pattern) | Free tier seeds the funnel; paid tiers convert when natural usage limits hit |
+| Variable workload, infrastructure-style consumption | **Usage-based / metered** (AWS, Stripe, Vercel pattern) | Cost-to-serve scales with revenue; aligns customer ROI with spend |
+| Collaboration value scales with team size | **Per-seat subscription** (Slack, Figma pattern) | Maps revenue to natural growth signal; easy procurement |
+| Custom integration / regulatory / high-touch needs | **Enterprise (negotiated)** | Standard SaaS contracts don't accommodate procurement / security / SLA bespoke terms |
+| One-time outcome, no recurring value | **One-time licence or transaction fee** | Subscription would create churn cosmetics without underlying value |
+
+**Anti-conventions you DO NOT recommend by default** (require explicit rationale):
+
+- "Pay what you want" / donation pricing — usually correlates with hobby product or
+  ideological positioning, not commercial viability.
+- Per-feature unbundled pricing — operationally expensive and friction-heavy; only
+  recommend when the buyer explicitly demands à la carte.
+- Custom bespoke pricing models — almost always reducible to one of the canonical
+  models above; surface the canonical equivalent first.
+
+**Reality probe before locking the model:** What do the user's top 3 competitors
+charge, and on what unit? If the user's proposed model is materially different (not
+just price level — model shape), name the convention they're departing from and
+require the rationale. The competitive norm is part of the boring default per CP-04
+(pattern-match to dominant player).
 
 ### Phase 4: Tier Design
 

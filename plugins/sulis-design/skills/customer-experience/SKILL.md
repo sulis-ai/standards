@@ -2,13 +2,23 @@
 
 > **"Context before solutions. Evidence before intuition."**
 >
-> This skill defines the target customer experience following ISO 9241-210
-> human-centred design. Context-of-use analysis must precede design.
-> Behavioural patterns must cite evidence, not rely on instinct.
+> **Canonical methodology: ISO 9241-210 Human-Centred Design.** This is not
+> one approach among several — it is the international standard for
+> human-centred design and the default this skill always applies. Its four
+> phases (specify context of use → specify user requirements → produce
+> design solutions → evaluate against requirements) are the convention;
+> deviations require an explicit reason cited in the artifact (e.g. a
+> Design Sprint adaptation, lean-discovery constraint, or regulator-imposed
+> alternative).
+>
+> Context-of-use analysis must precede design. Behavioural patterns must
+> cite evidence, not rely on instinct.
 >
 > **Philosophy:** Experience design is a science-informed discipline.
 > Every interaction principle traces to user research. Every behavioural
-> nudge cites evidence.
+> nudge cites evidence (EAST, COM-B, dual-process — established frameworks,
+> never bespoke). Per Convention Preference (CP-01), the canonical
+> framework is the default; novel methodologies require explicit defence.
 
 ---
 

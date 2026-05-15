@@ -262,12 +262,21 @@ Each "pin" is a niche segment. Hit one, it knocks down the next.
 
 ### Positioning by Adoption Segment
 
-| Segment | Position As | Emphasize |
-|---------|-------------|-----------|
-| **Innovators** | Cutting-edge technology | Technical innovation, APIs |
-| **Early Adopters** | Strategic advantage | Vision, customization, ROI |
-| **Early Majority** | Productivity solution | Ease of use, support, references |
-| **Late Majority** | Industry standard | Risk reduction, proven track record |
+**Moore's Crossing the Chasm dictates the canonical positioning per segment** — the
+Technology Adoption Lifecycle is the established convention here (Moore, 1991;
+updated 2014). The mapping below is not a menu to choose from; it is the convention
+to apply. Recommend the canonical positioning for the segment, then ask the user to
+defend a deviation if they want one.
+
+| Segment | Canonical position (Moore) | Emphasize | When to deviate |
+|---|---|---|---|
+| **Innovators** | Cutting-edge technology | Technical innovation, APIs | Almost never — innovators *are* the technology-curious segment |
+| **Early Adopters** | Strategic advantage | Vision, customisation, ROI | Almost never — visionary buyers want vision-sell |
+| **Early Majority** | Productivity solution | Ease of use, support, references | Only when chasm has already been crossed in this segment |
+| **Late Majority** | Industry standard | Risk reduction, proven track record | Only when targeting risk-tolerant late-majority sub-segments |
+
+Deviations from this mapping require the user to name a specific market dynamic that
+overrides the convention. Default is the canonical answer.
 
 ### Competitive Positioning Map
 
@@ -295,16 +304,39 @@ Each "pin" is a niche segment. Hit one, it knocks down the next.
 
 ## Channel Strategy
 
-### Channel Selection Matrix
+### Channel Selection — Canonical Convention by Segment
+
+**The canonical channel for each adoption segment follows Crossing the Chasm and is
+not a menu to pick from.** Recommend the canonical channel; only deviate when the
+user can name a specific reason the convention will not work (regulatory
+distribution requirements, exclusive partner relationship, hard ACV economics).
+
+| Segment | Canonical channel (Moore + dominant SaaS pattern) | Cost | Why this is the boring default |
+|---|---|---|---|
+| **Innovators** | Self-serve + community | Low | Innovators evaluate via docs and code; sales creates friction |
+| **Early Adopters** | Direct sales (consultative) | High | Visionary buyers need vision-sell; ACV justifies the motion |
+| **Early Majority** | Inside sales + product-led (PLG hybrid) | Medium | Reference-driven buying; demo + free-trial blend |
+| **Late Majority** | Channel partners / marketplace | Medium | Risk-averse buyers prefer trusted intermediaries |
+
+**Other channels (reserve for specific cases, with rationale):**
+
+- **OEM / embedded distribution** — recommend only when the buying centre is the
+  embedding vendor, not the end-user.
+- **Marketplace (AWS Marketplace / Salesforce AppExchange)** — recommend as a
+  *supplement* to direct or inside sales for enterprise procurement convenience,
+  rarely as the primary channel.
+
+The full matrix below catalogues the trade-offs for reference, but it is not the
+selection rule — the segment → channel mapping above is.
 
 | Channel | Best For | Cost | Control | Scale |
 |---------|----------|------|---------|-------|
-| **Direct Sales** | High-touch, complex | High | High | Low |
-| **Inside Sales** | Mid-market, demo-driven | Medium | High | Medium |
-| **Self-Serve** | Simple, low-touch | Low | High | High |
-| **Channel Partners** | Market access, expertise | Medium | Low | High |
-| **Marketplace** | Discovery, trust | Low-Medium | Low | High |
-| **OEM** | Embedded distribution | Low | Low | Very High |
+| **Direct Sales** | Early-adopter ACV ≥ £50k | High | High | Low |
+| **Inside Sales** | Early-majority demo-led | Medium | High | Medium |
+| **Self-Serve** | Innovators + SMB early-majority | Low | High | High |
+| **Channel Partners** | Late-majority risk-averse | Medium | Low | High |
+| **Marketplace** | Procurement convenience layer | Low-Medium | Low | High |
+| **OEM** | Embedded distribution play | Low | Low | Very High |
 
 ### Channel by Adoption Segment
 

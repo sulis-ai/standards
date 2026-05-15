@@ -51,10 +51,10 @@ review, the agent returns to coaching mode.
 - **Weakest claim it targets:** {{specific deck claim or implication}}
 - **Current rebuttal strength:** {{Strong | Medium | Weak | None}}
 - **Why this rating:** {{evidence the deck contains / lacks}}
-- **Mitigation options:**
-  - Option A — {{specific action: revise slide / add proof-point / change ask}}
-  - Option B — {{alternative action}}
-- **Recommended:** {{one of the options, with rationale}}
+- **Recommended mitigation:** {{specific action: revise slide / add proof-point / change ask — name the convention or pattern this draws on, e.g. "add a top-down + bottom-up TAM triangulation per FN-04"}}
+  - **Why this is the default:** {{one sentence: the established pattern, prior-objection precedent, or FN-/ND-/VD-/SQ- rule this satisfies}}
+- **Alternative approaches** (only if the founder has a constraint that rules out the recommendation):
+  - {{alternative action — name what constraint would force it}}
 
 ### 2. {{IO-NN}}: {{SHORT_NAME}}
 

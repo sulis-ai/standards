@@ -57,10 +57,20 @@ These steps execute automatically as part of the new-feature sequence. Do not in
 
 For Bug/Small-class work that doesn't use the full new-feature sequence:
 
-1. Read `architecture/TECH_RADAR.md` for approved technologies
-2. Identify which existing patterns apply to the change
-3. Confirm no new technology introduction is needed
-4. If new tech IS needed, escalate to Feature class (triggers full sequence)
+1. Read `architecture/TECH_RADAR.md` for approved technologies — the **ADOPT
+   ring is the canonical convention** for this project. Per Convention
+   Preference (CP-01), the recommended choice is whatever the ADOPT ring
+   names for the relevant capability.
+2. **Apply the highest-priority ADOPT-ring pattern** that fits the change.
+   Do not enumerate candidates as a menu and ask the user to pick — the
+   radar's adoption ordering IS the recommendation. If two ADOPT-ring
+   patterns both fit, recommend the older / more boring one (CP-02).
+3. Confirm no new technology introduction is needed. The default is
+   "no" — any "yes" requires a specific requirement that the ADOPT
+   patterns cannot satisfy, named in the DESIGN.md rationale.
+4. If new tech IS needed, escalate to Feature class (triggers full
+   sequence). Surface the established convention from CP-01's worked-
+   examples table as the recommendation even at the larger scope.
 
 **Output:** A brief "Implementation Context" section for DESIGN.md:
 

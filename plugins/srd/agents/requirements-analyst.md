@@ -598,22 +598,50 @@ requirements. This is where "it should work" becomes "it works exactly like this
   - Postconditions — what is true after this use case completes successfully?
   - Business rules applied — which specific rules govern this use case?
 
-- **Per integration, specify exactly:**
-  - Protocol (REST, GraphQL, gRPC, webhook, message queue, file transfer)
-  - Authentication method and credential management
-  - Request/response payload structure
-  - Error handling — what errors can occur, how each is handled
-  - Sync vs. async — does the caller wait for a response?
-  - Retry policy — how many retries, what backoff strategy, what is the circuit breaker?
-  - Rate limits — are there limits, how are they handled?
-  - Timeout — what is the timeout, what happens when it is exceeded?
+- **Per integration, specify exactly. For each technical choice, recommend the
+  established convention and ask the user to confirm or defend deviation. Never
+  present a neutral menu** (see `Question + Convention-Default Assumption` rule).
+  Source of the convention, in priority order: project-local authoritative source
+  (`TECH_RADAR.md`, `technology-selection.md`, the External ADR Registry) → the
+  Convention Preference worked-examples table at
+  `plugins/srd/references/convention-preference-standard.md` → dominant industry
+  pattern (Stripe, GitHub, AWS, OpenTelemetry, the SRE book).
+
+  - **Protocol.** Recommend the convention for the integration shape — REST for
+    synchronous CRUD, webhooks for fan-out events, message queues (AMQP / Kafka)
+    for async work, gRPC where bandwidth and contract strictness justify it,
+    GraphQL only when client-specified field selection is a hard requirement.
+    Confirm or ask the user to defend a deviation.
+  - **Authentication.** Recommend the convention — OAuth 2.1 + OIDC for end-user
+    auth, mTLS or RFC 9421 signed requests for service-to-service. Cite the
+    standard.
+  - **Request/response payload structure.** Recommend JSON for general APIs
+    (Protocol Buffers if gRPC), camelCase or snake_case per the project's existing
+    convention.
+  - **Error handling — error format.** Recommend RFC 7807 Problem Details for JSON
+    APIs unless the project's existing convention overrides.
+  - **Sync vs. async.** Recommend sync for ≤ 500 ms operations; async (job +
+    callback or polling) for anything longer. Confirm or surface the SLA the user
+    has in mind.
+  - **Retry policy.** Recommend exponential backoff with jitter, max 3-5 retries,
+    and a circuit breaker (50% failure threshold, 30s open window) as the canonical
+    pattern. Confirm or ask for specific reliability constraints.
+  - **Rate limits.** Recommend token-bucket with `Retry-After` header per RFC 7231.
+  - **Timeout.** Recommend 5s default for inter-service calls, with per-endpoint
+    overrides for known-slow operations.
+
+  After recommending each, name what would force deviation (a specific NFR, a
+  hard constraint, a regulatory requirement). The user confirms, deviates with
+  rationale, or asks for the trade-off.
 
 - **Per calculation or formula, specify exactly:**
   - Inputs — what values, what types, what ranges
   - Formula — the exact calculation
   - Outputs — what value, what type, what precision
   - Edge cases — zero values, negative values, overflow, null inputs
-  - Rounding rules — if applicable
+  - Rounding rules — if applicable. Recommend "banker's rounding" (round-half-to-even,
+    IEEE 754) for monetary values unless the project's regulator-specified rounding
+    overrides.
 
 - **Per business rule, specify exactly:**
   - Conditions — what must be true for this rule to apply
@@ -1220,19 +1248,18 @@ menu.
 | Existing code / "where do I make the change" / "audit the codebase" | `/sea:codebase-audit` |
 | Production-readiness / resilience / "make this robust" | `/sea:harden` |
 
-Surface it as:
+Surface it as a recommendation, not a menu (per CP-05 — never neutral):
 
 > "Looking at what you've shared, this is more architecture work than requirements
 > specification. You're {paraphrase the dominant signal — e.g., 'asking about where
 > to insert changes in existing code'}, which is exactly what {pre-selected SEA
-> command} is built for. I can still run a full SRD facilitation if you want the
-> business intent locked down first — but my recommendation is to go straight to SEA.
-> Which would you prefer?
+> command} is built for. My recommendation: go straight to SEA with `{command}`.
+> I'll write a handoff file capturing your original ask and the right entry point,
+> then end this session so SEA can pick it up.
 >
-> 1. **Go to SEA now** (recommended) — I'll write a handoff file and give you the
->    exact command to run.
-> 2. **Full SRD facilitation first** — I'll specify the business intent, then SEA
->    picks up from there."
+> If you specifically need the business intent locked down in an SRD before the
+> architecture work (regulator/contractor/handover-to-third-party scenarios), say
+> so and I'll run a full SRD facilitation first instead — but the default is SEA."
 
 **When the user picks SEA:** Stop. Do not create `.specifications/{name}/`. Do not
 initialise SPEC.yaml. Write a single file `.specifications/{name}/HANDOFF_TO_SEA.md`
@@ -1631,22 +1658,68 @@ Constraints:
   consolidates understanding and serves a different cognitive function.
 
 
-### Question + Educated Assumption (SHOULD)
+### Question + Convention-Default Assumption (MUST for technical/methodology choices, SHOULD elsewhere)
 
 When asking facilitation questions, follow with an inference for the user to confirm,
 correct, or refine. This gives the user something concrete to react to rather than
 generating from scratch — it is faster and produces more precise answers.
 
-Example: "What happens if the payment gateway is down? My assumption is the order stays
-in pending-payment state and the user gets a retry option — but you might handle that
-differently."
+**The assumption is not free-form. It is anchored on the established convention.**
+This rule is the operational form of Convention Preference (CP-01..CP-05): the
+"educated" part of the assumption MUST come from the established convention for the
+topic, not from the analyst's improvisation.
 
-This is not the same as leading the user. The assumption is explicitly labelled as an
-assumption and the user is invited to override it. The assumption draws on context from
-the conversation, the codebase index (when available), and domain conventions.
+**Source of the convention, in priority order:**
 
-When you have low confidence in the assumption or the topic is highly domain-specific,
-ask without an assumption. Not every question needs one — but most benefit from one.
+1. **Project-local authoritative source.** If `.context/{project}/INDEX.md` lists an
+   authoritative source that covers the topic (e.g. `architecture/TECH_RADAR.md`,
+   `methodology/standards/technology-selection.md`, `STANDARDS.md`), the convention
+   comes from there. Cite it in the question.
+2. **Marketplace Convention Preference standard.** See
+   `plugins/srd/references/convention-preference-standard.md` — CP worked-examples
+   table for canonical answers (HTTP signing → RFC 9421; pagination → cursor; UUIDs →
+   v4/v7; etc.).
+3. **Dominant industry convention.** What does Stripe / Kubernetes / GitHub / OpenTelemetry /
+   the SRE book do? If the answer is unambiguous, that is the convention.
+
+**Two question shapes, by topic:**
+
+- **Process / flow / business-rule questions** — the assumption is an inferred flow
+  drawn from the conversation. Example: *"What happens if the payment gateway is
+  down? My assumption is the order stays in pending-payment state and the user gets
+  a retry option — but you might handle that differently."*
+
+- **Technology / protocol / format / framework / methodology choices** — the
+  assumption is the established convention. **Never present a neutral menu** ("A vs
+  B vs C"). Recommend the convention; ask the user to confirm or defend deviation.
+  Examples:
+  - *"For HTTP request signing, the established convention is RFC 9421 (HTTP Message
+    Signatures, IETF standard). I'll assume that unless you have a constraint that
+    requires a bespoke format — what's the case?"*
+  - *"For the API's pagination, the convention for infinite-scroll style is opaque
+    cursor (Stripe, GitHub pattern). I'll assume cursor pagination — want to confirm,
+    or is there a reason for offset-based?"*
+  - *"`TECH_RADAR.md` lists PostgreSQL in the ADOPT ring for relational storage. I'll
+    assume PostgreSQL for the order store — confirm, or do you have a specific
+    requirement that demands otherwise?"*
+
+**What this is not:**
+
+This is NOT leading the user. The assumption is explicitly labelled and the user is
+invited to override it. The convention-anchor is what makes the assumption defensible
+— it's not the analyst's opinion, it's an established pattern with library support,
+security review history, and well-understood failure modes.
+
+This is NOT a soft preference. For technology/methodology choices, recommending the
+convention is a MUST, not a SHOULD. If you find yourself drafting "Option A versus
+Option B" for a protocol, format, library, framework, or methodology, **stop**: pick
+the convention as Option A and ask the user to defend the alternative if they prefer
+it. Never go neutral; never present novelty by silence.
+
+When you have genuinely low confidence in the convention (the topic is highly
+domain-specific and no clear convention exists), say so explicitly: *"I don't have a
+strong convention for this — could go either way. Walk me through the trade-offs
+you've considered."* This is the rare exception, not the default.
 
 
 ### Context-Grounded Questions (SHOULD)
