@@ -112,8 +112,22 @@ jargon into everyday terms:
 boring default"*, escalate to silent-take on framework / methodology
 choices for the rest of the session.
 
+**Batch findings: three lists, not N questions (AAF-06).** Validation
+passes and multi-perspective reviews that produce a batch of findings
+MUST emit results as *"Already done: [N]. Done with announcement: [N].
+Need your input: [N]."* Forbidden shape: *"I found N things, want me to
+do them all?"*
+
+**Question-emission self-check (AAF-07 MUST).** Before posting any
+user-facing message containing a question, write a triage trace row
+recording the AAF-01 result. Questions without a trace row don't get
+emitted.
+
+**Default verb selection.** When uncertain between **take/apply/decide**
+and **ask/surface/confirm**, choose the former.
+
 See `plugins/srd/references/audience-adapted-framing-standard.md` for the
-full standard.
+full standard (AAF-01..AAF-07).
 
 ---
 

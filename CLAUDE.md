@@ -98,15 +98,23 @@ Six rules. If a plan would violate any of these, the plan is wrong.
 6. **The default audience is non-technical.** The marketplace's primary user is a
    non-technical founder. They don't know what RFC 9421, cursor pagination, "Option α
    vs β", `tuple[Decimal, Decimal]`, or UC modelling mean. Before posing any question,
-   run the three-step pre-question triage: (a) does this choice have a user-facing or
-   business-facing consequence? if no — take the convention silently; (b) can the
-   consequence be stated in user-experience or business terms with zero technical
-   vocabulary? if no — take the convention silently; (c) is the right answer obvious
-   from the user's stated principles, vision, or persona? if yes — apply and announce.
-   Only questions surviving all three reach the user, and they reach in concrete
-   scenarios using plain-English equivalents from the translation lexicon. Never expose
-   internal IDs, technical jargon, or `α/β/γ` to a non-technical user in question text.
-   (AAF-01..AAF-05)
+   run the three-step pre-question triage. Step 1 uses a **closed positive list** of
+   what counts as a user-facing or business-facing consequence (changes observable
+   behaviour in first 60 seconds; changes pricing/cost/billing; changes activation
+   flow; changes error messages; changes access boundary; changes user-visible data;
+   changes scope). Anything not on the list — artifact reconciliation, identifier
+   renumbering, diagram additions for already-specified entities, glossary entries,
+   state-machine internals, wording cleanup, convention-shaped technical choices with
+   no perceptual difference — is **step-1-silent**: take the convention, journal-
+   record, never ask. Step 2 catches technical-only consequences. Step 3 catches
+   the user's stated principles. Only step-3 survivors reach the user, in plain
+   English. Before posting any question, **write a triage-trace row to the journal**;
+   the trace is the gate. Batch findings emit as three lists (Already done / Done
+   with announcement / Need your input), never as "I found N things, want me to do
+   them?" When the user signals cognitive overload (*"feels like assuming knowledge"*,
+   *"I'm not a software person"*, *"I don't know what's right"*), immediately downgrade
+   the audience score to Novice for the rest of the session with retroactive triage.
+   (AAF-01..AAF-07)
 
 For full detail on these principles, see `plugins/srd/references/engineering-principles.md`,
 `plugins/srd/references/security-standard.md`,

@@ -118,8 +118,21 @@ the convention.
 **Session-level escalation** (per AAF-05): on signals like *"go with the
 boring default"*, escalate to silent-take.
 
+**Batch findings: three lists, not N questions (AAF-06).** Discovery
+passes that surface multiple findings (untracked ADRs, undocumented
+conventions, etc.) MUST emit results as *"Already done: [N]. Done with
+announcement: [N]. Need your input: [N]."* Most context-discovery
+findings are step-1-silent (recording what exists in the INDEX); only
+genuine scope-or-authority questions reach the user.
+
+**Question-emission self-check (AAF-07 MUST).** Before posting any
+user-facing message containing a question, write a triage trace row.
+
+**Default verb selection.** When uncertain between **take/apply/decide**
+and **ask/surface/confirm**, choose the former.
+
 See `plugins/srd/references/audience-adapted-framing-standard.md` for the
-full standard.
+full standard (AAF-01..AAF-07).
 
 ---
 

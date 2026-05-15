@@ -155,16 +155,44 @@ convention via Convention Preference and journal-record.
 Intermediate / 3 Experienced) tunes triage strictness per AAF-04. Default
 to Novice when calibration is uncertain.
 
-**Session-level escalation.** When the user says *"go with the boring
-default"*, *"trust your judgment"*, or any AAF-05 signal, escalate to
-silent-take on every implementation choice for the rest of the session.
-Announce the escalation once; revoke on *"slow down"* or any default
-override.
+**Session-level escalation and mid-session downgrade (AAF-05 MUST).** When
+the user gives any AAF-05 trigger signal — including the cognitive-overload
+phrases (*"feels like the agent is assuming knowledge"*, *"treat me as if
+I don't know"*, *"I don't know what's right"*, *"I'm not a software
+person"*, *"I'm lost"*, *"what does X mean?"*, three consecutive *"you
+decide"* responses) as well as the explicit escalation phrases — the
+audience score downgrades to Novice immediately for the rest of the
+session. Pending questions on the cycle stack are re-triaged retroactively
+under the strict Novice triage; anything that fails is taken silently
+before the next user turn. Announce the downgrade once. Revoke only on
+explicit *"slow down"* or *"check with me on each."*
+
+**Batch findings: emit three lists, not seven questions (AAF-06).** When a
+validation pass, OODA cycle, or multi-perspective review produces a batch
+of findings, run AAF-01 per finding before listing. Surface results as:
+*"Already done: [N items]. Done with announcement: [N items]. Need your
+input: [N items]."* The forbidden shape is *"I found N things, want me to
+do them all?"* — that puts the user back in the decision seat for items
+the triage already resolved. AAF-06 is the load-bearing rule against
+process-gravity ask-permission behaviour.
+
+**Question-emission self-check (AAF-07 MUST).** Before posting any
+user-facing message that contains a question, write a triage trace row
+to `EXPLORATION_JOURNAL.md` under `## Triage Trace` recording the
+question, the AAF-01 step result, and Emitted=yes. If the triage step
+shows fail, the question is not emitted. The trace is the gate, not the
+documentation — it forces the check to happen mechanically.
+
+**Default verb selection.** When uncertain between **take/apply/decide**
+and **ask/surface/confirm**, choose the former. The journal makes silent
+decisions transparent; permission-seeking creates noise without signal.
+Bias toward silent action with audit trail, not toward consultation.
 
 See `plugins/srd/references/audience-adapted-framing-standard.md` for the
-full standard, the translation lexicon, the show-don't-tell pattern, and
-composition with Plain English First (Section 2), Role Calibration
-(Phase 1), and CP-01..CP-05.
+full standard (AAF-01..AAF-07), the closed positive list of consequences,
+the translation lexicon, the show-don't-tell pattern, and composition
+with Plain English First (Section 2), Role Calibration (Phase 1), and
+CP-01..CP-05.
 
 ---
 
@@ -1128,13 +1156,33 @@ thin areas. Be honest about what is solid and what needs more work.
   run. If MISUSE_CASES.md is missing or empty and the system has any security-sensitive
   primitives, flag it.
 
-- **Fix-as-you-go for small gaps.** If a gap is something you can fill from context
-  (e.g., a missing error handling step in a sequence diagram that is obvious from the
-  use case spec), fix it directly and note what you added.
+- **Run AAF triage on every gap before deciding to fix vs ask (MUST).** Each
+  gap surfaced by perspectives 1-8 passes through the AAF-01 closed positive list
+  in `plugins/srd/references/audience-adapted-framing-standard.md` before any
+  surfacing decision. The default posture is *fix inline and journal* — only gaps
+  that have a genuine user-facing or business-facing consequence (per the closed
+  list) become user questions. Artifact-maintenance gaps (missing diagrams for
+  already-specified entities, identifier renumbering, glossary additions,
+  state-machine internals, wording cleanup, idempotency-key handling, error
+  envelope shape, naming conventions) are step-1-silent — fix inline, never ask.
 
-- **Surface larger gaps to the user.** If a gap requires user input (e.g., "What is the
-  retry policy for the payment gateway integration?"), ask the user. One question at a
-  time, as always.
+- **Fix-as-you-go for step-1-silent gaps.** Most gaps fall here: artifact
+  maintenance, internal naming, state-machine internals, glossary additions.
+  Apply the convention (per CP-01..CP-05) inline; record under
+  `## Auto-Resolved` in COMPLETENESS_REPORT.md with a one-line rationale citing
+  the AAF-01 step that fired. Do not ask.
+
+- **Surface step-3-survivor gaps as a batch using AAF-06.** When perspectives
+  finish and any gaps survive triage to step 3, emit the three-list output
+  (Already done / Done with announcement / Need your input) per AAF-06. The
+  "Need your input" list contains only genuine business or UX questions in
+  plain English. Forbidden output: *"I found N gaps, want me to fix them all?"*
+  — that meta-question violates AAF-06.
+
+- **Triage-trace every surviving question (MUST).** Per AAF-07, log every
+  question to be emitted to `## Triage Trace` in `EXPLORATION_JOURNAL.md`
+  before posting. The trace is the gate — questions without traces are not
+  emitted.
 
 - **Completeness blindspot check (MUST).** After the seven mechanical perspectives have
   run on the final pass and fixes have been applied, run a two-stage blindspot check
@@ -1630,13 +1678,27 @@ neutral, or in tension with that assumption.
 - **Neutral:** Recent answers neither support nor contradict it. No action needed.
 - **In tension:** Recent answers suggest the assumption may no longer hold.
 
-When tension is detected, surface it within the reflection using Coaching Tenet 5
-(hypothesis framing):
+**When tension is detected, run AAF triage on the surfacing itself before
+exposing it as a question.** Two outcomes:
 
-> "Earlier, we were working from the assumption that [assumption A-N]. But based on
-> what you've described about [recent topic], that assumption might not hold anymore —
-> [explain the specific tension]. Should we revisit [list dependent requirements/nodes],
-> or does the original assumption still apply?"
+- **The assumption is about the user's technical knowledge or sophistication**
+  (e.g. "user seemed to want PostgreSQL but recent answer implies they don't know
+  what PostgreSQL is" / "user used technical shorthand earlier but now signals
+  confusion") → **silent recalibration only.** Downgrade the audience score per
+  AAF-05, apply strict triage going forward, and do NOT surface the tension as a
+  question. Record the recalibration in the journal so the audit trail is clear.
+- **The assumption is genuinely business-level** (competing stakeholder goals,
+  scope changes, architectural choices the user explicitly engaged with) → surface
+  it within the reflection using Coaching Tenet 5 (hypothesis framing):
+
+  > "Earlier, we were working from the assumption that [assumption A-N]. But based
+  > on what you've described about [recent topic], that assumption might not hold
+  > anymore — [explain the specific tension]. Should we revisit [list dependent
+  > requirements/nodes], or does the original assumption still apply?"
+
+The triage decision (silent recalibration vs business-level surfacing) is itself
+logged to `## Triage Trace` per AAF-07. Reflection-checkpoint surfacings are not
+exempt from the question-emission gate.
 
 If multiple assumptions are in tension, prioritise by dependency count — assumptions
 with the most dependent requirements surface first. Do not surface more than two

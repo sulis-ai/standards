@@ -33,10 +33,35 @@ The completeness assessment uses a spiral approach rather than a single-pass che
 6. Term Consistency — Does every recurring noun in the artifacts reconcile with GLOSSARY.md (the locked vocabulary from Phase 3.5 Disambiguation Sweep)?
 7. Adversarial Coverage — Does every security-sensitive use case have a corresponding misuse case (or explicit "no plausible adversary" note), and does every misuse case have a defined system response?
 
-**Fix-as-you-go:** When the assessment finds a gap that can be fixed without user input
-(missing diagram for a well-described flow, adjective-only NFR that has enough context to
-make measurable), the agent fixes it immediately and records the fix. Gaps that require
-user input are flagged for review.
+**Fix-as-you-go via AAF triage (MUST).** Every gap found by every perspective passes
+through the AAF-01 triage from `plugins/srd/references/audience-adapted-framing-standard.md`
+before becoming a user question. The default posture is *fix inline and journal-record*;
+only gaps that survive AAF-01 step 1 + step 2 + step 3 become user-facing questions.
+
+- **Step-1-silent gaps** (artifact maintenance, missing diagrams for already-specified
+  entities, identifier renumbering, glossary additions, state-machine internals, wording
+  cleanup) → fix inline, record under `## Auto-Resolved` in COMPLETENESS_REPORT.md with
+  the AAF-01 step that fired.
+- **Step-2-silent gaps** (technical-only trade-offs with no plain-English framing) →
+  apply the convention per CP-01..CP-05, record under `## Auto-Resolved`.
+- **Step-3 survivors** (genuine business or UX gaps the founder can answer) → list
+  under `## User Input Required` in plain English, with the corresponding triage trace
+  written to `EXPLORATION_JOURNAL.md` § `Triage Trace` per AAF-07.
+
+**Per-perspective output contract (AAF-06).** Each perspective emits results as three
+explicit lists, never as "I found N things, want me to fix them all?":
+
+```
+## Perspective N — {name}
+### Already done (fixed inline)
+- {gap} — {one-line rationale citing AAF-01 step that fired}
+
+### Done with announcement
+- {gap} — applied {convention}; rationale: {one line}
+
+### Need your input
+- {plain-English question, no IDs, no jargon}
+```
 
 **Max 3 passes:** The spiral runs up to 3 times. Each pass re-examines all eight perspectives.
 Fixes applied in pass N are verified in pass N+1.
@@ -536,6 +561,11 @@ comply with the Content Quality Standard (CQ-01 through CQ-06):
 ## Output Format
 
 The completeness assessment produces `COMPLETENESS_REPORT.md` in the specification folder.
+**Every perspective MUST emit three lists per AAF-06**: gaps fixed inline under
+`## Auto-Resolved`, gaps decided with announcement under `## Done with announcement`,
+and gaps requiring user input under `## User Input Required`. Each `## User Input
+Required` entry must have a corresponding row in `EXPLORATION_JOURNAL.md` § `Triage
+Trace` per AAF-07.
 
 ```
 REQUIREMENTS COMPLETENESS ASSESSMENT
@@ -544,6 +574,22 @@ Date: {date}
 Passes completed: {1|2|3}
 
 VERDICT: PASS | GAPS_FOUND
+
+## Auto-Resolved (step-1-silent and step-2-silent gaps fixed inline)
+
+- [Perspective N] {flag} {gap description} — fixed by {action}; AAF-01 step {1|2} fired because {one-line rationale}
+- ...
+
+## Done with announcement (convention applied; user can audit and override)
+
+- [Perspective N] {flag} {gap} — applied {convention from CP-01..CP-05}; rationale: {one line}
+- ...
+
+## User Input Required (step-3 survivors, plain English)
+
+- [Perspective N] {plain-English question with no IDs, no jargon}
+  Triage trace: t{NN} — step 1 pass / step 2 pass / step 3 ask
+- ...
 
 --- PERSPECTIVE 1: REQUIREMENT TRACEABILITY ---
 [COMPLETE] Goal G-01 → UC-01, UC-02 → sequence-diagram SD-01, process-flow PF-01
@@ -637,3 +683,4 @@ Pass 2:
 | 2026-03-17 | Audit fixes: updated stale "three" to "five" in pass description; added tree completeness to PASS exit condition; added rate limits to integration checks; formalised content quality flags (CQ_MISSING_SUMMARY, CQ_MISSING_IDENTIFIERS, CQ_RHYTHM_VIOLATION, CQ_READABILITY, CQ_AI_TELL, CQ_UNVERIFIED) with fix strategies; added CQ-04 and CQ-06 checks. | Standards team |
 | 2026-05-13 | Added Perspective 6 (Term Consistency) — enforces Phase 3.5 Disambiguation Sweep vocabulary lock across artifacts. Added Perspective 7 (Adversarial Coverage) — enforces Phase 3.6 Adversarial Sweep produced MISUSE_CASES.md, system responses, propagated negative requirements, and pre-mortem. Updated PASS exit condition to require seven perspectives. | Standards team |
 | 2026-05-15 | Added Perspective 8 (Two-Model Reconciliation) — enforces the Two-Model OODA Reconciliation rule has run to closure: every leaf node in PRIMITIVE_TREE.jsonld carries `leaf_category` from the five-value taxonomy, RECONCILIATION_MAP.md has zero unresolved-gap or undisposed-orphan rows, and the journal's Reconciliation Cycle Stack is closed. New failure codes: UNCATEGORISED_LEAF, UNRESOLVED_GAP, UNDISPOSED_ORPHAN, OPEN_CYCLE_FRAME. Updated PASS exit condition to require eight perspectives. | Standards team |
+| 2026-05-15 | Replaced "Fix-as-you-go" with AAF triage gate per perspective. Every gap from every perspective now passes through the AAF-01 closed positive list before becoming a user question. Three-list output contract (AAF-06): Auto-Resolved / Done with announcement / User Input Required. Every User Input Required entry must carry a Triage Trace row per AAF-07. Removes the failure mode where Phase 5 surfaced artifact-maintenance findings (missing diagrams, glossary additions, identifier renumbering) as founder questions. | Standards team |

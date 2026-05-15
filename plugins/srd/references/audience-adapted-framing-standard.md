@@ -70,11 +70,15 @@ default audience is non-technical; technical questions die at the triage.**
 
 ## AAF-01: The Three-Step Pre-Question Triage (MUST)
 
-Before any question reaches the user, the agent runs three checks in order.
-Each check terminates the triage when it fires.
+Before any question reaches the user, the agent runs three checks in
+order. Each check terminates the triage when it fires. **The default
+posture is silent action**: if a check is ambiguous, the agent takes the
+convention and journal-records the decision — it does not ask. Permission-
+seeking is the failure mode this rule is written to prevent.
 
 ```
 1. Does this choice have a user-facing or business-facing consequence?
+   (Apply the closed positive list below — default-deny.)
    → No   → Take the convention silently. Journal-record the decision
             under ## Decided-by-default with a one-line rationale.
             Continue. The user never sees this choice.
@@ -90,8 +94,7 @@ Each check terminates the triage when it fires.
      - the user's stated principles (VISION.md, PRINCIPLES.md, STRATEGY.md)
      - the target persona / first-user profile
      - a session-level instruction the user has given
-       ("go with the boring default", "trust your judgment",
-        "most boring standard and expected")
+       (see AAF-05 trigger list)
    → Yes  → Apply the principle. Announce the decision in the next response
             with a one-line rationale citing the principle.
             The user can override; default is to proceed.
@@ -101,33 +104,74 @@ Each check terminates the triage when it fires.
             (show, don't tell) when the trade-off is experiential.
             Never expose Option α/β/γ, technical terms, internal IDs,
             or implementation details in the question text.
+            BEFORE EMITTING THE QUESTION: log the triage trace per AAF-07.
 ```
 
-### What dies at each step
+### Step 1 — the closed positive list (default-deny gate)
 
-**Step 1 deaths (no user-facing consequence):** SDK parameter shape, internal
-data structures, method names, file paths, UC numbering, action class names,
-property names, JSON field ordering, log format details, dependency choices
-where multiple are equivalent, pagination key shape, ID format,
-implementation tactics that produce identical observable behaviour.
+**A choice has a user-facing or business-facing consequence iff at least
+one of these is true.** If none apply, step 1 fires and the agent takes
+the convention silently. Do not rationalise marginal cases into
+"consequence" — when in doubt, the answer is no.
 
-**Step 2 deaths (consequence is technical-only):** "Should we use Postgres or
-DynamoDB?" if both meet all stated requirements and the founder has no
-technology preference. The trade-offs (operational cost, consistency model,
-query patterns) can't be stated without technical vocabulary. Take the
-TECH_RADAR ADOPT-ring default.
+A consequence exists if the choice:
 
-**Step 3 deaths (user's stated values supply the answer):** A pricing-model
-question when the founder has already said "easy-button activation"
-(P8-style principle) — take freemium silently. A retention-policy question
-when the founder said "we operate in EU only" — take GDPR-conformant
-silently and cite the principle.
+- **Changes observable behaviour in the user's first 60 seconds of use.**
+- **Changes pricing, cost to the user, or billing semantics.**
+- **Changes activation, onboarding, or signup flow.**
+- **Changes what the user sees in an error message they will read.**
+- **Changes who can access what** (authorisation boundary the user
+  understands as a business concept).
+- **Changes data the user can see in a UI they will use.**
+- **Changes scope** (what the system will or will not do at v1).
+- **Changes a previously-confirmed user-facing decision** (e.g. a UC
+  flow the user already approved).
 
-**Step 3 survivals (genuine founder decisions):** Pricing tier numbers.
-Target market positioning. Brand voice. Trade-offs that affect the
-investor pitch. Activation flow choices that the founder has explicitly
-flagged as a strategic axis. UX trade-offs that change what the first user
-sees in the first 60 seconds.
+If none of the above applies, **the choice does not have consequence and
+step 1 fires.** The following categories are explicitly step-1-silent and
+never become user-facing questions:
+
+- Internal artifact reconciliation — rewriting an FR in place to match
+  an already-locked decision, deleting a superseded artifact, replacing
+  outdated wording with current convention.
+- Identifier renumbering, ID-format changes, ID-collision resolution
+  (FR-01 → FR-05, UC-08 step ordering, NFR-S04 → NFR-S07).
+- Diagram additions for entities, state machines, flows already
+  specified in narrative or already implemented in code.
+- Glossary entries for terms already in use across artifacts.
+- State-machine internals: initial state, recovery flows, idempotency-
+  key handling, transition guards, retry/backoff, error envelope shape.
+- Wording cleanup, status flips ("deferred" → "active"), version-history
+  entries, formatting consistency, prose tightening.
+- Convention-shaped technical decisions where the boring default has
+  no perceptual difference (Decimal vs cents-as-int internally, named
+  vs positional SDK parameters, JSON field ordering, log format
+  details, file paths, module names, package layout).
+- Pagination key shape, dependency choice between equivalent libraries,
+  factory vs registry pattern, port naming, adapter shape.
+- Test framework choice when multiple equivalent options exist.
+
+This list is **exhaustive for the categories above** — agents do not
+need to "be safe" and surface these. The convention from CP-01 is the
+answer; the journal makes the decision transparent for later audit.
+
+### Step 2 — technical-only consequences
+
+Step 2 fires when a choice *has* consequence (per step 1) but the
+trade-off cannot be stated in plain English. Example: PostgreSQL vs
+DynamoDB when both meet all stated requirements — the trade-offs
+(operational cost, consistency model, query patterns) require technical
+vocabulary the user lacks. Take the TECH_RADAR ADOPT-ring default or the
+CP-01 internal-prior-art default. Journal-record.
+
+### Step 3 — survivals
+
+Genuine founder decisions that survive both gates: pricing tier numbers,
+target market positioning, brand voice, trade-offs that affect the
+investor pitch, activation flow choices the founder has explicitly
+flagged as strategic, UX trade-offs that change what the first user sees
+in the first 60 seconds. These are asked — in plain English, with show-
+don't-tell where the trade-off is experiential.
 
 ---
 
@@ -264,26 +308,48 @@ append) and surface the addition in the EXPLORATION_JOURNAL under
 
 The SRD analyst's Phase 1 Role Calibration produces a coaching level
 (1 Novice / 2 Intermediate / 3 Experienced). Other agents perform similar
-inference at session start. The AAF triage strictness scales with this
-score:
+inference at session start.
 
-| Audience score | Triage behaviour |
+**Step 1 is tier-agnostic.** The closed positive list at AAF-01 applies
+identically regardless of audience tier. An Experienced user does not
+license the agent to surface artifact-maintenance, identifier-renumbering,
+state-machine-internal, or glossary-addition choices — those are
+step-1-silent for every tier. The tier never relaxes step 1.
+
+**Step 2 is tier-aware in framing, not in firing.** Step 2 fires the
+same way for every tier (technical trade-offs that cannot be stated in
+plain English get the convention taken silently). The tier affects only
+whether the journal-recorded rationale uses technical terms or plain-
+English equivalents.
+
+**Step 3 framing strictness scales with the tier:**
+
+| Audience score | Step 3 framing |
 |---|---|
-| **Novice (1)** | Strict triage. Step 1 takes *most* dev-experience and implementation choices silently. Step 2 takes any choice that needs technical vocabulary to explain. Step 3 questions use show-don't-tell + lexicon substitution always. |
-| **Intermediate (2)** | Standard triage. Step 1 takes implementation-detail choices silently. Step 2 takes choices that need ≥ 2 technical concepts to explain. Step 3 questions use show-don't-tell when experiential, lexicon substitution always. |
-| **Experienced (3)** | Relaxed triage. Step 1 only takes pure naming/numbering choices silently. Step 2 may surface technical trade-offs directly. Step 3 questions may use technical terminology if user has used them; lexicon substitution applied to terms the user has not used. |
+| **Novice (1)** | Show-don't-tell scenarios always. Lexicon substitution for every technical concept. Concrete user-experience walkthroughs preferred over abstract options. |
+| **Intermediate (2)** | Show-don't-tell when the trade-off is experiential. Lexicon substitution always for terms the user has not used. Direct options acceptable when both sides are user-facing concepts (e.g. "monthly billing vs annual"). |
+| **Experienced (3)** | Direct options acceptable when the user has demonstrated fluent technical engagement on this specific topic. Lexicon substitution still applies for unfamiliar terms. Show-don't-tell still preferred when the trade-off has a perceptible user-experience difference. |
 
-**The Novice default is the marketplace's default.** Agents that cannot run
-role calibration (e.g. context-cartographer in pure-discovery mode) treat
-the audience as Novice unless the user signals otherwise.
+**Critical:** the Experienced tier does NOT authorise surfacing of step-1
+or step-2 questions. It only affects how step-3 survivors are *framed*.
+
+**The Novice default is the marketplace's default.** Agents that cannot
+run role calibration treat the audience as Novice unless the user signals
+otherwise. **The audience score can be downgraded mid-session** but never
+auto-upgraded — see AAF-05.
 
 ---
 
-## AAF-05: Session-Level Escalation (SHOULD)
+## AAF-05: Session-Level Escalation and Mid-Session Downgrade (MUST)
 
-When the user gives any of these signals, the agent escalates *Take silently*
-to cover all dev-experience and implementation choices for the rest of the
-session:
+When the user gives any of the trigger signals below, the agent
+**immediately downgrades the audience score to Novice for the remainder
+of the session** AND escalates *Take silently* to cover all dev-experience
+and implementation choices. Pending questions in the cycle stack are
+re-triaged retroactively before the next user turn — anything that fails
+the strict Novice triage is taken silently with a journal entry.
+
+**Trigger signals — explicit escalation phrases:**
 
 - *"Go with the boring default"*
 - *"Most boring, standard and expected"*
@@ -291,24 +357,121 @@ session:
 - *"Default to convention"*
 - *"Defaults are fine"*
 - *"Just take the standard"*
+- *"Just decide it"*
 - *"Stop asking me about this stuff"*
 
-Announce the escalation in the next response:
+**Trigger signals — cognitive-overload phrases:**
 
-> *"Got it — I'll take the boring/standard default on every implementation
-> choice from here. I'll surface questions only when there's a real
-> founder decision (pricing model, positioning, brand, target user).
-> Anything I decide will be in the journal so you can audit at the end."*
+- *"Feels like the agent is assuming knowledge"*
+- *"Treat me as if I don't know"*
+- *"I don't know what's right"*
+- *"Stop asking me technical questions"*
+- *"I'm not a software person"*
+- *"This is too technical"*
+- *"I'm lost"*
+- The user asks a clarifying question about agent vocabulary
+  (*"what does X mean?"* where X is a technical term)
+- The user gives three consecutive *"I don't know, you decide"* or
+  equivalent abdication responses
+
+**Trigger signals are read for intent, not as exact-phrase matches.**
+A user saying *"can you just pick the obvious one?"* matches the spirit
+of *"just take the standard"* and triggers the downgrade. When in doubt
+whether a signal counts, treat as a trigger — the downgrade is reversible
+on explicit override.
+
+Announce the downgrade once in the next response:
+
+> *"Got it — I'll shift to plain-English mode and take implementation
+> choices silently from here. I'll come back to you only when there's a
+> real business or UX decision you need to make. Everything I decide is
+> in the journal so you can audit at the end."*
 
 The user revokes the escalation with any of:
 - *"Slow down"*
 - *"Check with me on each"*
 - *"Walk me through more"*
-- Any explicit override of an announced default
+- *"I want to see each decision"*
+- Any explicit override of an announced default (e.g. *"actually use X
+  instead"*)
+
+**Re-upgrade is manual only.** The agent does not auto-promote a
+downgraded user back to Intermediate or Experienced. Only an explicit
+revoke signal (above) or a fresh session resets the calibration.
 
 ---
 
-## Composition with Other Standards
+## AAF-06: Batch-Findings Output Contract (MUST when surfacing multiple findings)
+
+When the agent has produced a batch of findings — typically from a
+validation pass, an OODA cycle's Act step output, or a multi-perspective
+review — it must NOT surface each finding as a separate question. Instead,
+run each finding through AAF-01 triage and emit the result as three
+explicit lists:
+
+```
+## Already done (N items)
+- {finding} — {one-line rationale citing the AAF-01 step that fired}
+- ...
+
+## Done with announcement (N items)
+- {finding} — applied {convention}; rationale: {one line}
+- ...
+
+## Need your input (N items)
+- {plain-English question, no IDs, no jargon, scenario walkthrough where useful}
+- ...
+```
+
+The agent posts the three lists, then begins the "Need your input" series
+as one-question-at-a-time per the standard facilitation rule. The "Already
+done" and "Done with announcement" lists are journaled but presented to
+the user so they have the audit visibility without bearing the decision
+burden.
+
+**Forbidden output shape:** *"I found 7 things. Want me to do them all?"*
+That's a meta-question that puts the user back in the decision seat for
+items the triage already resolved. The correct shape is *"5 done, 2
+announced, 1 question."*
+
+**The validation skill** (`requirements-validation/SKILL.md`) MUST consult
+AAF-01 per finding before listing it under "Need your input" — see
+Perspective workflow.
+
+---
+
+## AAF-07: Question-Emission Self-Check (MUST before posting any question)
+
+**Before posting any user-facing message containing a question, the agent
+MUST log a triage trace to the EXPLORATION_JOURNAL.md** under
+`## Triage Trace`. The trace records the AAF-01 result for each pending
+question. Format:
+
+```markdown
+| Turn | Pending question (verbatim) | Step 1 | Step 2 | Step 3 | Emitted? |
+|------|------------------------------|--------|--------|--------|----------|
+| t37  | "When someone cancels..."   | pass   | pass   | ask    | yes      |
+| t37  | "Add ST-05 diagram?"        | fail   | —      | —      | no — silent |
+```
+
+Step 1/Step 2/Step 3 fields carry `pass` / `fail` / `ask` / `silent` /
+`announce` with a one-sentence rationale appended in a follow-up bullet
+beneath the row.
+
+**The mechanical effect:** writing the trace forces the check. Questions
+that cannot justify a trace entry are not emitted. If the agent finds
+itself about to ask a question without a corresponding trace row, that
+is a violation — the agent stops, writes the trace, and lets the trace
+drive whether to ask.
+
+**The trace is internal.** The user does not see it during the
+conversation; it lives in the journal as a debugging surface. A reviewer
+auditing the session later can verify every emitted question survived
+triage and every silent decision was the correct application of the rule.
+
+**Mandatory for every emission cycle.** Even after a session-level
+escalation (AAF-05 downgrade), each surviving question still requires a
+trace entry. The trace is the audit trail.
 
 - **CP-01..CP-05 (Convention Preference)** — the "convention" the agent
   takes silently in AAF triage steps 1 and 2 is exactly what CP-01..CP-05
@@ -372,6 +535,42 @@ The journal makes choices transparent. Asking *and then* journaling makes
 them transparent twice — but doubles the user's cognitive load. The journal
 alone is sufficient transparency for technical-only choices.
 
+### "Permission-seeking with a trace"
+
+A subtle variant: the agent runs AAF-07 self-check, the trace shows step-1
+*fail*, and the agent emits the question anyway because it "feels safer to
+ask." This is a triage-trace violation — the trace exists to enforce the
+decision, not to document its override. If the trace says fail, the
+emission does not happen. The trace is the gate, not the rationalisation.
+
+If the agent finds itself wanting to ask a step-1-fail question for safety,
+the right move is: take the convention, journal-record under
+`## Decided-by-default`, and continue. The user can audit the journal at
+the end. There is no "extra-safe" mode that lets the agent ask anyway —
+that mode IS the failure this standard exists to prevent.
+
+### "Experienced means I can be technical"
+
+Pre-v1.11.1 a previous draft of AAF-04 contained a carve-out for
+Experienced users: "Step 2 may surface technical trade-offs directly."
+This was removed. **Audience tier never relaxes step 1 or step 2 triage**
+— it only affects the framing of step 3 survivors. An Experienced user
+who has been answering in technical shorthand is still owed silent
+handling of artifact-maintenance, glossary, and state-machine-internal
+decisions. The tier is about how to talk to the user; it is not a
+license to ask more questions.
+
+### "Process gravity wins"
+
+When the agent is running a thorough validation pass (Phase 5,
+multi-perspective review), the cognitive frame becomes "be thorough" —
+which the agent interprets as "verify every finding with the user."
+This is the failure mode the AAF-06 batch contract is written against.
+**Thoroughness lives in the artifact, not the conversation.** A
+spec with one founder-facing question and forty silent technical
+decisions in the journal is thorough. A spec with forty-one questions
+that the founder answered by guessing is not thorough — it is noise.
+
 ---
 
 ## Version History
@@ -379,3 +578,4 @@ alone is sufficient transparency for technical-only choices.
 | Version | Date | Change | Author |
 |---|---|---|---|
 | 0.1.0 | 2026-05-15 | Initial draft. Calibration period 90 days. Promotion to MUST repo-wide requires evidence from three sessions where the standard changed the outcome (fewer technical questions posed; user reported the session felt easier; spec quality not regressed). | Standards team |
+| 0.1.1 | 2026-05-15 | Root-cause fix after v0.1.0 didn't fire in production. (1) AAF-01 step 1 rewritten with closed positive list of consequences — default-deny, no lexical wiggle room. (2) AAF-04 tier behaviour: Step 1 now tier-agnostic; tier only affects step 3 framing. Removed the Experienced "may surface technical trade-offs directly" carve-out that authorised the failure mode. (3) AAF-05 promoted SHOULD → MUST; trigger list extended to include cognitive-overload signals ("feels like agent is assuming knowledge", "I don't know what's right", "I'm not a software person", etc.); mid-session audience downgrade is now immediate with retroactive triage. (4) Added AAF-06 batch-findings output contract (Already done / Done with announcement / Need your input — three-list shape forbids "found N things, want me to do them?"). (5) Added AAF-07 question-emission self-check requiring a triage-trace journal entry before any question reaches the user. (6) Added four new anti-patterns. | Standards team |

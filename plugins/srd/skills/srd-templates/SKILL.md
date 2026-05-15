@@ -609,6 +609,55 @@ remains in the repo unspecified.)
 
 ---
 
+## EXPLORATION_JOURNAL.md Triage Trace section (AAF-07)
+
+Every question emitted to the user MUST first be logged here per AAF-07 in
+`plugins/srd/references/audience-adapted-framing-standard.md`. The trace is the
+gate, not the documentation — questions without a trace row are not emitted.
+
+```markdown
+## Triage Trace
+
+| Turn | Pending question (verbatim) | Step 1 | Step 2 | Step 3 | Emitted? |
+|------|------------------------------|--------|--------|--------|----------|
+| t{NN} | "{question text exactly as it will appear to the user}" | pass | pass | ask | yes |
+| t{NN} | "{question that died at step 1}" | fail | — | — | no — silent |
+```
+
+One row per pending question. Step 1/2/3 values: `pass` / `fail` / `ask` /
+`silent` / `announce`. "Emitted?" is yes only if all three steps pass to step 3
+ask. A one-sentence rationale follows each row as a bullet beneath, citing the
+specific clause of AAF-01 that fired.
+
+---
+
+## COMPLETENESS_REPORT.md Auto-Resolved section (AAF-06)
+
+When Phase 5 validation runs, every gap from every perspective passes through
+AAF-01 triage. Gaps that fire at step 1 or step 2 are fixed inline and listed
+here — they never become user questions.
+
+```markdown
+## Auto-Resolved (step-1-silent and step-2-silent gaps fixed inline)
+
+- [Perspective N] {flag} {gap description} — fixed by {action}; AAF-01 step {1|2} fired because {one-line rationale}
+- ...
+```
+
+Sibling section `## Done with announcement` captures step-3-silent gaps where
+the user's stated principles supplied the answer:
+
+```markdown
+## Done with announcement (convention applied; user can audit and override)
+
+- [Perspective N] {flag} {gap} — applied {convention from CP-01..CP-05}; rationale: {one line}
+```
+
+The third list, `## User Input Required`, contains only step-3 survivors in
+plain English — each entry must have a corresponding row in the Triage Trace.
+
+---
+
 ## Glossary Template
 
 | Term | Definition | Context | First Appeared |

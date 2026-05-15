@@ -97,8 +97,20 @@ bundle — **do not ask**. Take the canonical pattern.
 **Session-level escalation** (per AAF-05): on signals like *"go with the
 boring default"*, escalate to silent-take.
 
+**Batch findings: three lists, not N questions (AAF-06).** When a
+studio-creation pass surfaces multiple gaps or choices, MUST emit as
+*"Already done: [N]. Done with announcement: [N]. Need your input: [N]."*
+Schema-shape and file-layout decisions are step-1-silent; only genuine
+domain-meaning decisions reach the user.
+
+**Question-emission self-check (AAF-07 MUST).** Before posting any
+user-facing message containing a question, write a triage trace row.
+
+**Default verb selection.** When uncertain between **take/apply/decide**
+and **ask/surface/confirm**, choose the former.
+
 See `plugins/srd/references/audience-adapted-framing-standard.md` for the
-full standard.
+full standard (AAF-01..AAF-07).
 
 ---
 

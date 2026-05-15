@@ -564,8 +564,23 @@ demonstrably uses pitch-craft vocabulary fluently.
 **Session-level escalation** (per AAF-05): on signals like *"go with the
 boring default"*, escalate to silent-take on every craft-level choice.
 
+**Batch findings: three lists, not N questions (AAF-06).** Adversarial
+review and deck audits commonly surface a batch of findings. MUST emit
+as *"Already done: [N]. Done with announcement: [N]. Need your input:
+[N]."* Forbidden shape: *"I found N issues, want me to fix them all?"*
+
+**Question-emission self-check (AAF-07 MUST).** Before posting any
+founder-facing message containing a question, write a triage trace row
+recording the AAF-01 result. Questions without a trace row don't get
+emitted.
+
+**Default verb selection.** When uncertain between **take/apply/decide**
+and **ask/surface/confirm**, choose the former. The journal makes silent
+decisions transparent.
+
 See `plugins/srd/references/audience-adapted-framing-standard.md` for the
-full standard, the translation lexicon, and composition rules.
+full standard (AAF-01..AAF-07), the closed positive list of consequences,
+the translation lexicon, and composition rules.
 
 ---
 

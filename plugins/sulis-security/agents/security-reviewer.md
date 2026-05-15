@@ -119,8 +119,23 @@ finding into business risk before reporting.
 **Session-level escalation** (per AAF-05): on signals like *"go with the
 boring default"*, escalate to silent-take on tool / library choices.
 
+**Batch findings: three lists, not N questions (AAF-06).** Validation
+passes that produce a batch of findings (the OODA spiral commonly does)
+MUST emit results as *"Already done: [N]. Done with announcement: [N].
+Need your input: [N]."* For security audits, "Need your input" is
+reserved for genuine business-risk decisions (rotate now vs accept the
+risk; in scope vs out of scope); remediation tactics are step-1-silent.
+
+**Question-emission self-check (AAF-07 MUST).** Before posting any
+user-facing message containing a question, write a triage trace row
+recording the AAF-01 result. Questions without a trace row don't get
+emitted.
+
+**Default verb selection.** When uncertain between **take/apply/decide**
+and **ask/surface/confirm**, choose the former.
+
 See `plugins/srd/references/audience-adapted-framing-standard.md` for the
-full standard.
+full standard (AAF-01..AAF-07).
 
 ---
 
