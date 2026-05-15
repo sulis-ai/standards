@@ -4,8 +4,8 @@
     "name": "Iain"
   },
   "metadata": {
-    "version": "1.7.0",
-    "description": "Sulis AI plugin marketplace — methodology studios, requirements analysis, facilitation, context cartography, right-sized architecture, disciplined change primitives, and deterministic code intelligence. v1.7.0 ships SEA v0.9.0 with /sea:probe across 17 phases: 15 per-workspace structural analysis (ast-grep + lizard + scc) plus 2 repo-wide phases — Deployment Topology with Sulis manifest support, and Credential Scanning (detect-secrets, hash-only). Polyglot 4-stage workspace enumeration. Auto-installs missing tools; no LLM fallback."
+    "version": "1.8.0",
+    "description": "Sulis AI plugin marketplace — methodology studios, requirements analysis, facilitation, context cartography, right-sized architecture, disciplined change primitives, and deterministic code intelligence. v1.8.0 codifies Convention Preference (CP-01..CP-05) — every agent now defaults to established conventions (IETF / W3C / ISO / dominant industry pattern) over bespoke approaches; bespoke recommendations require explicit defence. Also includes SEA v0.9.1 with Reserved-Vocabulary Sweep, 17 deterministic probe phases (15 per-workspace + Deployment Topology + Credential Scanning with hash-only privacy contract), and polyglot 4-stage workspace enumeration."
   },
   "plugins": [
     {

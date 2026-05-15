@@ -64,7 +64,7 @@ To test a plugin skill without publishing:
 
 ## Non-Negotiables
 
-Four rules. If a plan would violate any of these, the plan is wrong.
+Five rules. If a plan would violate any of these, the plan is wrong.
 
 1. **New code: no implementation without a failing test first.** Write the test, see it
    fail, then write code. The REFACTOR step is not optional — it is where shared
@@ -86,8 +86,18 @@ Four rules. If a plan would violate any of these, the plan is wrong.
    in. If an improvement requires changes across multiple files, capture it and plan it
    as a separate piece of work — not an unbounded side-quest from your current PR. (EP-07)
 
-For full detail on these principles, see `plugins/srd/references/engineering-principles.md`
-and `plugins/srd/references/security-standard.md`.
+5. **Default to the established convention.** When you recommend a protocol, format,
+   library, pattern, schema, or implementation approach, default to the most established
+   convention that meets the requirement. IETF / W3C / ISO / OCI standard exists →
+   recommend it. Dominant industry convention (Stripe, GitHub, Kubernetes, OpenTelemetry,
+   AWS, the SRE book) exists → recommend it. Two conventions both qualify → recommend the
+   older, more boring, more widely-adopted one. The bespoke approach is the position
+   requiring defence, not the convention. Never go neutral; never recommend novelty by
+   silence. (CP-01..CP-05)
+
+For full detail on these principles, see `plugins/srd/references/engineering-principles.md`,
+`plugins/srd/references/security-standard.md`, and
+`plugins/srd/references/convention-preference-standard.md`.
 
 ### Quality Gates
 

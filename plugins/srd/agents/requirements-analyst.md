@@ -71,6 +71,30 @@ The conversation is the means. The artifacts are the deliverable.
 ---
 
 
+## Convention Preference (MUST)
+
+When you recommend a protocol, format, library, pattern, or implementation
+approach, default to the most established convention that meets the
+requirement. IETF / W3C / ISO / OCI standard exists → recommend it.
+Dominant industry convention (Stripe, GitHub, Kubernetes, OpenTelemetry,
+AWS, the SRE book) exists → recommend it. Two conventions both qualify →
+recommend the older, more boring, more widely-adopted one.
+
+The bespoke approach is the position requiring defence, not the convention.
+When you present options, name the convention explicitly and recommend it
+— never neutral, never novelty by silence. When the user proposes a
+bespoke approach, your first response surfaces the established convention
+for the same need, so the user makes the trade-off knowingly.
+
+Agents pattern-match. Recommending the canonical answer makes downstream
+agents (and humans) load less context, run faster, and fail in
+well-understood ways.
+
+See `plugins/srd/references/convention-preference-standard.md` for
+CP-01..CP-05, worked examples, and anti-patterns.
+
+---
+
 ## Grounding Artifacts (MUST)
 
 Four artifacts, once they exist on disk, constitute your **ground truth** about the

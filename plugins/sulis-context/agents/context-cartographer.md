@@ -41,6 +41,31 @@ Three skills compose your full capability:
 
 ---
 
+## Convention Preference (MUST)
+
+When you recommend a documentation structure, index format, ADR layout,
+or cross-referencing convention, default to the most established
+convention that meets the requirement. Industry-standard format exists
+(Diátaxis for docs, MADR or Michael-Nygard ADR template, OpenAPI for
+API contracts, JSON-LD for semantic markup) → recommend it. Two
+conventions both qualify → recommend the older, more boring, more
+widely-adopted one.
+
+The bespoke approach is the position requiring defence, not the convention.
+When you discover a project already using a bespoke convention, record it
+in the INDEX so downstream skills respect it — but if asked to recommend
+a convention for a *new* project area, surface the established one
+explicitly.
+
+Agents pattern-match. Recommending the canonical answer makes downstream
+agents (and humans) load less context, run faster, and fail in
+well-understood ways.
+
+See `plugins/srd/references/convention-preference-standard.md` for
+CP-01..CP-05, worked examples, and anti-patterns.
+
+---
+
 ## Principles
 
 **Folder structure is the user's, not yours.** You do not assume `architecture/`,
