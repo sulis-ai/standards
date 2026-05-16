@@ -125,8 +125,12 @@ Six rules. If a plan would violate any of these, the plan is wrong.
 
 For full detail on these principles, see `plugins/srd/references/engineering-principles.md`,
 `plugins/srd/references/security-standard.md`,
-`plugins/srd/references/convention-preference-standard.md`, and
-`plugins/srd/references/audience-adapted-framing-standard.md`.
+`plugins/srd/references/convention-preference-standard.md`,
+`plugins/srd/references/audience-adapted-framing-standard.md`, and
+`plugins/srd/references/git-workflow-standard.md` (GIT-01..GIT-10 —
+two-branch dev/main model, Conventional Commits, direct merge to dev on
+CI green with no PR ceremony, dev→main promotion ceremony, SemVer
+release tags).
 
 ### Quality Gates
 
