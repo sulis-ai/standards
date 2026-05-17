@@ -308,11 +308,44 @@ orchestrator's parallelism rules), each executor operates in its own
 ### Mechanics
 
 ```bash
-git worktree add ../wp-007-worktree feat/wp-007-cancel-subscription
-# executor operates in ../wp-007-worktree
-# on completion:
+# At lifecycle step 1 — create the worktree off dev HEAD:
+git worktree add ../wp-007-worktree -b feat/wp-007-cancel-subscription dev
+
+# Executor operates in ../wp-007-worktree for steps 2-6 (RGB cycle,
+# lint, commit, push). At step 7 the branch is squash-merged into dev
+# and the remote branch is deleted.
+
+# At lifecycle step 10 — after WP is marked done in INDEX:
 git worktree remove ../wp-007-worktree
 ```
+
+### Cleanup timing (MUST)
+
+The worktree is removed **at the end of the lifecycle, after the WP is
+marked `done` in the INDEX** (step 10) — not at the merge (step 7).
+
+Two reasons:
+
+1. **Diagnosis.** If the deploy (step 8), health-check (step 9), or
+   smoke-test (step 10) fails, having the worktree still present lets
+   the executor (or a human investigator) examine the build state
+   directly. Cleaning up at merge throws away the evidence.
+2. **Simpler mental model.** Everything related to one WP exists until
+   that WP is done.
+
+The **remote branch** is separately deleted **at step 7** (immediately
+after the squash-merge to `dev`). That is about shared-remote hygiene;
+the local worktree is about per-WP working state and persists longer.
+
+### On escalation (scope guard fires)
+
+If the executor halts mid-WP via the scope guard (per
+`executor-loop-standard.md`), the worktree is **left in place** as
+evidence. The orchestrator's `BLOCKER-WP-NNN.md` record points at the
+worktree path. Human investigation can inspect the state. Cleanup
+happens only when the BLOCKER is resolved (the WP either retries
+successfully → mark done → remove worktree, or is permanently abandoned
+→ mark abandoned → remove worktree).
 
 ### Rationale
 
@@ -564,3 +597,4 @@ Acceptance Evidence` section.
 | Version | Date | Change | Author |
 |---|---|---|---|
 | 0.1.0 | 2026-05-16 | Initial draft. Calibration period: 90 days. Promotion to MUST repo-wide requires evidence from three executor sessions in which the standard was followed end-to-end and no rollback was triggered. Encodes GIT-01..GIT-10. Provenance: founder gate-blocked pickup of "Kinds and Tools" work pending a clear git/branching strategy; the standard names the convention defaults that CP-01..CP-05 implied. | Standards team |
+| 0.1.1 | 2026-05-17 | GIT-07 tightening — the original draft was ambiguous about worktree cleanup timing (prose said "after merge" while the worked example showed cleanup at end of lifecycle). Founder caught the inconsistency. Now explicit: local worktree removed at lifecycle **step 10** (after WP marked `done` in INDEX), not at the merge. Remote branch is still deleted at step 7 (separate cleanup). New subsection covers the escalation case — worktree left in place when scope guard fires, so the BLOCKER record can point at it. | Standards team |
