@@ -75,18 +75,16 @@ budget per `executor-loop-standard.md`.
 | 5 | Lint / type / format | All checks pass |
 | 6 | Commit (Conventional Commits) + push | Push accepted; CI triggers |
 | 7 | Poll CI; on green, squash-merge directly to `dev` (no PR) | CI green; squash-merge commit on `dev`; remote branch deleted |
-| 8 | Trigger Sulis SDK deploy | _(ships in v0.3)_ |
-| 9 | Poll health-checks | _(ships in v0.3)_ |
-| 10 | Smoke-test + mark done | _(ships in v0.3)_ |
+| 8 | Trigger Sulis SDK deploy of dev HEAD | Deployment status: `succeeded` |
+| 9 | Poll health-checks (exponential backoff) | Health status: `healthy` |
+| 10 | Smoke-test; mark WP `done` in INDEX; remove worktree | Smoke-test passes; INDEX updated; worktree removed |
 
-**This release (v0.2.0)** implements steps 1-7. After step 7, the
-WP's change is on `dev`; the remote branch has been deleted; the
-local worktree persists (per GIT-07, cleanup happens at step 10).
-The WP's `## Acceptance Evidence` records the branch name, the
-feature branch's pre-squash SHA, and the squash-merge SHA on `dev`.
-INDEX entry shifts from `in_progress` to `merged_to_dev` (a new
-intermediate status that v0.3 will resolve to `done` after deploy +
-smoke).
+**This release (v0.3.0)** implements the full 10-step lifecycle. A WP
+is **done** only when it is implemented, tested, merged to `dev`,
+deployed to staging, healthy, and smoke-tested. Each step that can
+fail runs OODA + Five Whys + scope guard + budget per
+`executor-loop-standard.md`. The worktree is cleaned up at step 10
+per GIT-07.
 
 See `references/lifecycle.md` for the detailed per-step contract,
 success criteria, and failure-handling OODA recipes.

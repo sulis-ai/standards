@@ -357,56 +357,178 @@ discussion is invited; the PR exists for milliseconds.
 
 ## Step 8 — Trigger Sulis SDK deploy
 
-**Status:** **Ships in v0.3** — not implemented in v0.1.
+**Input:** `dev` HEAD with the WP's squash-merge commit (from step 7).
 
-The v0.3 implementation calls the Sulis SDK's deploy operation
-(`client.deploy.staging(branch='dev')` or equivalent) and polls
-deployment status until `succeeded` or `failed`.
+**Action:**
 
-Designed against a stub interface in v0.3; real SDK operations land
-in `sulis-platform-sdk` later.
+```python
+from sulis_sdk import client
+deployment = client.deploy.staging(
+    branch='dev',
+    sha=<merge_sha_from_step_7>,
+    wp_ref='WP-NNN',
+)
+```
+
+The Sulis SDK contract (designed against, real operations in
+`sulis-platform-sdk` v0.2+):
+
+- **`client.deploy.staging(branch, sha, wp_ref)`** — triggers a
+  deploy of the named SHA to staging. Returns a `Deployment` object
+  with `id`, `status` (`pending` | `in_progress` | `succeeded` |
+  `failed`), and `url` (the deployed-application URL).
+- **`client.deploy.status(deployment_id)`** — polls. Returns the
+  current `Deployment`.
+
+**Action loop:** poll `client.deploy.status(deployment.id)` every
+15 seconds for up to 10 minutes. On `succeeded` → advance. On
+`failed` → OODA fires.
+
+**Success criterion:** `deployment.status == "succeeded"`.
+
+**Failure handling:**
+
+- **Deploy failed with a build error** → OODA. Read the build log
+  verbatim from `client.deploy.logs(deployment.id)`. Five Whys.
+  Common cause: a file was modified locally but not committed
+  (executor bug — escalate).
+- **Deploy failed with a registry / dependency error** → out of
+  scope (platform-side). BLOCKER.
+- **Deploy failed because staging is at capacity** → out of scope
+  (infra). BLOCKER (canonical example — see Example 2 in
+  executor-loop-standard.md).
+- **Poll timeout (10 min elapsed)** → treat as deploy-failed,
+  OODA fires. Likely cause: deploy is hung; staging is in a bad
+  state.
+
+**Budget:** 3 attempts.
 
 ---
 
 ## Step 9 — Poll health-checks
 
-**Status:** **Ships in v0.3** — not implemented in v0.1.
+**Input:** Deployment URL from step 8.
 
-The v0.3 implementation polls the Sulis SDK's health-check operation
-(`client.health.staging()` or equivalent) with exponential backoff
-until `healthy` or budget exhaustion (5 attempts).
+**Action:**
+
+```python
+health = client.health.staging(deployment_id)
+```
+
+The Sulis SDK contract:
+
+- **`client.health.staging(deployment_id)`** — returns the most
+  recent health-check status (`healthy` | `degraded` | `unhealthy`
+  | `unknown`) plus the underlying probe results.
+
+**Action loop:** poll with exponential backoff: 15s, 30s, 60s,
+120s, 240s — up to 5 attempts. On `healthy` → advance. On
+`unhealthy` after budget → rollback trigger.
+
+**Success criterion:** `health.status == "healthy"` within budget.
+
+**Failure handling:**
+
+- **Health-check timeout (warm-up too slow)** → OODA. Five Whys.
+  Likely: the new code has a slow startup path. In scope: optimise
+  the startup (lazy init, async warm-up). Or: increase the health-
+  check warm-up budget in the WP's Contract.
+- **Health-check fails consistently** → likely a regression in the
+  deployed change. Out of scope as a fix (the deploy is what's
+  unhealthy; the WP code itself may be fine, but the env may be
+  wrong). Trigger rollback per GIT-10: `git revert` the merge SHA;
+  push the revert to `dev` via the same merge-direct-on-CI-green
+  flow. Mark WP `blocked` with BLOCKER pointing at the rollback.
+
+**Budget:** 5 attempts (exponential backoff covers slow starts).
 
 ---
 
 ## Step 10 — Smoke-test + mark done
 
-**Status:** **Ships in v0.3** — not implemented in v0.1.
+**Input:** Healthy deployment from step 9; WP's `## Smoke Test`
+section (added to WP-format in v0.3 by SEA's decompose skill).
 
-The v0.3 implementation hits the endpoint or runs the script defined
-in the WP's `## Smoke Test` section (added to WP-format in v0.3),
-verifies the expected response, marks the WP `status: done` in
-INDEX, writes the `## Acceptance Evidence` block (merge SHA + deploy
-URL + smoke-test verdict + timestamp), and cleans up the worktree
-(`git worktree remove`).
+**Action:**
+
+1. Run the smoke test per the WP's specification. Typical shapes:
+   - **HTTP endpoint check.** `curl <deploy_url><path>` with
+     expected status code and response body assertion.
+   - **CLI invocation.** Run a binary with known input; verify
+     output.
+   - **Script.** Run a project-defined smoke-test script
+     (`scripts/smoke/wp-NNN.sh`) that exits 0 on success.
+2. On success:
+   - Update INDEX entry: `status: done`.
+   - Append to WP's `## Acceptance Evidence`:
+
+     ```markdown
+     ## Acceptance Evidence
+
+     - Branch: `feat/wp-NNN-<slug>` (deleted post-merge)
+     - Pre-squash SHA: `<sha>`
+     - Squash-merge SHA on dev: `<sha>`
+     - Deployment URL: `<url>`
+     - Health status: `healthy`
+     - Smoke-test verdict: `PASS — <one-line summary>`
+     - Completed: `<ISO-8601>`
+     ```
+
+   - Remove the worktree: `git worktree remove ../wp-NNN-worktree`.
+   - Emit plain-English status line: `"WP-007 done — deployed and
+     healthy at <url>. Smoke-test passed."`
+   - Exit cleanly.
+
+**Success criterion:** Smoke-test asserts pass; INDEX updated;
+worktree removed.
+
+**Failure handling:**
+
+- **Smoke-test fails on a known-flaky issue** → OODA. One retry
+  (budget 2 total). If still failing, treat as a real failure.
+- **Smoke-test fails on a real regression** → OODA. Five Whys.
+  Common cause: the deployed change broke something the WP didn't
+  intend to break. In scope if the regression is in the WP's
+  Contract files; out of scope otherwise. If out of scope, trigger
+  rollback per GIT-10 and BLOCKER.
+- **Smoke-test infrastructure missing** (WP's `## Smoke Test`
+  section blank or script not found) → escalate. Smoke-test
+  definition is SEA's responsibility (WP-template field); missing
+  it is a contract breach.
+
+**Budget:** 2 attempts.
+
+After step 10 succeeds, the WP is **done** in the full atomic sense
+the founder articulated: implemented, tested, merged, deployed,
+healthy, smoke-tested. The orchestrator (v0.4) reads the INDEX,
+sees `status: done`, marks the WP off, and picks the next ready WP.
 
 ---
 
-## v0.2 exit shape
+## v0.3 exit shape
 
-In v0.2, after step 7:
+In v0.3, after step 10 succeeds:
 
-1. Write the branch name, pre-squash SHA, and squash-merge SHA to
-   the WP's `## Acceptance Evidence` section.
-2. Update INDEX entry to `status: merged_to_dev` (a new intermediate
-   status — v0.3 resolves it to `done` after deploy + smoke).
-3. Emit one plain-English status line for the orchestrator /
-   invoking session: `"WP-007 merged to dev (sha abc123); awaiting
-   deploy + smoke (ships in v0.3)."`
-4. Exit.
+1. Append the full evidence block to the WP's
+   `## Acceptance Evidence` section (branch, pre-squash SHA,
+   merge SHA, deploy URL, health status, smoke verdict, timestamp).
+2. Update INDEX entry to `status: done`.
+3. Remove the local worktree (`git worktree remove
+   ../wp-NNN-worktree`).
+4. Emit one plain-English status line for the orchestrator /
+   invoking session: `"WP-007 done — deployed and healthy at
+   <url>. Smoke-test passed."`
+5. Exit.
 
-The worktree is **not cleaned up** in v0.2 either — the WP isn't
-`done` until step 10 (per GIT-07). The remote branch IS cleaned up
-at step 7 (post-merge) — that's separate from worktree cleanup.
+The WP is **done** in the founder's full-atomic sense: implemented,
+tested, merged, deployed, healthy, smoke-tested. The orchestrator
+(v0.4) picks the next ready WP from the INDEX.
+
+If step 10 escalates (smoke fails on a regression, infrastructure
+missing, etc.), the worktree is **left in place** as evidence per
+the executor-loop-standard's scope-guard / BLOCKER discipline. The
+BLOCKER record points at the worktree path. Cleanup happens only
+when the BLOCKER is resolved.
 
 ---
 
