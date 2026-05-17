@@ -1,0 +1,66 @@
+---
+name: status
+description: >
+  Read-only INDEX summary in plain English. Usage:
+  /sulis-execution:status. Shows what's done, what's in-flight, what's
+  blocked, what's pending. Does not modify anything.
+---
+
+# /sulis-execution:status
+
+Read-only view of the Work Package INDEX state.
+
+## Usage
+
+```
+/sulis-execution:status
+```
+
+No arguments. Reads `.architecture/{project}/work-packages/INDEX.md`
+and produces a plain-English summary.
+
+## What it shows
+
+```
+Work Package status:
+
+✓ Done: 7
+  WP-001, WP-002, WP-003, WP-004, WP-005, WP-006, WP-007
+
+⏳ In flight: 1
+  WP-008 — cancel-subscription flow (branch pushed; CI green; awaiting merge)
+
+⚠ Blocked: 1
+  WP-009 — staging cluster at capacity (BLOCKER-WP-009.md)
+
+▢ Pending: 4
+  WP-010, WP-011, WP-012, WP-013
+
+▶ Next ready: WP-010 — webhook idempotency keys
+```
+
+For each blocked WP, shows the plain-English summary from the
+BLOCKER record's `## Plain-English summary` section so the founder
+or concierge can read the status without opening files.
+
+## What it doesn't do
+
+- It doesn't dispatch executors. Use `/sulis-execution:run-wp` or
+  `/sulis-execution:run-all` for execution.
+- It doesn't modify INDEX or any other file. Pure read.
+- It doesn't follow dependsOn — it just shows declared status.
+
+## When to use
+
+- After a `run-all` session, to see where things landed.
+- Before a `run-all` session, to confirm the starting state.
+- When debugging — the INDEX is the source of truth, but `status`
+  is the readable view.
+- To resume after a break — see what's blocked and what's next
+  ready.
+
+## See also
+
+- `agents/orchestrator.md` (ships v0.4) — uses similar logic
+  internally to pick the next ready WP.
+- The INDEX file itself at `.architecture/{project}/work-packages/INDEX.md`.

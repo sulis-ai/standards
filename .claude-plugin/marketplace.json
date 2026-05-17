@@ -69,6 +69,12 @@
       "description": "Investor Deck Coach — facilitates Sequoia-style pitch deck creation through guided one-question-at-a-time conversation. Stage-aware (angel, pre-seed, seed, Series A, Series B). Produces evidence-backed market research with tiered sources, stage-appropriate financial modelling (Excel + branded HTML dashboard), adversarial investor-objection review, customer-branded PowerPoint + HTML decks (Reveal.js), and a live rehearsal drill."
     },
     {
+      "name": "sulis-execution",
+      "source": "./plugins/sulis-execution",
+      "version": "0.1.0",
+      "description": "Work Package Executor — atomic per-WP implementation. v0.1 covers worktree creation, Red-Green-Blue test cycle, lint/type/format, Conventional Commits, and branch push (CI triggers on push). Stops at branch-on-remote in v0.1; v0.2 adds CI poll + direct squash-merge to dev (no PR ceremony); v0.3 adds Sulis SDK deploy + health-check + smoke-test + mark done. Self-heals in-scope failures via OODA + Five Whys per executor-loop-standard.md (EL-01..EL-08); escalates out-of-scope failures via structured BLOCKER records. Follows git-workflow-standard.md (GIT-01..GIT-10 — direct merge to dev, no PR ceremony). EXPAND-group primitive scaffolds in v0.1 (Reuse / Compose / Extend / Generate / Create); v0.5 adds REORGANISE / SUBSTITUTE / CONTRACT / REINFORCE. Pairs with sulis-concierge (Phase 5 dispatches the orchestrator), sea (consumes /sea:decompose output), and sulis-platform-sdk (deploy + health primitives in v0.3)."
+    },
+    {
       "name": "sulis-concierge",
       "source": "./plugins/sulis-concierge",
       "version": "0.1.2",
