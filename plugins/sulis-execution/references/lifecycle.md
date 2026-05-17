@@ -270,18 +270,88 @@ collisions).
 
 ---
 
-## Step 7 — Poll CI; on green, merge to `dev`
+## Step 7 — Poll CI; on green, squash-merge directly to `dev` (no PR)
 
-**Status:** **Ships in v0.2** — not implemented in v0.1.
+**Input:** Branch pushed from step 6; CI triggered automatically by
+the push.
 
-In v0.1, the executor exits cleanly after step 6 (branch pushed, CI
-triggered). The branch awaits manual merge or a future v0.2+ run.
+**Action:**
 
-The v0.2 implementation polls the CI status check on the branch
-(via the host's API — GitHub `gh pr checks`, GitLab API, etc), waits
-for green, and squash-merges directly to `dev`. No PR is opened.
-Branch protection on `dev` requires the CI-green status check; the
-merge proceeds when that check passes.
+1. **Detect host.** Inspect `git remote get-url origin` to determine
+   the host (GitHub, GitLab, Bitbucket, self-hosted).
+2. **Poll the CI status** for the branch HEAD commit:
+   - GitHub: `gh api repos/<owner>/<repo>/commits/<sha>/check-runs`
+     and filter for the required checks named in the project's
+     branch-protection config.
+   - GitLab: `glab ci status` or `glab api projects/.../pipelines`.
+   - Self-hosted: project-specific CI API call defined in the
+     `.sulis/ci-poll.sh` script if present, else fail-out with a
+     clear BLOCKER ("CI poller for host X not yet implemented;
+     hand-merge required").
+3. **Wait for green** with exponential backoff: poll at 30s, 60s,
+   120s, 240s, 480s — total ~14 min. If CI is still pending after
+   the cap, treat as a CI failure (the check is too slow or hung;
+   OODA fires).
+4. **On green, squash-merge to `dev`** using the host's merge API
+   (no PR opened):
+   - GitHub: `gh api -X POST repos/<owner>/<repo>/merges` with
+     base=dev, head=feat/wp-NNN-<slug>, merge_method=squash. Or, if
+     the host requires a PR object even for direct merges (some
+     GitHub Enterprise configs), open a PR and immediately
+     squash-merge it via `gh pr merge --squash --delete-branch`.
+   - GitLab: `glab api projects/.../merge_requests` POST with
+     squash=true and source/target. Same fallback.
+   - Self-hosted: project-specific merge API, else `git checkout
+     dev && git merge --squash feat/wp-NNN-<slug> && git commit -m
+     "<merged-message>" && git push origin dev`. Local merge only
+     used when the remote API isn't available — branch protection
+     still gates the push.
+5. **Delete the remote branch** post-merge (`git push origin
+   :feat/wp-NNN-<slug>`).
+
+**Success criterion:** Squash-merge commit lands on `dev`; remote
+branch deleted; `dev` HEAD now includes the WP's change.
+
+**Failure handling:**
+
+- **CI fails on the branch** → OODA fires. Read the failed-check log
+  verbatim (the host's API exposes it). Five Whys to root cause.
+  Common patterns:
+  - Test passes locally but fails on CI → environment difference.
+    Often an unset env var, a hardcoded path, or a missing fixture.
+    In scope: fix the test setup.
+  - Lint fails on CI but passed locally → version skew between
+    local linter and CI linter. In scope: pin the linter version
+    or adjust the config to match.
+  - Build fails on CI → check for committed-but-not-tested files
+    (missing imports, unstaged files). In scope.
+  - CI failure is in a job the WP didn't touch (unrelated regression
+    landed on `dev`) → out of scope. The base `dev` is broken; the
+    executor can't fix it. BLOCKER with `"dev is broken — fix dev
+    first."`
+- **Merge conflict** → OODA fires. Rebase the feature branch on
+  `dev` HEAD (`git fetch origin && git rebase origin/dev`), resolve
+  trivial conflicts (imports, formatting, line-number-only
+  collisions), re-push, re-poll CI. **Never** `git checkout --theirs`
+  or `--ours` (loses information). After 2 rebase attempts, halt +
+  escalate — the conflict is structural and needs human resolution.
+- **Squash-merge API call fails** → OODA. Check whether branch
+  protection's required-checks list is satisfied; check whether the
+  executor's auth token has merge permissions. If auth issue, halt
+  + escalate (out of scope — auth is operator's). If required-checks
+  list has a check that didn't run, halt + escalate (CI config issue,
+  out of scope).
+- **Remote branch deletion fails after merge** → log a warning in
+  the journal but proceed. The merge already happened; orphan branch
+  cleanup is a separate concern that doesn't gate the WP.
+
+**Budget:** CI failure 3 attempts; merge conflict 2 attempts.
+
+**The no-PR rule (GIT-05) is non-negotiable.** Even when the host
+requires a PR object to mechanically perform the merge, the executor
+opens-and-immediately-merges so the PR exists only for the merge
+API's benefit, not as a review ceremony. No reviewer is added; no
+discussion is invited; the PR exists for milliseconds.
 
 ---
 
@@ -321,21 +391,22 @@ URL + smoke-test verdict + timestamp), and cleans up the worktree
 
 ---
 
-## v0.1 exit shape
+## v0.2 exit shape
 
-In v0.1, after step 6:
+In v0.2, after step 7:
 
-1. Write the branch name + commit SHA to the WP's
-   `## Acceptance Evidence` section.
-2. Update INDEX entry to `status: in_progress` with the branch
-   reference.
+1. Write the branch name, pre-squash SHA, and squash-merge SHA to
+   the WP's `## Acceptance Evidence` section.
+2. Update INDEX entry to `status: merged_to_dev` (a new intermediate
+   status — v0.3 resolves it to `done` after deploy + smoke).
 3. Emit one plain-English status line for the orchestrator /
-   invoking session.
+   invoking session: `"WP-007 merged to dev (sha abc123); awaiting
+   deploy + smoke (ships in v0.3)."`
 4. Exit.
 
-The worktree is **not cleaned up** in v0.1 (the WP isn't `done` yet;
-GIT-07 says cleanup at WP done). The branch lives on remote awaiting
-merge.
+The worktree is **not cleaned up** in v0.2 either — the WP isn't
+`done` until step 10 (per GIT-07). The remote branch IS cleaned up
+at step 7 (post-merge) — that's separate from worktree cleanup.
 
 ---
 

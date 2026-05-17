@@ -74,16 +74,19 @@ budget per `executor-loop-standard.md`.
 | 4 | BLUE — mandatory refactor | Tests still green after refactor; duplication extracted at 2-consumer threshold |
 | 5 | Lint / type / format | All checks pass |
 | 6 | Commit (Conventional Commits) + push | Push accepted; CI triggers |
-| 7 | Poll CI; on green, merge to `dev` | _(ships in v0.2)_ |
+| 7 | Poll CI; on green, squash-merge directly to `dev` (no PR) | CI green; squash-merge commit on `dev`; remote branch deleted |
 | 8 | Trigger Sulis SDK deploy | _(ships in v0.3)_ |
 | 9 | Poll health-checks | _(ships in v0.3)_ |
 | 10 | Smoke-test + mark done | _(ships in v0.3)_ |
 
-**This release (v0.1.0)** implements steps 1-6. After step 6, the
-executor exits cleanly, having pushed the branch to remote. CI runs
-on push; the branch awaits manual merge (or the v0.2+ auto-merge
-flow). The WP's `## Acceptance Evidence` records the branch name
-and the latest commit SHA.
+**This release (v0.2.0)** implements steps 1-7. After step 7, the
+WP's change is on `dev`; the remote branch has been deleted; the
+local worktree persists (per GIT-07, cleanup happens at step 10).
+The WP's `## Acceptance Evidence` records the branch name, the
+feature branch's pre-squash SHA, and the squash-merge SHA on `dev`.
+INDEX entry shifts from `in_progress` to `merged_to_dev` (a new
+intermediate status that v0.3 will resolve to `done` after deploy +
+smoke).
 
 See `references/lifecycle.md` for the detailed per-step contract,
 success criteria, and failure-handling OODA recipes.
