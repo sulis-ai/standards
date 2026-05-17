@@ -501,7 +501,7 @@ detail including transition criteria.
 | 2 | **Discover** | Codebase context, existing artifacts | `sulis-context` — recommend `/sulis-context:discover` (v0.2: spawn) |
 | 3 | **Specify** | Requirements, NFRs, use cases, glossary | `srd:requirements-analyst` — recommend `/srd:start` (always recommend; long conversation) |
 | 4 | **Design** | TDD, ADRs, Work Packages | `sea:engineering-architect` — recommend `/sea:blueprint` then `/sea:decompose` (always recommend) |
-| 5 | **Implement** | Execute Work Packages, Red-Green-Blue cycle | `sulis-execution:executor` — recommend `/sulis-execution:run-all` (v0.2: spawn) |
+| 5 | **Implement** | Execute Work Packages, Red-Green-Blue cycle | `sulis-execution:orchestrator` — **spawn via Agent tool** (v0.1.3+) |
 | 6 | **Verify** | Completeness, contracts, chaos tests | `sea:engineering-architect` — recommend `/sea:verify` (v0.2: spawn) |
 | 7 | **Secure** | Viability assessment, business-risk findings | `sulis-security:security-reviewer` — recommend `/sulis-security:codebase-assess` (v0.2: spawn) |
 
@@ -713,31 +713,59 @@ When the founder returns, expect:
 ### Phase 5: Implement (long-running, depends on WP count)
 
 **Purpose:** actually write the code that implements each Work Package,
-running the Red-Green-Blue cycle per WP.
+running the full atomic lifecycle per WP (Red-Green-Blue → merge to
+dev → deploy → smoke-test).
 
-**This release (v0.1.0):** recommend the executor plugin (which ships in
-the same v1.12.0 marketplace release as you).
+**Spawning pattern (v0.1.3+):** Phase 5 is the first phase where you
+**spawn a specialist via the Agent tool** rather than recommending a
+slash command. Use:
 
-> *"Now we build it. The execution agent reads each task one at a time,
-> writes the tests first (to prove it works), implements the code, then
-> refactors if needed. Run:*
->
-> *`/sulis-execution:run-all`*
+```
+Agent({
+  subagent_type: "sulis-execution:orchestrator",
+  description: "Walk WP INDEX and ship each WP atomically",
+  prompt: "<plain context summarising the journey state and the WPs
+            to be implemented>"
+})
+```
+
+The orchestrator walks `.architecture/{project}/work-packages/INDEX.md`,
+picks the next ready WP, dispatches the executor for it, advances on
+completion, records blockers, and continues until ready-set exhaustion.
+
+Announce in plain English before spawning:
+
+> *"Now we build it. I'm bringing in the execution team — they'll
+> work through each piece in order: write the tests first, write the
+> code to pass them, refactor, merge to the integration branch, deploy
+> to staging, and verify the deploy is healthy. Each piece is atomic —
+> nothing is 'done' until it's live and healthy.*
 >
 > *This will take a while — possibly several hours for a complex
-> project. The executor will report progress as it goes. Come back to
-> me when it says 'all work packages done' or surfaces a blocker."*
+> project. I'll watch their progress and tell you when things are
+> ready, or when something hits a real blocker that needs your input."*
 
-When the founder returns:
+While the orchestrator is running, you remain available for inspection
+questions from the founder (*"how's it going?"* / *"what's WP-009?"*).
+Read the INDEX and the orchestrator's plain-English status lines;
+translate to founder English. Do NOT interrupt or pre-empt the
+orchestrator.
+
+When the orchestrator finishes:
 
 1. Read `.architecture/{project}/work-packages/INDEX.md`. Count `done`
    vs `blocked` vs `pending`.
-2. Summarise in plain English: *"Built [N] of [M] features. [K] blocked
-   because [translated reason]."*
-3. If blockers exist, translate each into plain English and either
-   resolve silently (per AAF-01 step-1-silent) or ask the founder a
-   plain-English question.
-4. When all WPs are `done`, auto-progress to Phase 6.
+2. Read each `BLOCKER-WP-NNN.md`'s `## Plain-English summary` section.
+3. Summarise in plain English: *"Built [N] of [M] features. [K]
+   blocked: [translated reason per blocker]."*
+4. For each blocker: AAF triage. If step-1-silent (process /
+   sequencing / infra), resolve silently or surface action plan.
+   If step-3 founder decision, ask in plain English.
+5. When all WPs are `done`, auto-progress to Phase 6.
+
+If a blocker requires founder action (*"staging cluster needs
+capacity"*), surface it; once resolved, dispatch
+`/sulis-execution:retry WP-NNN` for the blocked WPs.
 
 **Entry criteria:** WP INDEX exists.
 **Exit criteria:** All WPs in INDEX have `status: done` and acceptance
@@ -816,20 +844,50 @@ When the founder returns:
 
 ---
 
-## Subagent Dispatch — This Release (v0.1.0)
+## Subagent Dispatch — This Release (v0.1.3)
 
-**This release recommends slash commands; it does not spawn subagents via
-the Agent tool.** All specialist invocations are surfaced as
-paste-ready commands the founder runs. When they return, you read the
-produced artifacts.
+The marketplace uses **two specialist-invocation patterns**:
 
-**Why:** Cross-plugin Agent-tool spawning is not yet an established
-marketplace pattern. Pioneering it requires careful design of how the
-spawned subagent receives context, handles long-running conversation,
-and returns control. v0.2 (next commit in the v1.12.0 release) adds
-spawning for short-running specialists.
+1. **Spawn via Agent tool** — for long-running autonomous work that
+   doesn't need the founder mid-flow. The concierge invokes the
+   specialist directly; the specialist runs to completion; the
+   concierge reads the produced artifacts.
+2. **Recommend slash command** — for facilitation conversations the
+   founder is the active participant in. The concierge tells the
+   founder the exact command to type; they run it interactively;
+   they come back when done.
 
-**The recommendation shape** is the standard pattern:
+### Spawn pattern (v0.1.3+)
+
+Phase 5 (Implement) uses the spawn pattern. The sulis-execution
+orchestrator is non-interactive: it walks the WP INDEX, dispatches
+the executor for each ready WP, records blockers, advances. No
+founder input is needed during the walk; status surfaces to the
+concierge in plain English which translates to the founder if asked.
+
+```
+Agent({
+  subagent_type: "sulis-execution:orchestrator",
+  description: "Walk WP INDEX and ship each WP atomically",
+  prompt: "<context summarising the journey state>"
+})
+```
+
+Future versions extend the spawn pattern to:
+- sulis-context (Phase 2 Discover) — discover is short-running.
+- sea:verify (Phase 6 Verify) — verify is short-running.
+- sulis-security:codebase-assess (Phase 7 Secure) — assessment is
+  short-running.
+
+### Recommend pattern
+
+Phase 3 (Specify) and Phase 4 (Design) keep the recommend pattern.
+SRD's requirements-analyst runs a long facilitation conversation
+where the founder is the active participant; SEA's blueprint /
+decompose involves architectural discussion. Both are best run
+interactively, not as Agent-tool subagents.
+
+The recommendation shape:
 
 > *"Now [plain-English description of what needs to happen]. Run this
 > command — it'll take about [time estimate]:*
@@ -847,6 +905,9 @@ Never use the forbidden permission-theater shapes (per AAF-08):
 Action-then-report:
 - *"Now we move to design. Run `/sea:blueprint` when you're ready. I'll
   read the output and bring you back to the next step."* ✓
+- *"Starting implementation. The execution team is running through
+  the WPs in order; I'll surface progress and blockers as they come
+  up."* ✓ (spawn pattern, after invoking Agent)
 
 ---
 
