@@ -203,13 +203,137 @@ deploys.
   successful run.
 - Final INDEX: all 3 WPs done.
 
+### Scenario 5 — WP with explicit `docs_to_update` (v0.6+)
+
+**Setup:** Synthetic WP with frontmatter:
+
+```yaml
+id: WP-005-test
+title: Add user-cancel endpoint
+primitive: Create
+docs_to_update:
+  - README.md
+  - docs/api.md
+```
+
+The WP creates a new endpoint with a docstring; README.md and
+docs/api.md reference the endpoint's signature.
+
+**Expected outcome:**
+- Steps 1-4 proceed normally (worktree, RGB).
+- Step 5 reads `docs_to_update` from frontmatter. Updates the
+  endpoint signature in README.md and docs/api.md based on the
+  WP's Green-step code change.
+- Markdown lint passes.
+- Step 6 (lint) proceeds; rest of lifecycle continues normally.
+
+**Pass criteria:**
+- README.md and docs/api.md reflect the new endpoint signature.
+- No journal warnings about ambiguous docs.
+- WP advances through to Step 12 (done).
+
+### Scenario 6a — Post-deploy verification, default behaviour, PASS path (v0.6+)
+
+**Setup:** Synthetic WP with NO `post_deploy_verification` field
+(default `security` applies). The mock security-reviewer returns
+PASS with no findings.
+
+**Expected outcome:**
+- Steps 1-10 proceed normally (through health + smoke).
+- Step 11 spawns the security-reviewer agent via Agent tool
+  despite no explicit opt-in (default `security`).
+- Security-reviewer returns PASS — no findings.
+- Step 11 logs "PASS — no findings" to WP's `## Acceptance Evidence`
+  under `## Post-deploy verification`.
+- Step 12 marks WP done, removes worktree, exits.
+
+**Pass criteria:**
+- Security-reviewer agent was invoked (verifiable in journal).
+- PASS recorded in acceptance evidence.
+- WP final status: done.
+- No BLOCKER written.
+
+### Scenario 6b — Post-deploy verification, CRITICAL finding (v0.6+)
+
+**Setup:** Same WP as 6a, but the mock security-reviewer returns:
+
+```yaml
+critical_findings:
+  - id: SEC-01
+    severity: CRITICAL
+    title: SQL injection vector introduced in cancel-subscription endpoint
+    file: src/api/subscriptions.py
+    line: 42
+    evidence: "User input concatenated directly into SQL query string"
+    recommendation: "Use parameterised query via SQLAlchemy execute()"
+```
+
+**Expected outcome:**
+- Steps 1-10 proceed normally.
+- Step 11 spawns the security-reviewer, which returns CRITICAL.
+- Executor halts. Writes `BLOCKER-WP-NNN.md` per EL-08 with:
+  - `## Failure observation (verbatim)` — the SEC-01 finding's full
+    text from the viability report.
+  - `## Five Whys trace` — drills into the SQL injection's cause
+    (e.g. *"Why did SEC-01 fire? → Query uses f-string concat. Why
+    f-string? → Developer convention. Why convention? → ORM helper
+    is verbose. ..."*).
+  - `## Scope verdict` — in-scope (the file is in WP's Contract).
+  - `## Plain-English summary` — *"WP-NNN introduced a SQL
+    injection vector in the cancel-subscription endpoint. Critical
+    — must be fixed before this WP can be marked done. The fix is
+    in-scope: use SQLAlchemy's parameterised query (already used
+    elsewhere in the codebase)."*
+  - `## Suggested next step` — *"Fix the SQL injection in
+    src/api/subscriptions.py:42; re-run /sulis-execution:retry
+    WP-NNN."*
+
+**Pass criteria:**
+- BLOCKER-WP-NNN.md exists with all required sections.
+- INDEX status: blocked.
+- Worktree at ../wp-NNN-worktree/ left in place per scope-guard
+  rule (evidence for investigation).
+- The concierge in a sibling session can read the
+  `## Plain-English summary` directly without parsing the
+  technical finding.
+
+### Scenario 6c — Post-deploy verification, explicit opt-out (v0.6+)
+
+**Setup:** Synthetic WP with frontmatter:
+
+```yaml
+id: WP-006-test
+title: Update README with new feature description
+primitive: Document
+post_deploy_verification: none
+```
+
+The WP is docs-only — touches no source files.
+
+**Expected outcome:**
+- Steps 1-10 proceed normally.
+- Step 11 reads `post_deploy_verification: none` and skips.
+- Journal records the skip with rationale (`opt-out per
+  frontmatter`).
+- Step 12 marks WP done.
+
+**Pass criteria:**
+- Security-reviewer NOT invoked.
+- Skip rationale recorded in journal.
+- WP final status: done.
+
 ## What this E2E test validates
 
-- 10-step lifecycle end-to-end (v0.3).
+- 12-step lifecycle end-to-end (v0.6).
 - Dependency ordering and topological dispatch (orchestrator v0.4).
 - In-scope OODA self-heal (Scenario 2 — EL-01..05).
 - Out-of-scope scope-guard escalation (Scenario 3 — EL-06).
 - Retry flow with archive preservation (Scenario 4).
+- Step 5 documentation update with explicit `docs_to_update`
+  (Scenario 5, v0.6).
+- Step 11 post-deploy verification, default-on (Scenario 6a, v0.6).
+- Step 11 CRITICAL → BLOCKER (Scenario 6b, v0.6).
+- Step 11 opt-out for docs-only WPs (Scenario 6c, v0.6).
 - BLOCKER record format (EL-08).
 - WP `## Acceptance Evidence` shape (lifecycle.md output contract).
 - No PR ceremony on merges (GIT-05).

@@ -60,7 +60,7 @@ If any required artifact is missing or malformed, halt immediately and
 escalate (per EL-06 scope guard — the missing artifact is a contract
 breach by an upstream agent, not something you can fix).
 
-## The 10-step lifecycle
+## The 12-step lifecycle
 
 Each step has a success criterion. Only advance when the previous step
 is green. On failure, OODA + Five Whys + scope guard + self-heal
@@ -72,19 +72,30 @@ budget per `executor-loop-standard.md`.
 | 2 | RED — write failing tests | Tests written per WP Contract (happy path + edge cases + hardening assertions); all fail for the right reason |
 | 3 | GREEN — minimum code | All new tests pass; full suite green; ≥90% coverage on new files; internal prior art checked before new code |
 | 4 | BLUE — mandatory refactor | Tests still green after refactor; duplication extracted at 2-consumer threshold |
-| 5 | Lint / type / format | All checks pass |
-| 6 | Commit (Conventional Commits) + push | Push accepted; CI triggers |
-| 7 | Poll CI; on green, squash-merge directly to `dev` (no PR) | CI green; squash-merge commit on `dev`; remote branch deleted |
-| 8 | Trigger Sulis SDK deploy of dev HEAD | Deployment status: `succeeded` |
-| 9 | Poll health-checks (exponential backoff) | Health status: `healthy` |
-| 10 | Smoke-test; mark WP `done` in INDEX; remove worktree | Smoke-test passes; INDEX updated; worktree removed |
+| 5 | **Documentation update** | Docs reflect the WP's behaviour change; identified via `docs_to_update` frontmatter OR auto-detected from WP's modified source files; no-op if nothing applies |
+| 6 | Lint / type / format | All checks pass |
+| 7 | Commit (Conventional Commits) + push | Push accepted; CI triggers |
+| 8 | Poll CI; on green, squash-merge directly to `dev` (no PR) | CI green; squash-merge commit on `dev`; remote branch deleted |
+| 9 | Trigger / wait for staging deploy | Deployment status: `succeeded` |
+| 10 | Health-check + smoke-test | Health: `healthy`; smoke-test passes |
+| 11 | **Post-deploy verification (security-reviewer)** | Default always-on; spawns sulis-security:security-reviewer with merge SHA + staging URL; CRITICAL → halt + BLOCKER; CONCERN/ADVISORY → log to acceptance evidence; PASS → advance |
+| 12 | Mark WP `done` in INDEX; remove worktree | INDEX updated; worktree removed |
 
-**This release (v0.3.0)** implements the full 10-step lifecycle. A WP
-is **done** only when it is implemented, tested, merged to `dev`,
-deployed to staging, healthy, and smoke-tested. Each step that can
-fail runs OODA + Five Whys + scope guard + budget per
-`executor-loop-standard.md`. The worktree is cleaned up at step 10
-per GIT-07.
+**This release (v0.6.0)** implements the full 12-step lifecycle.
+Steps 5 (docs) and 11 (post-deploy verification) are new in v0.6;
+they expand the atomic-unit definition from "implemented + tested +
+deployed + healthy + smoke-tested" to "implemented + tested +
+documented + deployed + healthy + smoke-tested + security-verified."
+
+Step 5 is a no-op if no docs apply to the WP's changed files. Step 11
+fires on every WP by default during the v0.6 calibration period;
+WPs can opt out via `post_deploy_verification: none` for cases where
+the assessment would be provably redundant (e.g. docs-only WPs
+touching no source files).
+
+Each step that can fail runs OODA + Five Whys + scope guard + budget
+per `executor-loop-standard.md`. The worktree is cleaned up at step
+12 per GIT-07.
 
 See `references/lifecycle.md` for the detailed per-step contract,
 success criteria, and failure-handling OODA recipes.

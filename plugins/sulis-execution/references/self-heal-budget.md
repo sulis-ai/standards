@@ -16,15 +16,22 @@ exceed the budget. Never silently give up before the budget.**
 |---|---|:---:|---|
 | **Test failure during GREEN** | 3 | 3 | Most test failures are root-causeable in 1-2 cycles via Five Whys. 3rd attempt is the safety margin before declaring "I can't make this test pass within scope." |
 | **Refactor regression during BLUE** | 4 | 2 | Blue's purpose is improvement, not heroics. After 2 failed refactor attempts, the code stays in green-but-unrefactored state. **Does not trigger BLOCKER** — quality debt note in journal instead. |
-| **Lint / type / format** | 5 | 5 | Most lint issues are auto-fixable (formatter, `eslint --fix`). High budget because cycle is cheap and recovery is mechanical. Exhaustion typically signals a formatter ↔ linter rule conflict at the project root (out of scope). |
-| **Pre-commit hook failure** | 6 | 3 | Hooks are signal. If 3 attempts to address the hook output don't satisfy it, the hook config itself is likely the issue (out of scope). |
-| **Push rejection** | 6 | 2 | Most push rejections are out-of-scope (concurrent executor collision, branch protection, auth). Low budget. |
-| **CI failure on branch** | 7 (v0.2+) | 3 | CI runs are slow (minutes); each attempt costs real time. After 3 the cause is likely environmental (out of scope). |
-| **Merge-to-dev conflict** | 7 (v0.2+) | 2 | Rebase on `dev` once; if that fails, the conflict is likely structural (another WP merged something incompatible). Out of scope after 2. |
-| **Deploy failure** | 8 (v0.3+) | 3 | Deploys can fail transiently (registry timeout, capacity); 3 retries cover most transients. Beyond → infra issue. |
-| **Health-check timeout** | 9 (v0.3+) | 5 | Health checks need warm-up time; exponential backoff covers slow starts. Beyond 5 → rollback trigger. |
+| **Docs lint / link-check fail** | 5 (v0.6+) | 3 | Markdown lint and broken cross-refs are usually mechanically fixable (path typos, anchor changes after heading rename). 3 attempts covers most. |
+| **Lint / type / format** | 6 | 5 | Most lint issues are auto-fixable (formatter, `eslint --fix`). High budget because cycle is cheap and recovery is mechanical. Exhaustion typically signals a formatter ↔ linter rule conflict at the project root (out of scope). |
+| **Pre-commit hook failure** | 7 | 3 | Hooks are signal. If 3 attempts to address the hook output don't satisfy it, the hook config itself is likely the issue (out of scope). |
+| **Push rejection** | 7 | 2 | Most push rejections are out-of-scope (concurrent executor collision, branch protection, auth). Low budget. |
+| **CI failure on branch** | 8 (v0.2+) | 3 | CI runs are slow (minutes); each attempt costs real time. After 3 the cause is likely environmental (out of scope). |
+| **Merge-to-dev conflict** | 8 (v0.2+) | 2 | Rebase on `dev` once; if that fails, the conflict is likely structural (another WP merged something incompatible). Out of scope after 2. |
+| **Deploy failure** | 9 (v0.3+) | 3 | Deploys can fail transiently (registry timeout, capacity); 3 retries cover most transients. Beyond → infra issue. |
+| **Health-check timeout** | 10 (v0.3+) | 5 | Health checks need warm-up time; exponential backoff covers slow starts. Beyond 5 → rollback trigger. |
 | **Smoke-test failure** | 10 (v0.3+) | 2 | Smoke tests are deterministic; if they fail, retry rarely helps. Low budget; usually a regression or wrong assertion. |
+| **Security-reviewer tooling error** | 11 (v0.6+) | 2 | Errors in the assessor itself (not findings — crashes, missing deps). 2 attempts cover transients; beyond → BLOCKER ("Step 11 could not run; assess manually before marking done"). |
 | **Five Whys non-convergence** | any | 1 | One attempt to find the root cause. If Five Whys doesn't converge in 5 levels, the agent doesn't get 5 more levels — escalate. |
+
+**Note on Step 11 CRITICAL findings.** A CRITICAL finding from the
+security-reviewer is **not a budget failure** — it's a halt-and-
+escalate. The WP introduced or exacerbated a critical issue and is
+not done. No retries; write BLOCKER per EL-08 immediately.
 
 ---
 
@@ -86,6 +93,25 @@ The "Suggested next step" varies by failure category:
   WP's smoke-test contract. Either the WP's expected behaviour is
   wrong, or the implementation drifted. Re-verify the contract
   against the implementation."
+- **Docs lint exhausted (Step 5)** — "Markdown lint failures persist
+  beyond 3 attempts. Likely a project-root markdown-lint config
+  issue (out of scope for this WP). Investigate
+  `.markdownlint.json` / `.markdownlintrc` or the equivalent."
+- **Security-reviewer tooling error (Step 11)** — "Security-reviewer
+  agent failed to complete its assessment (not a finding — a
+  tooling failure). Possible causes: sulis-security plugin not
+  installed, missing system tools (Trivy, Semgrep, Gitleaks), or
+  staging URL unreachable from the assessor's environment. Step 11
+  could not run; recommend assessing manually via
+  `/sulis-security:codebase-assess <project> <repo> <staging-url>`
+  before marking the WP done."
+- **Step 11 CRITICAL finding** (not a budget exhaustion; halt-and-
+  escalate directly) — "The security-reviewer surfaced a CRITICAL
+  finding on the merge SHA. The WP introduced or exacerbated a
+  critical issue and must be fixed before marking done. See the
+  BLOCKER record for the specific finding, the Five Whys trace,
+  and the scope verdict (in-scope: fix in this WP; out-of-scope:
+  rollback + separate investigation)."
 
 ---
 
