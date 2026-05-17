@@ -36,6 +36,29 @@ composite_of: []                         # optional — list of primitives if th
 
 # Required for REORGANISE primitives (Move, Refactor, Inline, Merge, Decompose, Abstract):
 # characterisation_test: "tests/legacy/characterisation/OrderService.test.ts"
+
+# Optional — Documentation update (sulis-execution v0.6+ Step 5).
+# If specified, the executor updates these files to reflect the WP's
+# behaviour change. If absent, the executor auto-detects affected docs
+# from the WP's modified source files (docstrings, README entries,
+# OpenAPI specs, ADRs) and updates them.
+# docs_to_update:
+#   - README.md
+#   - docs/api/cancel-subscription.md
+#   - .architecture/{project}/adrs/ADR-014-subscription-states.md
+
+# Optional — Post-deploy verification (sulis-execution v0.6+ Step 11).
+# Allowed values:
+#   security                — DEFAULT when field is absent. Spawns
+#                             sulis-security:security-reviewer at
+#                             merge SHA + staging URL.
+#   security+performance    — placeholder for future perf-regression
+#                             checks.
+#   none                    — explicit opt-out. Use sparingly: only
+#                             when the assessment would be provably
+#                             redundant (e.g. docs-only WPs touching
+#                             no source files).
+# post_deploy_verification: security
 ---
 
 ## Context
