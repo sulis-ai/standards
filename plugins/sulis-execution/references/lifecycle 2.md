@@ -280,9 +280,9 @@ auto-fixable category and warrants the highest budget.
 
 ---
 
-## Step 7 — Commit (Conventional Commits) + push branch
+## Step 6 — Commit (Conventional Commits) + push branch
 
-**Input:** Clean working tree from step 6, GIT-03 (commit message
+**Input:** Clean working tree from step 5, GIT-03 (commit message
 format), the WP's frontmatter.
 
 **Action:**
@@ -338,9 +338,9 @@ collisions).
 
 ---
 
-## Step 8 — Poll CI; on green, squash-merge directly to `dev` (no PR)
+## Step 7 — Poll CI; on green, squash-merge directly to `dev` (no PR)
 
-**Input:** Branch pushed from step 7; CI triggered automatically by
+**Input:** Branch pushed from step 6; CI triggered automatically by
 the push.
 
 **Action (blocking — Continuation Discipline applies):**
@@ -446,9 +446,9 @@ discussion is invited; the PR exists for milliseconds.
 
 ---
 
-## Step 9 — Wait for staging deploy
+## Step 8 — Wait for staging deploy
 
-**Input:** `dev` HEAD with the WP's squash-merge commit (from step 8).
+**Input:** `dev` HEAD with the WP's squash-merge commit (from step 7).
 
 ### Deploy-mechanism detection (MUST run first)
 
@@ -579,29 +579,29 @@ Same discipline — the call blocks until terminal.
 
 ---
 
-## Step 10 — Health-check + Smoke-test
+## Step 9 — Poll health-checks
 
-**Input:** Deployment URL from step 9 (or the staging URL from the
+**Input:** Deployment URL from step 8 (or the staging URL from the
 project's `.sulis/manifest.yaml` if auto-deploy doesn't surface a
-per-deploy URL); WP's `## Smoke Test` section.
+per-deploy URL).
 
-This step is two sub-actions in sequence: first verify the deploy is
-healthy (health-check), then verify it's functionally correct
-(smoke-test). Both must pass before advancing to Step 11. If
-health-check fails, smoke-test does not run.
-
-### Sub-action A — Poll health-checks
+**Action:**
 
 Two paths depending on what's wired:
 
-**With Sulis SDK:**
+### With Sulis SDK
 
 ```python
 health = client.health.staging(deployment_id)
-# Returns healthy | degraded | unhealthy | unknown
 ```
 
-**Without Sulis SDK — direct probe:**
+- Returns `healthy` | `degraded` | `unhealthy` | `unknown`.
+
+### Without Sulis SDK — direct probe
+
+The executor hits the deployed app's health endpoint directly. The
+endpoint comes from the project's manifest or the deploy workflow's
+output URL.
 
 ```bash
 HEALTH_URL=$(jq -r '.staging.health_url' .sulis/manifest.yaml \
@@ -635,238 +635,110 @@ fi
 **Blocking.** The Bash call does not return until healthy, budget
 exhausted, or terminal failure. Same Continuation Discipline.
 
-**Health-check budget:** 5 attempts.
-
-**Health-check failure handling:**
-
-- **Timeout (warm-up too slow)** → OODA. Likely: new code has a slow
-  startup path. In scope: optimise startup (lazy init, async warm-
-  up). Or: increase warm-up budget in WP Contract.
-- **Consistently unhealthy** → regression in the deployed change.
-  Trigger rollback per GIT-10: `git revert` the merge SHA; push the
-  revert via the same merge-direct-on-CI-green flow. Mark WP
-  `blocked` with BLOCKER pointing at the rollback.
-
-### Sub-action B — Smoke-test
-
-Once health is `healthy`, run the smoke test per the WP's
-`## Smoke Test` section. Typical shapes:
-
-- **HTTP endpoint check.** `curl <deploy_url><path>` with expected
-  status code and response body assertion.
-- **CLI invocation.** Run a binary with known input; verify output.
-- **Script.** Run a project-defined smoke-test script
-  (`scripts/smoke/wp-NNN.sh`) that exits 0 on success.
-
-**Smoke-test budget:** 2 attempts.
-
-**Smoke-test failure handling:**
-
-- **Known-flaky issue** → OODA. One retry. If still failing, treat
-  as real failure.
-- **Real regression** → OODA. Five Whys. In scope if regression is
-  in WP Contract files; out of scope otherwise. If out of scope,
-  trigger rollback per GIT-10 and BLOCKER.
-- **Smoke-test infrastructure missing** (WP's `## Smoke Test`
-  section blank, script not found) → escalate. Smoke-test definition
-  is SEA's responsibility (WP-template field); missing it is a
-  contract breach.
-
-**Success criterion:** Health-check passes AND smoke-test passes.
-
-After Step 10 advances, the deploy is functionally correct. The WP
-is **not yet done** — Step 11 (post-deploy verification) runs next
-to catch any security/quality regression before final mark-done.
-
----
-
-## Step 11 — Post-deploy verification (security-reviewer agent)
-
-**Input:** Merge SHA from step 8, staging URL from step 9-10, WP
-frontmatter (optional `post_deploy_verification` field).
-
-**Default behaviour: always-on.** When the WP frontmatter does not
-specify `post_deploy_verification`, the executor treats it as
-`security` (the default). Step 11 fires on every WP unless the WP
-explicitly opts out via `post_deploy_verification: none`.
-
-This is by design during the v0.6 calibration period — the founder
-is observing what the security-reviewer surfaces in practice before
-deciding whether to dial the default down to opt-in.
-
-**Action:**
-
-1. Read the WP frontmatter for `post_deploy_verification`. Allowed
-   values:
-   - `security` (DEFAULT — applies when field is absent) — spawn
-     the security-reviewer agent.
-   - `security+performance` — additionally trigger perf regression
-     checks if available (placeholder for future).
-   - `none` — explicit opt-out; skip Step 11; advance to Step 12.
-     **Reserved for WPs where the assessment is provably redundant**
-     (e.g. a docs-only WP touching no source files). Use sparingly.
-
-2. **If not `none`**: spawn the security-reviewer agent via Agent
-   tool, passing both the merge SHA AND the staging URL so the
-   agent performs static code analysis **and** passive deployed-
-   surface checks (HTTP headers, TLS, file exposure) in one run:
-
-   ```
-   Agent({
-     subagent_type: "sulis-security:security-reviewer",
-     description: "Post-deploy security assessment for WP-NNN",
-     prompt: """
-   Run /sulis-security:codebase-assess <project> <repo> <staging-url>
-   against the dev branch at merge SHA <sha>, with the live staging
-   URL <staging-url> for passive deployed-surface checks.
-
-   Focus on primitives potentially affected by this WP's changed
-   files (listed in WP Contract section). Report findings by
-   severity per the security-standard.
-
-   Continuation Discipline applies: complete the assessment OR
-   identify a BLOCKER-worthy CRITICAL finding before returning.
-   """,
-   })
-   ```
-
-   The Agent call blocks the executor's turn until the security-
-   reviewer returns. Continuation Discipline applies to the
-   wrapping executor too — the executor does not return control
-   while the security-reviewer is running.
-
-3. Read the resulting `.security/{project}/viability-report-*.md`.
-   Triage findings by severity per the security-standard:
-
-   - **CRITICAL** → halt + write BLOCKER per EL-08 referencing the
-     security finding. The WP introduced or exacerbated a critical
-     issue and is not done.
-   - **CONCERN** → log to WP's `## Acceptance Evidence` under a new
-     subsection `## Post-deploy verification`; **immediately
-     advance to Step 12 — do NOT return control between Step 11
-     and Step 12.** Continuation Discipline (executor.md) covers
-     this boundary explicitly after a 2026-05-18 production failure.
-   - **ADVISORY** → log similarly; **immediately advance to Step 12
-     — do NOT return control.**
-   - **PASS** → log "no findings"; **immediately advance to Step 12
-     — do NOT return control.** This is the most-likely cognitive
-     trap (executor "feels done" after PASS verdict and exits before
-     bookkeeping).
-
-**Success criterion:** Security-reviewer completed; no CRITICAL
-findings; results captured in acceptance evidence; **executor has
-advanced to Step 12 in the same turn.**
-
-**Step 11 → Step 12 transition is part of the atomic unit.** After
-the security-reviewer returns (any non-CRITICAL verdict), the next
-action in the same executor turn is Step 12. Returning control here
-is a Continuation Discipline violation — equivalent to returning
-after CI green pre-merge. The WP is not done until Step 12 success.
+**Success criterion:** `health.status == "healthy"` within budget.
 
 **Failure handling:**
 
-- **Security-reviewer agent itself errors** (not a finding — a
-  tooling failure like assessor crash or missing dependencies) →
-  OODA. Budget 2 attempts. After exhaustion, the BLOCKER records
-  the assessor failure as out-of-scope (sulis-security plugin issue,
-  not the WP's) and notes "Step 11 could not run; assess manually
-  before marking done."
-- **Security-reviewer returns CRITICAL** → halt + BLOCKER per
-  EL-08. The BLOCKER's `## Failure observation (verbatim)` is the
-  CRITICAL finding's full text; `## Five Whys trace` drills into
-  the vulnerability's root cause; `## Scope verdict` is in-scope if
-  the cause is in the WP's Contract files (in which case the WP
-  can be fixed via retry), out-of-scope if elsewhere (rollback +
-  separate investigation).
+- **Health-check timeout (warm-up too slow)** → OODA. Five Whys.
+  Likely: the new code has a slow startup path. In scope: optimise
+  the startup (lazy init, async warm-up). Or: increase the health-
+  check warm-up budget in the WP's Contract.
+- **Health-check fails consistently** → likely a regression in the
+  deployed change. Out of scope as a fix (the deploy is what's
+  unhealthy; the WP code itself may be fine, but the env may be
+  wrong). Trigger rollback per GIT-10: `git revert` the merge SHA;
+  push the revert to `dev` via the same merge-direct-on-CI-green
+  flow. Mark WP `blocked` with BLOCKER pointing at the rollback.
 
-**Budget:** 2 attempts for assessor tooling errors. CRITICAL
-findings are not retried — they're halt-and-escalate.
-
-**v0.6 calibration period note.** This step is currently always-on.
-The founder is monitoring what the assessor surfaces across WPs to
-calibrate signal-vs-noise. If the assessor produces too many
-false-positive CONCERN/ADVISORY findings (or too few CRITICAL ones),
-the default may be dialled down to opt-in (`post_deploy_verification:
-security` becomes opt-in via SEA's decompose for security-sensitive
-WPs only). Decision deferred until empirical evidence.
+**Budget:** 5 attempts (exponential backoff covers slow starts).
 
 ---
 
-## Step 12 — Mark done + worktree cleanup
+## Step 10 — Smoke-test + mark done
 
-**Input:** Successful Step 11 (PASS, CONCERN, or ADVISORY — anything
-that wasn't CRITICAL). This step runs **in the same executor turn**
-as Step 11's completion — Continuation Discipline forbids returning
-control between Step 11 and Step 12.
-
-**This step is required.** Skipping or deferring Step 12 leaves the
-WP in an indeterminate state (INDEX not updated, worktree not
-removed, acceptance evidence not appended). The orchestrator
-classifies an executor exit without Step 12 success as `error` and
-halts; the journal-resume mechanism picks the WP back up at Step 12
-on re-dispatch. Either way the bookkeeping happens — the question is
-whether it happens cleanly in the executor's own turn (cheap,
-canonical) or via recovery (expensive, audit-trail-noisy).
+**Input:** Healthy deployment from step 9; WP's `## Smoke Test`
+section (added to WP-format in v0.3 by SEA's decompose skill).
 
 **Action:**
 
-1. Append the full evidence block to the WP's `## Acceptance
-   Evidence` section:
+1. Run the smoke test per the WP's specification. Typical shapes:
+   - **HTTP endpoint check.** `curl <deploy_url><path>` with
+     expected status code and response body assertion.
+   - **CLI invocation.** Run a binary with known input; verify
+     output.
+   - **Script.** Run a project-defined smoke-test script
+     (`scripts/smoke/wp-NNN.sh`) that exits 0 on success.
+2. On success:
+   - Update INDEX entry: `status: done`.
+   - Append to WP's `## Acceptance Evidence`:
 
-   ```markdown
-   ## Acceptance Evidence
+     ```markdown
+     ## Acceptance Evidence
 
-   - Branch: `feat/wp-NNN-<slug>` (deleted post-merge)
-   - Pre-squash SHA: `<sha>`
-   - Squash-merge SHA on dev: `<sha>`
-   - Deployment URL: `<url>`
-   - Health status: `healthy`
-   - Smoke-test verdict: `PASS — <one-line summary>`
-   - Post-deploy verification: `<PASS | N CONCERN | N ADVISORY>` (see
-     .security/{project}/viability-report-<date>.md for detail)
-   - Completed: `<ISO-8601>`
-   ```
+     - Branch: `feat/wp-NNN-<slug>` (deleted post-merge)
+     - Pre-squash SHA: `<sha>`
+     - Squash-merge SHA on dev: `<sha>`
+     - Deployment URL: `<url>`
+     - Health status: `healthy`
+     - Smoke-test verdict: `PASS — <one-line summary>`
+     - Completed: `<ISO-8601>`
+     ```
 
-2. Update INDEX entry to `status: done`.
-3. Remove the local worktree (`git worktree remove
-   ../wp-NNN-worktree`).
-4. Emit one plain-English status line for the orchestrator / invoking
-   session: `"WP-007 done — deployed and healthy at <url>. Smoke-test
-   passed. Security assessment: PASS (no findings) / N CONCERN
-   findings logged."`
-5. Exit cleanly.
+   - Remove the worktree: `git worktree remove ../wp-NNN-worktree`.
+   - Emit plain-English status line: `"WP-007 done — deployed and
+     healthy at <url>. Smoke-test passed."`
+   - Exit cleanly.
 
-**Success criterion:** Evidence appended; INDEX updated; worktree
-removed; status line emitted.
+**Success criterion:** Smoke-test asserts pass; INDEX updated;
+worktree removed.
 
-After Step 12 succeeds, the WP is **done** in the full atomic sense
-the founder articulated: implemented, tested, documented, merged,
-deployed, healthy, smoke-tested, security-verified. The orchestrator
-(v0.4) reads the INDEX, sees `status: done`, marks the WP off, and
-picks the next ready WP.
+**Failure handling:**
 
-If any of Steps 5-11 escalated, the worktree is **left in place** as
-evidence per the executor-loop-standard's scope-guard / BLOCKER
-discipline. The BLOCKER record points at the worktree path. Cleanup
-happens only when the BLOCKER is resolved.
+- **Smoke-test fails on a known-flaky issue** → OODA. One retry
+  (budget 2 total). If still failing, treat as a real failure.
+- **Smoke-test fails on a real regression** → OODA. Five Whys.
+  Common cause: the deployed change broke something the WP didn't
+  intend to break. In scope if the regression is in the WP's
+  Contract files; out of scope otherwise. If out of scope, trigger
+  rollback per GIT-10 and BLOCKER.
+- **Smoke-test infrastructure missing** (WP's `## Smoke Test`
+  section blank or script not found) → escalate. Smoke-test
+  definition is SEA's responsibility (WP-template field); missing
+  it is a contract breach.
+
+**Budget:** 2 attempts.
+
+After step 10 succeeds, the WP is **done** in the full atomic sense
+the founder articulated: implemented, tested, merged, deployed,
+healthy, smoke-tested. The orchestrator (v0.4) reads the INDEX,
+sees `status: done`, marks the WP off, and picks the next ready WP.
 
 ---
 
-## v0.6 exit shape
+## v0.3 exit shape
 
-In v0.6, after Step 12 succeeds:
+In v0.3, after step 10 succeeds:
 
-1. Full `## Acceptance Evidence` block on WP file (branch, pre-
-   squash SHA, merge SHA, deploy URL, health status, smoke verdict,
-   post-deploy verification, timestamp).
-2. INDEX entry → `status: done`.
-3. Local worktree removed.
-4. Plain-English status line emitted.
+1. Append the full evidence block to the WP's
+   `## Acceptance Evidence` section (branch, pre-squash SHA,
+   merge SHA, deploy URL, health status, smoke verdict, timestamp).
+2. Update INDEX entry to `status: done`.
+3. Remove the local worktree (`git worktree remove
+   ../wp-NNN-worktree`).
+4. Emit one plain-English status line for the orchestrator /
+   invoking session: `"WP-007 done — deployed and healthy at
+   <url>. Smoke-test passed."`
 5. Exit.
 
-The WP is now atomically done in the full sense:
-implementation, tests, docs, lint, commit, push, CI, merge,
-deploy, health, smoke, security verification — all green.
+The WP is **done** in the founder's full-atomic sense: implemented,
+tested, merged, deployed, healthy, smoke-tested. The orchestrator
+(v0.4) picks the next ready WP from the INDEX.
+
+If step 10 escalates (smoke fails on a regression, infrastructure
+missing, etc.), the worktree is **left in place** as evidence per
+the executor-loop-standard's scope-guard / BLOCKER discipline. The
+BLOCKER record points at the worktree path. Cleanup happens only
+when the BLOCKER is resolved.
 
 ---
 

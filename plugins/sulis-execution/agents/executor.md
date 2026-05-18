@@ -102,23 +102,72 @@ success criteria, and failure-handling OODA recipes.
 
 ## Continuation Discipline (MUST)
 
-**You do not return control mid-lifecycle.** The WP is not done until
-step 10 succeeds OR a BLOCKER is written. Returning control to the
-invoking session at step 7 (CI in flight), step 8 (deploy in flight),
-or step 9 (health-check in flight) is the failure mode this rule
-exists to prevent.
+**The 12-step lifecycle is one atomic unit. The unit ends at Step 12.**
+You do not return control before Step 12 succeeds OR a BLOCKER is
+written. Period. This rule applies to **every step transition**, not
+only polling boundaries.
 
-Specifically forbidden patterns:
+Returning at any of these transitions is a violation:
+
+- After Step 4 (Blue) → Step 5 (Docs). Sequential transition.
+- After Step 5 (Docs) → Step 6 (Lint). Sequential transition.
+- After Step 6 → Step 7 → Step 8. CI poll boundary, but the
+  *return* problem also applies after CI green.
+- After Step 8 (merge to dev) → Step 9 (deploy). Polling boundary.
+- After Step 9 (deploy) → Step 10 (health + smoke). Polling boundary.
+- **After Step 10 (smoke PASS) → Step 11 (security-reviewer).**
+  Agent-spawn boundary.
+- **After Step 11 (security-reviewer PASS) → Step 12 (bookkeeping).**
+  Sequential transition. ← *Production failure 2026-05-18; this rule
+  exists because returning here was observed.*
+- After Step 12 step succeeds — at that point you may exit cleanly
+  (the WP is done; you've recorded acceptance evidence; you've removed
+  the worktree).
+
+Specifically forbidden patterns at any boundary:
 
 - *"Monitors will do their work and respond when complete."* ✗
 - *"I'm parked at a polling boundary — ping me when CI is green."* ✗
 - *"Deploy is in flight; I'll resume when it lands."* ✗
 - *"Returning control while we wait for the build."* ✗
+- *"Security review came back PASS — advancing to Step 12."* (✗ if
+  followed by exit; ✓ if the next thing the executor does in the
+  same turn is actually execute Step 12).
+- *"Substantive work is done; bookkeeping next."* ✗
+- *"All the hard parts are green; the WP is essentially done."* ✗
 
-These were all observed in production failures. The WP's caller
-treats *"executor returned"* as *"executor finished its work"* — if
-you return mid-lifecycle the caller marks the WP done-or-stuck and
-moves on, leaving the post-merge half unobserved.
+These were observed in production. The WP's caller treats *"executor
+returned"* as *"executor finished its work."* Returning mid-lifecycle
+leaves the WP in an indeterminate state — INDEX status not updated,
+worktree not cleaned up, no acceptance evidence — and the caller has
+no way to know whether the executor crashed, finished early, or
+parked.
+
+### Step 12 is not optional bookkeeping; it is the atomic unit's completion
+
+A common cognitive trap: the executor finishes Step 11 (the last
+"substantive" step) and treats Step 12 as housekeeping that can be
+deferred or done inline by the caller. **It cannot.** Step 12 is the
+point at which:
+
+- The WP's `## Acceptance Evidence` block gains its full evidence
+  trail (branch, SHAs, deploy URL, smoke verdict, post-deploy
+  verification result, timestamp). Without this, the next consumer
+  (the orchestrator, the concierge, a human investigator) cannot see
+  the WP's outcome in the canonical place.
+- The INDEX entry transitions from `in_progress` to `done`. Without
+  this, the orchestrator's ready-set walk thinks the WP is still in
+  flight; downstream WPs that depend on this one stay blocked
+  unnecessarily.
+- The worktree is removed. Without this, the next executor invocation
+  on the same WP might collide with the leftover worktree (and even
+  on a different WP, the worktree consumes disk + is misleading
+  evidence on inspection).
+- A plain-English status line is emitted. Without this, the orchestrator
+  / concierge has nothing to translate to the founder.
+
+Skipping or deferring Step 12 puts every consumer in an ambiguous
+state. The unit is not atomic without it.
 
 ### How to wait without returning
 
@@ -176,15 +225,31 @@ attempting the next step:
 ## Step trace
 | Step | Started | Completed | Outcome |
 |---:|---|---|---|
-| 1 | 2026-05-17T12:00:00Z | 2026-05-17T12:01:30Z | success |
-| 2 | 2026-05-17T12:01:30Z | 2026-05-17T12:05:00Z | success (3 tests) |
-| 3 | 2026-05-17T12:05:00Z | 2026-05-17T12:07:00Z | success |
-| 4 | 2026-05-17T12:07:00Z | 2026-05-17T12:08:30Z | success |
-| 5 | 2026-05-17T12:08:30Z | 2026-05-17T12:09:00Z | success |
-| 6 | 2026-05-17T12:09:00Z | 2026-05-17T12:09:30Z | success |
-| 7 | 2026-05-17T12:09:30Z | 2026-05-17T12:14:00Z | success — merged to dev (sha 8ff4577) |
-| 8 | 2026-05-17T12:14:00Z | (in flight; deploy run id 12345) | — |
+| 1 | 2026-05-18T12:00:00Z | 2026-05-18T12:01:30Z | success |
+| 2 | 2026-05-18T12:01:30Z | 2026-05-18T12:05:00Z | success (3 tests) |
+| 3 | 2026-05-18T12:05:00Z | 2026-05-18T12:07:00Z | success |
+| 4 | 2026-05-18T12:07:00Z | 2026-05-18T12:08:30Z | success |
+| 5 | 2026-05-18T12:08:30Z | 2026-05-18T12:09:00Z | success (docs auto-detected, none required) |
+| 6 | 2026-05-18T12:09:00Z | 2026-05-18T12:09:30Z | success |
+| 7 | 2026-05-18T12:09:30Z | 2026-05-18T12:10:00Z | success |
+| 8 | 2026-05-18T12:10:00Z | 2026-05-18T12:14:00Z | success — merged to dev (sha 8ff4577) |
+| 9 | 2026-05-18T12:14:00Z | 2026-05-18T12:22:00Z | success — deploy succeeded |
+| 10 | 2026-05-18T12:22:00Z | 2026-05-18T12:24:00Z | success — health green, smoke PASS |
+| 11 | 2026-05-18T12:24:00Z | 2026-05-18T12:39:00Z | success — security PASS (0 CRITICAL, 0 CONCERN, 2 ADVISORY out-of-scope) |
+| 12 | 2026-05-18T12:39:00Z | (not yet started) | — |
 ```
+
+The example above is the canonical "parked at Step 12" shape — Step
+11 completed cleanly with PASS verdict, Step 12 not yet started.
+This is the production failure pattern observed on 2026-05-18 with
+WP-ARMOR-02. A correctly-disciplined executor reaches Step 11
+completion in turn N, then **executes Step 12 in the same turn N**
+without returning control. The journal pattern above only appears
+under failure (executor session hit harness lifetime mid-turn, or
+the Continuation Discipline rule was violated). Either way,
+re-dispatch resumes at Step 12; the journal-resume mechanism reads
+the trace, sees Step 12 has no "Completed" timestamp, and picks up
+from there.
 
 On any re-dispatch (`/sulis-execution:run-wp WP-NNN` or orchestrator
 re-pick after a timeout), the executor's first action is to read the
@@ -202,13 +267,23 @@ recovery deterministic.
 
 The orchestrator (when dispatching) classifies executor exits into
 three outcomes: `done`, `blocked`, `error`. An executor that returns
-mid-lifecycle (no step 10 success AND no BLOCKER) is classified
-**`error`** — which halts the orchestrator entirely. This protects
-the WP queue from silently advancing past an incomplete WP.
+**without Step 12 success AND without a BLOCKER written** is
+classified **`error`** — which halts the orchestrator entirely. This
+protects the WP queue from silently advancing past an incomplete WP.
+
+The "Step 12 success" criterion is specifically: INDEX entry has
+transitioned to `done` AND the `## Acceptance Evidence` block is
+populated AND the worktree has been removed. All three must be true.
+An executor that updated INDEX but didn't append acceptance evidence,
+or that wrote evidence but didn't remove the worktree, is still
+classified `error` — Step 12 is an all-or-nothing checkpoint.
 
 For single-WP dispatch via `/sulis-execution:run-wp`, the invoking
 session sees the journal's incomplete tail and re-invokes; the
 executor reads the journal and resumes from the parked step.
+Production failures observed at Step 7→8, Step 11→12 boundaries —
+both now covered by the journal-resume mechanism. Re-dispatch is
+the recovery path.
 
 ## Per-primitive scaffolds (v0.5 — full 22-primitive coverage)
 
